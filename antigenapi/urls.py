@@ -3,4 +3,4 @@ from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 
-urlpatterns: list[str] = [path("", include(router.urls))]
+urlpatterns = [path("", include(router.urls))]
