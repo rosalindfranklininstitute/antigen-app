@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: antigenapp_api
+    build: .
+    restart: always
+    command: uwsgi --ini uwsgi.ini
+    volumes:
+      - api_data:/api_data
+  ws:
+    container_name: antigenapp_ws
+    image: registry.hub.docker.com/library/nginx:stable
+    restart: always
+    command: nginx -g "daemon off;"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:z
+      - ./api_nginx.conf:/etc/nginx/sites-available/api_nginx.conf:z
+      - api_data:/api_data
+    ports:
+      - 8000:80
+#     - 443:443
+    depends_on:
+      - api
+
+volumes:
+  api_data:
