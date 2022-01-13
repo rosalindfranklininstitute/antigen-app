@@ -12,6 +12,3 @@ antigenapp = { editable = true, extras = ["dev"], path = "." }
 [scripts]
 tests = "python -m pytest"
 build = "python setup.py sdist bdist_wheel"
-
-[requires]
-python_version = "3.9"
