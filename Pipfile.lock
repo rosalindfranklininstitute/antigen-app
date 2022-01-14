@@ -44,6 +44,14 @@
             "markers": "python_version >= '3.6'",
             "version": "==3.13.1"
         },
+        "elementpath": {
+            "hashes": [
+                "sha256:1e98a4f5e8ccb5fe147074adda751c648d4a752973212298b6c9fc18c3a8c3e6",
+                "sha256:5b6801b3be94d48d213beb7b8ebad96addb35c95fc6a9c062c80e033b4a32fe8"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==2.4.0"
+        },
         "pytz": {
             "hashes": [
                 "sha256:3672058bc3453457b622aab7a1c3bfd5ab0bdae451512f6cf25f64ed37f5b87c",
@@ -64,6 +72,14 @@
                 "sha256:88ab9867d8973d8ae84719cf233b7dafc54326fcaec89683c3f9f77c002cdff9"
             ],
             "version": "==2.0.20"
+        },
+        "xmlschema": {
+            "hashes": [
+                "sha256:3ce6fe408a8c0a0ca5917cbe6181a933dfb5cfade9714eeb07b6335f9aff7b10",
+                "sha256:a7ba52b774a87b59c6428cd9e3601210cbb226552208015bd40800698a6500ad"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==1.9.2"
         }
     },
     "develop": {
@@ -174,6 +190,14 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==3.13.1"
+        },
+        "elementpath": {
+            "hashes": [
+                "sha256:1e98a4f5e8ccb5fe147074adda751c648d4a752973212298b6c9fc18c3a8c3e6",
+                "sha256:5b6801b3be94d48d213beb7b8ebad96addb35c95fc6a9c062c80e033b4a32fe8"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==2.4.0"
         },
         "filelock": {
             "hashes": [
@@ -427,6 +451,14 @@
                 "sha256:88ab9867d8973d8ae84719cf233b7dafc54326fcaec89683c3f9f77c002cdff9"
             ],
             "version": "==2.0.20"
+        },
+        "xmlschema": {
+            "hashes": [
+                "sha256:3ce6fe408a8c0a0ca5917cbe6181a933dfb5cfade9714eeb07b6335f9aff7b10",
+                "sha256:a7ba52b774a87b59c6428cd9e3601210cbb226552208015bd40800698a6500ad"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==1.9.2"
         }
     }
 }
