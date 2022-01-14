@@ -26,7 +26,7 @@ class Antigen(Model):
     """A unique antigen, typically referenced to the UniProt database."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
-    uniprot_id: str = CharField(max_length=32, unique=True, null=True)
+    uniprot_accession_number: str = CharField(max_length=32, unique=True, null=True)
 
     @property
     def protein_data(self) -> Optional[Dict]:
@@ -35,8 +35,8 @@ class Antigen(Model):
         Returns:
             Optional[Dict]: A key value mapping of protein data if available.
         """
-        if self.uniprot_id:
-            return get_protein(self.uniprot_id)
+        if self.uniprot_accession_number:
+            return get_protein(self.uniprot_accession_number)
         else:
             return None
 
