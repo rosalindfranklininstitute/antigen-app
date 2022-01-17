@@ -18,6 +18,7 @@ from django.db.models.fields import (
     PositiveSmallIntegerField,
     UUIDField,
 )
+from django.utils.timezone import now
 
 from antigenapi.utils.uniprot import get_protein
 
@@ -60,7 +61,7 @@ class Nanobody(Model):
     """A unique nanobody."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
-    creation_time: datetime = DateTimeField(editable=False, default=datetime.now)
+    creation_time: datetime = DateTimeField(editable=False, default=now)
 
     @property
     def name(self) -> str:
@@ -80,7 +81,7 @@ class ElisaPlate(Model):
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
     threshold: float = FloatField()
-    creation_time: datetime = DateTimeField(editable=False, default=datetime.now)
+    creation_time: datetime = DateTimeField(editable=False, default=now)
 
 
 PlateLocations = IntegerChoices(
