@@ -16,4 +16,4 @@ router.register("elisa_plate", ElisaPlateViewSet)
 router.register("elisa_well", ElisaWellViewSet)
 router.register("sequence", SequenceViewSet)
 
-urlpatterns: list[str] = [path("", include(router.urls))]
+urlpatterns = [path("", include(router.urls))]
