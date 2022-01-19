@@ -39,10 +39,7 @@ class LocalAntigenViewSet(ModelViewSet):
 
 
 class UniProtAntigenSerialzer(ModelSerializer):
-    """A serializer for UniProt antigen data.
-
-    A serializer for UniProt antigen data which serializes all internal fields.
-    """
+    """A serializer for UniProt antigen data which serializes all internal fields."""
 
     class Meta:  # noqa: D106
         model = UniProtAntigen
