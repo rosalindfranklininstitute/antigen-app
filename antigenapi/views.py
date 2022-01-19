@@ -38,6 +38,8 @@ class LocalAntigenViewSet(ModelViewSet):
     queryset = LocalAntigen.objects.all()
     serializer_class = LocalAntigenSerializer
 
+    perform_create = perform_create_allow_creator_change_delete
+
 
 class UniProtAntigenSerialzer(ModelSerializer):
     """A serializer for UniProt antigen data.
@@ -62,6 +64,8 @@ class UniProtAntigenViewSet(ModelViewSet):
 
     queryset = UniProtAntigen.objects.all()
     serializer_class = UniProtAntigenSerialzer
+
+    perform_create = perform_create_allow_creator_change_delete
 
 
 class AntigenSerializer(ModelSerializer):
