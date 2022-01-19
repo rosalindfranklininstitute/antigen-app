@@ -41,14 +41,8 @@ class LocalAntigenViewSet(ModelViewSet):
 class UniProtAntigenSerialzer(ModelSerializer):
     """A serializer for UniProt antigen data.
 
-    A serializer for UniProt antigen data which serializes all internal fields, and the
-    computed fields; name, sequence & molecular_mass; which are retrieved from the
-    UniProt database.
+    A serializer for UniProt antigen data which serializes all internal fields.
     """
-
-    name = ReadOnlyField()
-    sequence = ReadOnlyField()
-    molecular_mass = ReadOnlyField()
 
     class Meta:  # noqa: D106
         model = UniProtAntigen
