@@ -18,6 +18,18 @@ class AntigenAdmin(GuardedModelAdmin):
     pass
 
 
+class LocalAntigenAdmin(GuardedModelAdmin):
+    """A guarded model admin view for local antigen objects."""
+
+    pass
+
+
+class UniProtAntigenAdmin(GuardedModelAdmin):
+    """A guarded model admin view for UniProt antigen objects."""
+
+    pass
+
+
 class NanobodyAdmin(GuardedModelAdmin):
     """A guarded model admin view for nanobody objects."""
 
