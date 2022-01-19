@@ -41,7 +41,7 @@ class Antigen(Model):
         return cls.objects.create().uuid
 
 
-AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYV]*$")
+AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZ]*$")
 
 
 class LocalAntigen(Model):
