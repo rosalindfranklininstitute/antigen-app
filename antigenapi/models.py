@@ -1,6 +1,5 @@
 from datetime import datetime
 from itertools import product
-from typing import Dict, Optional
 from uuid import UUID, uuid4
 
 from django.core.validators import RegexValidator
@@ -9,13 +8,16 @@ from django.db.models import (
     ForeignKey,
     IntegerChoices,
     Model,
+    OneToOneField,
     UniqueConstraint,
 )
 from django.db.models.fields import (
     CharField,
     DateTimeField,
     FloatField,
+    IntegerField,
     PositiveSmallIntegerField,
+    TextField,
     UUIDField,
 )
 from django.utils.timezone import now
@@ -24,37 +26,86 @@ from antigenapi.utils.uniprot import get_protein
 
 
 class Antigen(Model):
-    """A unique antigen, typically referenced to the UniProt database."""
+    """A unique antigen identifier, for use by Local & UniProt antigens."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
-    uniprot_accession_number: str = CharField(max_length=32, unique=True, null=True)
 
-    @property
-    def protein_data(self) -> Optional[Dict]:
-        """Protein data retrieved from the UniProt database.
+    @classmethod
+    def get_new(cls) -> UUID:
+        """Create a new antigen instance and return the unique identifier.
 
         Returns:
-            Optional[Dict]: A key value mapping of protein data if available.
+            UUID: The unique identifier of the antigen instance.
         """
-        if self.uniprot_accession_number:
-            return get_protein(self.uniprot_accession_number)
-        else:
-            return None
+        return cls.objects.create().uuid
+
+
+AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYV]*$")
+
+
+class LocalAntigen(Model):
+    """A locally defined antigen with recorded sequence and molecular mass."""
+
+    antigen = OneToOneField(
+        Antigen,
+        primary_key=True,
+        related_name="local_antigen",
+        on_delete=CASCADE,
+        default=Antigen.get_new,
+    )
+    sequence: str = TextField(validators=[AminoCodeLetters])
+    molecular_mass: int = IntegerField()
 
     @property
     def name(self) -> str:
-        """A user friendly short name for the protein.
+        """A human readable antigen name, consisting of the first eight characters of the UUID.
 
-        The recommended short name of the protein from the UniProt database if
-        available, otherwise the first eight characters of the UUID is used
+        Returns:
+            str: A human readable antigen name.
+        """
+        return str(self.antigen.uuid)[:8]
+
+
+class UniProtAntigen(Model):
+    """An antigen defined by reference to the UniProt database."""
+
+    antigen = OneToOneField(
+        Antigen,
+        primary_key=True,
+        related_name="uniprot_antigen",
+        on_delete=CASCADE,
+        default=Antigen.get_new,
+    )
+    uniprot_accession_number: str = CharField(max_length=32, unique=True)
+
+    @property
+    def sequence(self) -> str:
+        """The protein sequence from the UniProt database.
+
+        Returns:
+            str: The protein sequence.
+        """
+        return get_protein(self.uniprot_accession_number)["sequence"]["$"]
+
+    @property
+    def name(self) -> str:
+        """The recommended short name of the protein from the UniProt database.
 
         Returns:
             str: A user friendly short name for the protein.
         """
-        if self.protein_data:
-            return self.protein_data["recommendedName"]["shortName"][0]
-        else:
-            return str(self.uuid)[:8]
+        return get_protein(self.uniprot_accession_number)["protein"]["recommendedName"][
+            "shortName"
+        ][0]
+
+    @property
+    def molecular_mass(self) -> int:
+        """The protein molecular mass from the UniProt database.
+
+        Returns:
+            int: The protein molecular mass.
+        """
+        return get_protein(self.uniprot_accession_number)["sequence"]["@mass"]
 
 
 class Nanobody(Model):
@@ -80,7 +131,7 @@ class ElisaPlate(Model):
     """A unique elisa experimental plate."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
-    threshold: float = FloatField()
+    threshold: float = FloatField(null=True)
     creation_time: datetime = DateTimeField(editable=False, default=now)
 
 
@@ -112,7 +163,7 @@ class ElisaWell(Model):
     nanobody: Nanobody = ForeignKey(
         Nanobody, related_name="nanobody_elisa_wells", on_delete=CASCADE
     )
-    optical_density: float = FloatField()
+    optical_density: float = FloatField(null=True)
 
     class Meta:  # noqa: D106
         constraints = [
@@ -129,9 +180,6 @@ class ElisaWell(Model):
         return self.optical_density >= self.plate.threshold
 
 
-AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYV]*$")
-
-
 class Sequence(Model):
     """A nanobody sequence."""
 
@@ -139,7 +187,7 @@ class Sequence(Model):
     nanobody: Nanobody = ForeignKey(
         Nanobody, on_delete=CASCADE, related_name="sequences"
     )
-    cdr1: str = CharField(max_length=128, validators=[AminoCodeLetters])
-    cdr2: str = CharField(max_length=128, validators=[AminoCodeLetters])
-    cdr3: str = CharField(max_length=128, validators=[AminoCodeLetters])
+    cdr1: str = TextField(validators=[AminoCodeLetters])
+    cdr2: str = TextField(validators=[AminoCodeLetters])
+    cdr3: str = TextField(validators=[AminoCodeLetters])
     creation_time: datetime = DateTimeField(editable=False, default=datetime.now)
