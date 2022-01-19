@@ -49,6 +49,7 @@ class LocalAntigen(Model):
     antigen = OneToOneField(
         Antigen,
         primary_key=True,
+        editable=False,
         related_name="local_antigen",
         on_delete=CASCADE,
         default=Antigen.get_new,
@@ -72,6 +73,7 @@ class UniProtAntigen(Model):
     antigen = OneToOneField(
         Antigen,
         primary_key=True,
+        editable=False,
         related_name="uniprot_antigen",
         on_delete=CASCADE,
         default=Antigen.get_new,
