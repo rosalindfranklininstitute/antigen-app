@@ -1,5 +1,6 @@
 from datetime import datetime
 from itertools import product
+from typing import Iterable, Optional
 from uuid import UUID, uuid4
 
 from django.core.validators import RegexValidator
@@ -46,7 +47,7 @@ AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYV]*$")
 class LocalAntigen(Model):
     """A locally defined antigen with recorded sequence and molecular mass."""
 
-    antigen = OneToOneField(
+    antigen: Antigen = OneToOneField(
         Antigen,
         primary_key=True,
         editable=False,
@@ -79,35 +80,23 @@ class UniProtAntigen(Model):
         default=Antigen.get_new,
     )
     uniprot_accession_number: str = CharField(max_length=32, unique=True)
+    sequence: str = TextField(validators=[AminoCodeLetters], editable=False)
+    molecular_mass: int = IntegerField(editable=False)
+    name = CharField(max_length=32, editable=False)
 
-    @property
-    def sequence(self) -> str:
-        """The protein sequence from the UniProt database.
-
-        Returns:
-            str: The protein sequence.
-        """
-        return get_protein(self.uniprot_accession_number)["sequence"]["$"]
-
-    @property
-    def name(self) -> str:
-        """The recommended short name of the protein from the UniProt database.
-
-        Returns:
-            str: A user friendly short name for the protein.
-        """
-        return get_protein(self.uniprot_accession_number)["protein"]["recommendedName"][
-            "shortName"
-        ][0]
-
-    @property
-    def molecular_mass(self) -> int:
-        """The protein molecular mass from the UniProt database.
-
-        Returns:
-            int: The protein molecular mass.
-        """
-        return get_protein(self.uniprot_accession_number)["sequence"]["@mass"]
+    def save(
+        self,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: Optional[str] = None,
+        update_fields: Optional[Iterable[str]] = None,
+    ) -> None:
+        """Overridden save method which gets sequence, mass & name from UniProt."""
+        protein_data = get_protein(self.uniprot_accession_number)
+        self.sequence = protein_data["sequence"]["$"]
+        self.molecular_mass = protein_data["sequence"]["@mass"]
+        self.name = protein_data["protein"]["recommendedName"]["shortName"][0]
+        return super().save(force_insert, force_update, using, update_fields)
 
 
 class Nanobody(Model):
