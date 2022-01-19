@@ -19,4 +19,4 @@ def get_protein(
     """
     data = SCHEMA.to_dict(URL_BASE + accession_number + ".xml")
     assert isinstance(data, Dict)
-    return data["entry"][0]["protein"]
+    return data["entry"][0]

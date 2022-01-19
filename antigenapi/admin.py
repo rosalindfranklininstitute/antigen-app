@@ -1,7 +1,15 @@
 from django.contrib.admin import site
 from guardian.admin import GuardedModelAdmin
 
-from antigenapi.models import Antigen, ElisaPlate, ElisaWell, Nanobody, Sequence
+from antigenapi.models import (
+    Antigen,
+    ElisaPlate,
+    ElisaWell,
+    LocalAntigen,
+    Nanobody,
+    Sequence,
+    UniProtAntigen,
+)
 
 
 class AntigenAdmin(GuardedModelAdmin):
@@ -35,6 +43,8 @@ class SequenceAdmin(GuardedModelAdmin):
 
 
 site.register(Antigen, AntigenAdmin)
+site.register(LocalAntigen)
+site.register(UniProtAntigen)
 site.register(Nanobody, NanobodyAdmin)
 site.register(ElisaPlate, ElisaPlateAdmin)
 site.register(ElisaWell, ElisaWellAdmin)

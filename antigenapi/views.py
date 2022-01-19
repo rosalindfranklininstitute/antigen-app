@@ -3,20 +3,77 @@ from rest_framework.serializers import (
     PrimaryKeyRelatedField,
     ReadOnlyField,
 )
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from antigenapi.models import Antigen, ElisaPlate, ElisaWell, Nanobody, Sequence
+from antigenapi.models import (
+    Antigen,
+    ElisaPlate,
+    ElisaWell,
+    LocalAntigen,
+    Nanobody,
+    Sequence,
+    UniProtAntigen,
+)
 from antigenapi.utils.permission import perform_create_allow_creator_change_delete
+
+
+class LocalAntigenSerializer(ModelSerializer):
+    """A serializer for local antigen data.
+
+    A serializer for local antigen data which serializes all interal fields, and the
+    computed field; name.
+    """
+
+    name = ReadOnlyField()
+
+    class Meta:  # noqa: D106
+        model = LocalAntigen
+        fields = "__all__"
+        read_only_fields = ["antigen"]
+
+
+class LocalAntigenViewSet(ModelViewSet):
+    """A view set displaying all recorded local antigens."""
+
+    queryset = LocalAntigen.objects.all()
+    serializer_class = LocalAntigenSerializer
+
+
+class UniProtAntigenSerialzer(ModelSerializer):
+    """A serializer for UniProt antigen data.
+
+    A serializer for UniProt antigen data which serializes all internal fields, and the
+    computed fields; name, sequence & molecular_mass; which are retrieved from the
+    UniProt database.
+    """
+
+    name = ReadOnlyField()
+    sequence = ReadOnlyField()
+    molecular_mass = ReadOnlyField()
+
+    class Meta:  # noqa: D106
+        model = UniProtAntigen
+        fields = "__all__"
+        read_only_fields = ["antigen"]
+
+
+class UniProtAntigenViewSet(ModelViewSet):
+    """A view set displaying all recorded UniProt antigens."""
+
+    queryset = UniProtAntigen.objects.all()
+    serializer_class = UniProtAntigenSerialzer
 
 
 class AntigenSerializer(ModelSerializer):
     """A serializer for antigen data.
 
-    A serializer for antigen data which serializes all internal fields and elisa wells
-    which contain this antigen.
+    A serializer for antigen data which serializes all internal fields, and includes the
+    serialzed related local or UniProt antigen data and provides a set of elisa well
+    which reference it.
     """
 
-    name = ReadOnlyField()
+    local_antigen = LocalAntigenSerializer(read_only=True)
+    uniprot_antigen = UniProtAntigenSerialzer(read_only=True)
     antigen_elisa_wells = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:  # noqa: D106
@@ -24,7 +81,7 @@ class AntigenSerializer(ModelSerializer):
         fields = "__all__"
 
 
-class AntigenViewSet(ModelViewSet):
+class AntigenViewSet(ReadOnlyModelViewSet):
     """A view set displaying all recorded antigens."""
 
     queryset = Antigen.objects.all()
