@@ -38,20 +38,9 @@ class LocalAntigenViewSet(ModelViewSet):
     queryset = LocalAntigen.objects.all()
     serializer_class = LocalAntigenSerializer
 
-    perform_create = perform_create_allow_creator_change_delete
-
 
 class UniProtAntigenSerialzer(ModelSerializer):
-    """A serializer for UniProt antigen data.
-
-    A serializer for UniProt antigen data which serializes all internal fields, and the
-    computed fields; name, sequence & molecular_mass; which are retrieved from the
-    UniProt database.
-    """
-
-    name = ReadOnlyField()
-    sequence = ReadOnlyField()
-    molecular_mass = ReadOnlyField()
+    """A serializer for UniProt antigen data which serializes all internal fields."""
 
     class Meta:  # noqa: D106
         model = UniProtAntigen
