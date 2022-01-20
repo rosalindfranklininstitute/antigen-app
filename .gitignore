@@ -54,5 +54,8 @@ cov.xml
 migrations/
 static/
 
+# Databases
+*.sqlite3
+
 # PyBuilder
 target/
