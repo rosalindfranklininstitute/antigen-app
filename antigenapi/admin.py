@@ -55,8 +55,8 @@ class SequenceAdmin(GuardedModelAdmin):
 
 
 site.register(Antigen, AntigenAdmin)
-site.register(LocalAntigen)
-site.register(UniProtAntigen)
+site.register(LocalAntigen, LocalAntigenAdmin)
+site.register(UniProtAntigen, UniProtAntigenAdmin)
 site.register(Nanobody, NanobodyAdmin)
 site.register(ElisaPlate, ElisaPlateAdmin)
 site.register(ElisaWell, ElisaWellAdmin)
