@@ -30,6 +30,7 @@ class Antigen(Model):
     """A unique antigen identifier, for use by Local & UniProt antigens."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
+    creation_time: datetime = DateTimeField(editable=False, default=now)
 
     @classmethod
     def get_new(cls) -> UUID:
