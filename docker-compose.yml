@@ -3,7 +3,7 @@ version: '3.8'
 services:
   api:
     container_name: antigenapp_api
-    build: .
+    build: backend/
     restart: always
     command: uwsgi --ini uwsgi.ini
     volumes:
