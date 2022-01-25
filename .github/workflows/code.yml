@@ -1,4 +1,4 @@
-name: Code CI
+name: Backend Code CI
 
 on:
   push:
@@ -9,9 +9,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-latest"]  # can add windows-latest, macos-latest
+        os: ["ubuntu-latest"] # can add windows-latest, macos-latest
         python: ["3.7", "3.8", "3.9", "3.10 "]
-        pipenv: ["skip-lock"]  # --${flag} will be passed to pipenv command
+        pipenv: ["skip-lock"] # --${flag} will be passed to pipenv command
 
         include:
           # Add an extra Python3.10 runner to publish wheels and use the lockfile
@@ -23,6 +23,9 @@ jobs:
     name: build/${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout Source
@@ -74,7 +77,7 @@ jobs:
       - name: Github Release
         # We pin to the SHA, not the tag, for security reasons.
         # https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
-        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb  # v0.1.12
+        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb # v0.1.12
         with:
           files: dist/*
           body: See [Changelog](CHANGELOG.rst) for more details
