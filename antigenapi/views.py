@@ -14,6 +14,7 @@ from antigenapi.models import (
     Sequence,
     UniProtAntigen,
 )
+from antigenapi.utils.permission import perform_create_allow_creator_change_delete
 
 
 class LocalAntigenSerializer(ModelSerializer):
@@ -37,6 +38,8 @@ class LocalAntigenViewSet(ModelViewSet):
     queryset = LocalAntigen.objects.all()
     serializer_class = LocalAntigenSerializer
 
+    perform_create = perform_create_allow_creator_change_delete
+
 
 class UniProtAntigenSerialzer(ModelSerializer):
     """A serializer for UniProt antigen data which serializes all internal fields."""
@@ -52,6 +55,8 @@ class UniProtAntigenViewSet(ModelViewSet):
 
     queryset = UniProtAntigen.objects.all()
     serializer_class = UniProtAntigenSerialzer
+
+    perform_create = perform_create_allow_creator_change_delete
 
 
 class AntigenSerializer(ModelSerializer):
@@ -77,6 +82,8 @@ class AntigenViewSet(ReadOnlyModelViewSet):
     queryset = Antigen.objects.all()
     serializer_class = AntigenSerializer
 
+    perform_create = perform_create_allow_creator_change_delete
+
 
 class NanobodySerializer(ModelSerializer):
     """A serializer for nanobody data.
@@ -100,6 +107,8 @@ class NanobodyViewSet(ModelViewSet):
     queryset = Nanobody.objects.all()
     serializer_class = NanobodySerializer
 
+    perform_create = perform_create_allow_creator_change_delete
+
 
 class ElisaPlateSerializer(ModelSerializer):
     """A serializer for elisa plates.
@@ -121,6 +130,8 @@ class ElisaPlateViewSet(ModelViewSet):
     queryset = ElisaPlate.objects.all()
     serializer_class = ElisaPlateSerializer
 
+    perform_create = perform_create_allow_creator_change_delete
+
 
 class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
@@ -138,6 +149,8 @@ class ElisaWellViewSet(ModelViewSet):
     queryset = ElisaWell.objects.all()
     serializer_class = ElisaWellSerializer
 
+    perform_create = perform_create_allow_creator_change_delete
+
 
 class SequenceSerializer(ModelSerializer):
     """A sequence serializer which serializes all interla fields."""
@@ -152,3 +165,5 @@ class SequenceViewSet(ModelViewSet):
 
     queryset = Sequence.objects.all()
     serializer_class = SequenceSerializer
+
+    perform_create = perform_create_allow_creator_change_delete

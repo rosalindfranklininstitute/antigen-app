@@ -34,6 +34,14 @@
             "markers": "python_version >= '3.8'",
             "version": "==4.0.1"
         },
+        "django-guardian": {
+            "hashes": [
+                "sha256:440ca61358427e575323648b25f8384739e54c38b3d655c81d75e0cd0d61b697",
+                "sha256:c58a68ae76922d33e6bdc0e69af1892097838de56e93e78a8361090bcd9f89a0"
+            ],
+            "markers": "python_version >= '3.5'",
+            "version": "==2.4.0"
+        },
         "djangorestframework": {
             "hashes": [
                 "sha256:0c33407ce23acc68eca2a6e46424b008c9c02eceb8cf18581921d0092bc1f2ee",
@@ -180,6 +188,14 @@
             ],
             "markers": "python_version >= '3.8'",
             "version": "==4.0.1"
+        },
+        "django-guardian": {
+            "hashes": [
+                "sha256:440ca61358427e575323648b25f8384739e54c38b3d655c81d75e0cd0d61b697",
+                "sha256:c58a68ae76922d33e6bdc0e69af1892097838de56e93e78a8361090bcd9f89a0"
+            ],
+            "markers": "python_version >= '3.5'",
+            "version": "==2.4.0"
         },
         "djangorestframework": {
             "hashes": [
