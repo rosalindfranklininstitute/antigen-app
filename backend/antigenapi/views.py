@@ -1,3 +1,7 @@
+from allauth.socialaccount.providers.github.views import GitHubOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.views import OAuth2Client
+from allauth.socialaccount.providers.orcid.views import OrcidOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework.serializers import (
     ModelSerializer,
     PrimaryKeyRelatedField,
@@ -14,7 +18,18 @@ from antigenapi.models import (
     Sequence,
     UniProtAntigen,
 )
+
 from antigenapi.utils.permission import perform_create_allow_creator_change_delete
+
+
+class GitHubLoginView(SocialLoginView):
+    adapter_class = GitHubOAuth2Adapter
+    callback_url = "https://127.0.0.1"
+    client_class = OAuth2Client
+
+
+class ORCiDLoginView(SocialLoginView):
+    adapter_class = OrcidOAuth2Adapter
 
 
 class LocalAntigenSerializer(ModelSerializer):
