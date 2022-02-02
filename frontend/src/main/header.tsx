@@ -1,4 +1,4 @@
-function Header(props: { logo: string, title: string}) {
+function Header(props: { logo: string, title: string }) {
     return (
         <header className='row'>
             <div className='col-md-2'>
