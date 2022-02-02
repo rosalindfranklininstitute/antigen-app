@@ -21,7 +21,7 @@ function AntigenView() {
         };
         fetchAntigen();
     }, []);
-    
+
     console.log(antigen);
     return (
         <table className="table">
@@ -52,7 +52,7 @@ function AntigensView() {
         };
         fetchAntigens();
     }, []);
-    
+
     return (
         <table className="table">
             <thead>
@@ -66,7 +66,7 @@ function AntigensView() {
                         <tr key={i}>
                             <td><Link to={`/antigen/${e.uuid}`}>{e.uuid}</Link></td>
                         </tr>
-                        )
+                    )
                     )
                 }
             </tbody>
