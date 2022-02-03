@@ -1,7 +1,8 @@
 import { Container } from '@mui/material';
 import { Route, Routes } from 'react-router';
 import { BrowserRouter } from 'react-router-dom';
-import { AntigensView, AntigenView } from './antigen';
+import AntigenView from '../antigen/individual';
+import AntigensView from '../antigen/aggregate';
 import { Header } from './header';
 import { HomeView } from "./home";
 import logo from './logo.svg';
