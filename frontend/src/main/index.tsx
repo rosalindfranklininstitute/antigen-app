@@ -1,3 +1,4 @@
+import { Container } from '@mui/material';
 import { Route, Routes } from 'react-router';
 import { BrowserRouter } from 'react-router-dom';
 import { AntigensView, AntigenView } from './antigen';
@@ -10,13 +11,13 @@ function App() {
   return (
     <BrowserRouter>
       <Header logo={logo} title='Antigen App' />
-      <div className='container'>
+      <Container sx={{ mt: 4, mb: 4 }}>
         <Routes>
           <Route path="/" element={<HomeView />} />
           <Route path="/antigen/:uuid" element={<AntigenView />} />
           <Route path="/antigens/" element={<AntigensView />} />
         </Routes>
-      </div>
+      </Container>
     </BrowserRouter>
   );
 }
