@@ -1,6 +1,7 @@
 import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody, Typography, Card, LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { fromAPI } from "../utils/api";
 
 type Antigen = {
     uuid: string
@@ -20,7 +21,7 @@ function AntigenView() {
 
     useEffect(() => {
         const fetchAntigen = async () => {
-            const response = await fetch(`http://127.0.0.1:8000/api/antigen/${params.uuid}/?format=json`);
+            const response = await fromAPI(`antigen/${params.uuid}`);
             setResponse(response);
             if (response.ok) {
                 const antigen: Antigen = await response.json();
@@ -86,7 +87,7 @@ function AntigensView() {
 
     useEffect(() => {
         const fetchAntigens = async () => {
-            const response = await fetch("http://127.0.0.1:8000/api/antigen/?format=json");
+            const response = await fromAPI("antigen");
             if (response.ok) {
                 const antigens = await response.json();
                 setAntigens(antigens);
