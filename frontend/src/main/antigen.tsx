@@ -1,7 +1,8 @@
 import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody, Typography, Card, LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { fromAPI } from "../utils/api";
+import { fromAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+
 
 type Antigen = {
     uuid: string
@@ -32,20 +33,12 @@ function AntigenView() {
     }, [params]);
 
     if (!response) {
-        return (
-            <Paper>
-                <Typography>Retrieving antigen from database.</Typography>
-                <LinearProgress />
-            </Paper>
-        )
+        return <LoadingPaper text="Retrieving antigen from database." />
     }
 
     if (!antigen) {
-        return (
-            <Card>
-                <Typography variant="h5">Could not retrieve entry for {window.location.href.split("/").pop()}</Typography>
-            </Card>
-        )
+        let text = `Could not retrieve entry for ${window.location.href.split("/").pop()}`
+        return <FailedRetrievalPaper text={text} />
     }
 
     return (
@@ -84,10 +77,12 @@ function AntigenView() {
 
 function AntigensView() {
     const [antigens, setAntigens] = useState<Antigen[]>([]);
+    const [response, setResponse] = useState<Response | null>(null);
 
     useEffect(() => {
         const fetchAntigens = async () => {
             const response = await fromAPI("antigen");
+            setResponse(response);
             if (response.ok) {
                 const antigens = await response.json();
                 setAntigens(antigens);
@@ -96,14 +91,12 @@ function AntigensView() {
         fetchAntigens();
     }, []);
 
-    if (!antigens.length) {
-        return (
-            <Paper>
-                <Typography>Retrieving antigen list from database.</Typography>
-                <LinearProgress />
-            </Paper>
+    if (!response) {
+        return <LoadingPaper text="Retrieving antigen list from database." />
+    }
 
-        )
+    if (!antigens.length) {
+        return <FailedRetrievalPaper text="Could not retrieve antigen list." />
     }
 
     return (
