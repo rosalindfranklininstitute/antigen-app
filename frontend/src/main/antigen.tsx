@@ -1,3 +1,4 @@
+import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -24,18 +25,20 @@ function AntigenView() {
 
     console.log(antigen);
     return (
-        <table className="table">
-            <tbody>
-                <tr>
-                    <td>UUID:</td>
-                    <td>{antigen?.uuid}</td>
-                </tr>
-                <tr>
-                    <td>Elisa Appearances:</td>
-                    <td>{antigen?.antigen_elisa_wells}</td>
-                </tr>
-            </tbody>
-        </table>
+        <TableContainer component={Paper}>
+            <Table>
+                <TableBody>
+                    <TableRow>
+                        <TableCell>UUID:</TableCell>
+                        <TableCell>{antigen?.uuid}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell>Elisa Appearances:</TableCell>
+                        <TableCell>{antigen?.antigen_elisa_wells}</TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        </TableContainer>
     )
 };
 
@@ -54,23 +57,24 @@ function AntigensView() {
     }, []);
 
     return (
-        <table className="table">
-            <thead>
-                <tr>
-                    <th scope="col">UUID</th>
-                </tr>
-            </thead>
-            <tbody>
-                {
-                    antigens.map((e, i) => (
-                        <tr key={i}>
-                            <td><Link to={`/antigen/${e.uuid}`}>{e.uuid}</Link></td>
-                        </tr>
-                    )
-                    )
-                }
-            </tbody>
-        </table>
+        <TableContainer component={Paper}>
+            <Table>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>UUID</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {
+                        antigens.map((e, i) => (
+                            <TableRow key={i}>
+                                <TableCell><Link to={`/antigen/${e.uuid}`}>{e.uuid}</Link></TableCell>
+                            </TableRow>
+                        ))
+                    }
+                </TableBody>
+            </Table>
+        </TableContainer>
     )
 };
 
