@@ -1,4 +1,4 @@
-import { Card, LinearProgress, Paper, Typography } from "@mui/material"
+import { LinearProgress, Paper, Typography } from "@mui/material"
 
 export function fromAPI(uriFrag: string) {
     return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?format=json`)
