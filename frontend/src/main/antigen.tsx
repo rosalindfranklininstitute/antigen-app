@@ -1,5 +1,4 @@
-import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody, Typography, Card, CircularProgress, LinearProgress } from "@mui/material";
-import { Box } from "@mui/system";
+import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody, Typography, Card, LinearProgress } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
@@ -29,7 +28,7 @@ function AntigenView() {
             };
         };
         fetchAntigen();
-    }, []);
+    }, [params]);
 
     if (!response) {
         return (
