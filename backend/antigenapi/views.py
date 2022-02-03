@@ -1,7 +1,12 @@
+from typing import Optional
+
 from rest_framework.serializers import (
+    CharField,
+    IntegerField,
     ModelSerializer,
     PrimaryKeyRelatedField,
     ReadOnlyField,
+    SerializerMethodField,
 )
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -67,9 +72,26 @@ class AntigenSerializer(ModelSerializer):
     which reference it.
     """
 
-    local_antigen = LocalAntigenSerializer(read_only=True)
-    uniprot_antigen = UniProtAntigenSerialzer(read_only=True)
+    sequence = CharField(source="child.sequence")
+    molecular_mass = IntegerField(source="child.molecular_mass")
+    name = CharField(source="child.name")
+    uniprot_accession_number = SerializerMethodField()
     antigen_elisa_wells = PrimaryKeyRelatedField(many=True, read_only=True)
+
+    def get_uniprot_accession_number(self, antigen: Antigen) -> Optional[str]:
+        """Retrieve the uniprot accession number if the child antigen is from uniprot.
+
+        Args:
+            antigen (Antigen): The parent object instance.
+
+        Returns:
+            Optional[str]: The uniprot accession number if available.
+        """
+        return (
+            antigen.child.uniprot_accession_number
+            if isinstance(antigen.child, UniProtAntigen)
+            else None
+        )
 
     class Meta:  # noqa: D106
         model = Antigen
