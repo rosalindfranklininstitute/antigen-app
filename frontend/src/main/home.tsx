@@ -22,7 +22,7 @@ function AntigenCard() {
                     startIcon={<AddIcon />}
                     aria-controls={add_open ? 'add-enu' : undefined}
                     aria-haspopup="true"
-                    aria-aria-expanded={add_open ? 'true' : undefined}
+                    aria-expanded={add_open ? 'true' : undefined}
                     onClick={(event: MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }}
                 >
                     Add New
