@@ -1,13 +1,14 @@
+import { AppBar, Toolbar, Typography } from "@mui/material";
+import { useNavigate } from 'react-router-dom';
+
 function Header(props: { logo: string, title: string }) {
+    const navigate = useNavigate();
     return (
-        <header className='row'>
-            <div className='col-md-2'>
-                <img src={props.logo} className="logo" alt="logo"></img>
-            </div>
-            <div className='col-md-10 mt-3'>
-                {props.title}
-            </div>
-        </header>
+        <AppBar position="static">
+            <Toolbar>
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={() => { navigate("/") }}>Antigen App</Typography>
+            </Toolbar>
+        </AppBar>
     );
 };
 
