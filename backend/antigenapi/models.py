@@ -1,6 +1,6 @@
 from datetime import datetime
 from itertools import product
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 from uuid import UUID, uuid4
 
 from django.core.validators import RegexValidator
@@ -31,6 +31,18 @@ class Antigen(Model):
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
     creation_time: datetime = DateTimeField(editable=False, default=now)
+
+    @property
+    def child(self) -> Optional[Union["LocalAntigen", "UniProtAntigen"]]:
+        """The child LocalAntigen or UniProtAntigen instance if available.
+
+        Returns:
+            Optional[Union[LocalAntigen, UniProtAntigen]]: The child LocalAntigen or
+                UniProtAntigen instance if available.
+        """
+        return getattr(self, "local_antigen", None) or getattr(
+            self, "uniprot_antigen", None
+        )
 
     @classmethod
     def get_new(cls) -> UUID:
