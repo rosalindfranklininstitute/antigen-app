@@ -15,7 +15,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomeView />} />
           <Route path="/antigen/:uuid" element={<AntigenView />} />
-          <Route path="/antigens/" element={<AntigensView />} />
+          <Route path="/antigen/" element={<AntigensView />} />
         </Routes>
       </Container>
     </BrowserRouter>
