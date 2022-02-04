@@ -1,7 +1,7 @@
 import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { fromAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { Antigen } from "./utils";
 
 export default function AntigensView() {
@@ -10,7 +10,7 @@ export default function AntigensView() {
 
     useEffect(() => {
         const fetchAntigens = async () => {
-            const response = await fromAPI("antigen");
+            const response = await getAPI("antigen");
             setResponse(response);
             if (response.ok) {
                 const antigens = await response.json();
