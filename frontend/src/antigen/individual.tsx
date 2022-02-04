@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@mui/material";
+import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fromAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
@@ -35,7 +35,10 @@ export default function AntigenView() {
     return (
         <Card>
             <CardContent>
-                <AntigenInfo antigen={antigen} />
+                <Stack>
+                    <Typography variant="h4">{antigen.name}</Typography>
+                    <AntigenInfo antigen={antigen} />
+                </Stack>
             </CardContent>
         </Card>
     );
