@@ -8,6 +8,7 @@ import { HomeView } from "./home";
 import logo from './logo.svg';
 import './main.css';
 import AddUniProtAntigenView from '../antigen/addUniprot';
+import AddLocalAntigenView from '../antigen/addLocal';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/antigen/:uuid" element={<AntigenView />} />
           <Route path="/antigen/" element={<AntigensView />} />
           <Route path="/antigen/uniprot/add/" element={<AddUniProtAntigenView />} />
+          <Route path="/antigen/local/add/" element={<AddLocalAntigenView />} />
         </Routes>
       </Container>
     </BrowserRouter>
