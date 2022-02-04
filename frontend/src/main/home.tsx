@@ -34,11 +34,11 @@ function AntigenCard() {
                     onClose={() => { setAnchorEl(null) }}
                     MenuListProps={{ 'aria-labelledby': 'add-button' }}
                 >
-                    <MenuItem onClick={() => navigate("/antigen/uniprot/add")}>
+                    <MenuItem onClick={() => navigate("/antigen/uniprot/add/")}>
                         <ListItemIcon><AddLinkIcon /></ListItemIcon>
                         <ListItemText>From UniProt</ListItemText>
                     </MenuItem>
-                    <MenuItem onClick={() => navigate("/antigen/local/add")}>
+                    <MenuItem onClick={() => navigate("/antigen/local/add/")}>
                         <ListItemIcon><CreateIcon /></ListItemIcon>
                         <ListItemText>Manual Entry</ListItemText>
                     </MenuItem>
