@@ -1,7 +1,7 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { fromAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { Antigen, AntigenInfo } from "./utils";
 
 
@@ -13,7 +13,7 @@ export default function AntigenView() {
 
     useEffect(() => {
         const fetchAntigen = async () => {
-            const response = await fromAPI(`antigen/${params.uuid}`);
+            const response = await getAPI(`antigen/${params.uuid}`);
             setResponse(response);
             if (response.ok) {
                 const antigen: Antigen = await response.json();
