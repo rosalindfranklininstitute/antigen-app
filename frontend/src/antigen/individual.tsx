@@ -1,8 +1,9 @@
-import { Paper, TableCell, TableContainer, TableRow, Table, TableBody, Typography, Card } from "@mui/material";
+import { Card, CardContent } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fromAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { Antigen } from "./utils";
+import { Antigen, AntigenInfo } from "./utils";
+
 
 export default function AntigenView() {
     let params = useParams();
@@ -33,34 +34,9 @@ export default function AntigenView() {
 
     return (
         <Card>
-            <Typography variant="h4">{antigen.name}</Typography>
-            <Typography variant="h5">({antigen.uuid})</Typography>
-            <TableContainer component={Paper}>
-                <Table>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell>Sequence:</TableCell>
-                            <TableCell>{antigen.sequence}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Molecular Mass:</TableCell>
-                            <TableCell>{antigen.molecular_mass}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Uniprot Accession Number:</TableCell>
-                            <TableCell>{antigen.uniprot_accession_number}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Elisa Appearances:</TableCell>
-                            <TableCell>{antigen.antigen_elisa_wells}</TableCell>
-                        </TableRow>
-                        <TableRow>
-                            <TableCell>Creation Time:</TableCell>
-                            <TableCell>{antigen.creation_time}</TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            </TableContainer>
+            <CardContent>
+                <AntigenInfo antigen={antigen} />
+            </CardContent>
         </Card>
-    )
+    );
 };
