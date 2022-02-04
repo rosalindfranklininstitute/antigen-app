@@ -1,9 +1,10 @@
-import { Card, CardContent, TextField, Typography, Stack, List, Divider, ListItem } from "@mui/material";
+import { Card, CardContent, TextField, Typography, Stack, Divider, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
 import { Antigen, AntigenInfo, UniProtAntigen } from "./utils";
 import { fromAPI } from "../utils/api";
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function AddUniProtAntigenView() {
 
@@ -66,16 +67,21 @@ export default function AddUniProtAntigenView() {
                             Submit
                         </LoadingButton>
                     </Stack>
-                    <Divider />
-                    <List>
-                        {
-                            antigens.map((antigen, idx) => (
-                                <ListItem>
-                                    <AntigenInfo antigen={antigen} />
-                                </ListItem>
-                            ))
-                        }
-                    </List>
+                    {
+                        antigens.map((antigen, idx) => (
+                            <div>
+                                <Divider />
+                                <Accordion>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                        {antigen.name}
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        <AntigenInfo antigen={antigen} />
+                                    </AccordionDetails>
+                                </Accordion>
+                            </div>
+                        ))
+                    }
                 </Stack>
             </CardContent>
         </Card >
