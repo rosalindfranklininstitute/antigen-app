@@ -3,7 +3,7 @@ import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
 import { Antigen, AntigenInfo, UniProtAntigen } from "./utils";
-import { fromAPI } from "../utils/api";
+import { getAPI } from "../utils/api";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function AddUniProtAntigenView() {
@@ -34,7 +34,7 @@ export default function AddUniProtAntigenView() {
         }
 
         let antigenUUID = ((await response.json()) as UniProtAntigen).antigen
-        const getResponse = await fromAPI(`antigen/${antigenUUID}`)
+        const getResponse = await getAPI(`antigen/${antigenUUID}`)
 
         if (!getResponse.ok) {
             setWaiting(false);
