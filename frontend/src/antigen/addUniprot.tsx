@@ -1,4 +1,4 @@
-import { Card, CardContent, TextField, Typography, Stack, Divider, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import { Card, CardContent, TextField, Typography, Stack, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
