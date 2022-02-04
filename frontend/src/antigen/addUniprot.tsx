@@ -3,7 +3,7 @@ import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
 import { Antigen, AntigenInfo, UniProtAntigen } from "./utils";
-import { getAPI } from "../utils/api";
+import { getAPI, postAPI } from "../utils/api";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function AddUniProtAntigenView() {
@@ -14,17 +14,10 @@ export default function AddUniProtAntigenView() {
 
     const submit = async () => {
         setWaiting(true);
-        const response = await fetch(
-            "http://127.0.0.1:8000/api/uniprot_antigen/",
+        const response = await postAPI(
+            "uniprot_antigen",
             {
-                method: 'POST',
-                mode: 'cors',
-                cache: 'no-cache',
-                credentials: 'same-origin',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 'uniprot_accession_number': accessionNumber })
+                'uniprot_accession_number': accessionNumber
             }
         )
 
@@ -69,17 +62,14 @@ export default function AddUniProtAntigenView() {
                     </Stack>
                     {
                         antigens.map((antigen, idx) => (
-                            <div>
-                                <Divider />
-                                <Accordion>
-                                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                        {antigen.name}
-                                    </AccordionSummary>
-                                    <AccordionDetails>
-                                        <AntigenInfo antigen={antigen} />
-                                    </AccordionDetails>
-                                </Accordion>
-                            </div>
+                            <Accordion>
+                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                    {antigen.name}
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <AntigenInfo antigen={antigen} />
+                                </AccordionDetails>
+                            </Accordion>
                         ))
                     }
                 </Stack>
