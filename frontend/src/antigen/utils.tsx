@@ -1,5 +1,12 @@
 import { TableCell, TableContainer, TableRow, Table, TableBody, Typography, Stack } from "@mui/material";
 
+export type UniProtAntigen = {
+    antigen: string
+    uniprot_accession_number: string
+    sequence: string
+    molecular_mass: number
+    name: string
+}
 
 export type Antigen = {
     uuid: string
