@@ -1,6 +1,6 @@
 import { LinearProgress, Paper, Typography } from "@mui/material"
 
-export function fromAPI(uriFrag: string) {
+export function getAPI(uriFrag: string) {
     return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?format=json`)
 }
 
