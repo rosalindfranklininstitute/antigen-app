@@ -1,6 +1,6 @@
-import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody, Typography, Card } from "@mui/material";
+import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { fromAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { Antigen } from "./utils";
 
