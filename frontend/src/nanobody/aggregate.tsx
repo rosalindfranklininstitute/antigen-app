@@ -73,14 +73,6 @@ export default function NanobodiesView() {
                     columns={columns}
                     getRowId={(row) => row.uuid}
                     components={{ Toolbar: GridToolbar }}
-                    initialState={{
-                        columns: {
-                            columnVisibilityModel: {
-                                sequence: false,
-                                uniprot_accession_number: false
-                            }
-                        }
-                    }}
                     style={{ border: 0 }}
                 />
             </CardContent>
