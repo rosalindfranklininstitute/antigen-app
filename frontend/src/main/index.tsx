@@ -9,6 +9,9 @@ import logo from './logo.svg';
 import './main.css';
 import AddUniProtAntigenView from '../antigen/addUniprot';
 import AddLocalAntigenView from '../antigen/addLocal';
+import NanobodiesView from '../nanobody/aggregate';
+import NanobodyView from '../nanobody/individual';
+import AddNanobodyView from '../nanobody/add';
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
           <Route path="/antigen/" element={<AntigensView />} />
           <Route path="/antigen/uniprot/add/" element={<AddUniProtAntigenView />} />
           <Route path="/antigen/local/add/" element={<AddLocalAntigenView />} />
+          <Route path="/nanobody/" element={<NanobodiesView />} />
+          <Route path="/nanobody/:uuid" element={<NanobodyView />} />
+          <Route path="/nanobody/add/" element={<AddNanobodyView />} />
         </Routes>
       </Container>
     </BrowserRouter>
