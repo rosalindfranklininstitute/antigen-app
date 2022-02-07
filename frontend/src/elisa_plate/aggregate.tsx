@@ -1,0 +1,82 @@
+import { Card, CardContent, IconButton } from "@mui/material";
+import { DataGrid, GridColDef, GridToolbar, GridRenderCellParams } from "@mui/x-data-grid";
+import { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
+import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { ElisaPlate } from "./utils";
+import LinkIcon from '@mui/icons-material/Link';
+import { WellCellRenderer } from "../utils/elements";
+
+export default function ElisaPlatesView() {
+    const navigate = useNavigate();
+
+    const [elisaPlates, setElisaPlates] = useState<ElisaPlate[]>([]);
+    const [response, setResponse] = useState<Response | null>(null);
+
+    useEffect(() => {
+        const fetchElisaPlates = async () => {
+            const response = await getAPI("elisa_plate");
+            setResponse(response);
+            if (response.ok) {
+                const elisaPlates = await response.json();
+                setElisaPlates(elisaPlates);
+            }
+        };
+        fetchElisaPlates();
+    }, []);
+
+    if (!response) {
+        return <LoadingPaper text="Retrieving elisa plate list from database." />
+    }
+
+    if (!elisaPlates.length) {
+        return <FailedRetrievalPaper text="Could not retrieve elisa plate list." />
+    }
+
+    const columns: GridColDef[] = [
+        {
+            field: 'uuid',
+            headerName: 'Link',
+            renderCell: (params: GridRenderCellParams<string>) => {
+                return (
+                    <IconButton onClick={() => navigate(`/elisa_plate/${params.value}/`)}>
+                        <LinkIcon />
+                    </IconButton>
+                )
+            },
+            width: 50
+        },
+        {
+            field: 'threshold',
+            headerName: 'Threshold',
+            flex: 1,
+        },
+        {
+            field: 'plate_elisa_wells',
+            headerName: 'Associated Wells',
+            renderCell: WellCellRenderer,
+            flex: 1,
+        },
+        {
+            field: 'creation_time',
+            headerName: 'Creation Time',
+            flex: 1
+        }
+    ]
+
+    return (
+        <Card>
+            <CardContent>
+                <DataGrid
+                    autoHeight
+                    rows={elisaPlates}
+                    columns={columns}
+                    getRowId={(row) => row.uuid}
+                    components={{ Toolbar: GridToolbar }}
+                    style={{ border: 0 }}
+                />
+            </CardContent>
+        </Card>
+
+    )
+};
