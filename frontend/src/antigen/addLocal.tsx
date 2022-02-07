@@ -2,7 +2,7 @@ import { Card, CardContent, TextField, Typography, Stack, Divider, Accordion, Ac
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
-import { Antigen, AntigenInfo, UniProtAntigen } from "./utils";
+import { Antigen, AntigenInfo, LocalAntigen } from "./utils";
 import { getAPI, postAPI } from "../utils/api";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
@@ -28,7 +28,7 @@ export default function AddLocalAntigenView() {
             return
         }
 
-        let antigenUUID = ((await response.json()) as UniProtAntigen).antigen
+        let antigenUUID = ((await response.json()) as LocalAntigen).antigen
         const getResponse = await getAPI(`antigen/${antigenUUID}`)
 
         if (!getResponse.ok) {
@@ -45,7 +45,7 @@ export default function AddLocalAntigenView() {
         <Card>
             <CardContent>
                 <Stack spacing={2}>
-                    <Typography variant="h4">Add new antigen from UniProt database</Typography>
+                    <Typography variant="h4">Add new antigen</Typography>
                     <Stack direction="row" spacing={2}>
                         <TextField
                             required
