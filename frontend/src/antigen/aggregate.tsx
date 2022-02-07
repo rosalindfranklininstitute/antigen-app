@@ -1,15 +1,11 @@
-import { Card, CardContent, IconButton } from "@mui/material";
-import { DataGrid, GridColDef, GridToolbar, GridRenderCellParams } from "@mui/x-data-grid";
+import { Card, CardContent } from "@mui/material";
+import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
 import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { Antigen } from "./utils";
-import LinkIcon from '@mui/icons-material/Link';
-import { WellCellRenderer } from "../utils/elements";
+import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
 
 export default function AntigensView() {
-    const navigate = useNavigate();
-
     const [antigens, setAntigens] = useState<Antigen[]>([]);
     const [response, setResponse] = useState<Response | null>(null);
 
@@ -34,18 +30,7 @@ export default function AntigensView() {
     }
 
     const columns: GridColDef[] = [
-        {
-            field: 'uuid',
-            headerName: 'Link',
-            renderCell: (params: GridRenderCellParams<string>) => {
-                return (
-                    <IconButton onClick={() => navigate(`/antigen/${params.value}/`)}>
-                        <LinkIcon />
-                    </IconButton>
-                )
-            },
-            width: 50
-        },
+        IconLinkUUIDGridColDef("/antigen/"),
         {
             field: 'name',
             headerName: 'Antigen Name',

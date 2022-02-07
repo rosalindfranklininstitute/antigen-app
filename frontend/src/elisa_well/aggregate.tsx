@@ -1,15 +1,11 @@
-import { Card, CardContent, IconButton } from "@mui/material";
-import { DataGrid, GridColDef, GridToolbar, GridRenderCellParams } from "@mui/x-data-grid";
+import { Card, CardContent } from "@mui/material";
+import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
 import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { ElisaWell, locationToGrid } from "./utils";
-import LinkIcon from '@mui/icons-material/Link';
-import { LinkUUIDCellRenderer } from "../utils/elements";
+import { IconLinkUUIDGridColDef, LinkUUIDCellRenderer } from "../utils/elements";
 
 export default function ElisaWellsView() {
-    const navigate = useNavigate();
-
     const [elisaWells, setElisaWells] = useState<ElisaWell[]>([]);
     const [response, setResponse] = useState<Response | null>(null);
 
@@ -34,18 +30,7 @@ export default function ElisaWellsView() {
     }
 
     const columns: GridColDef[] = [
-        {
-            field: 'uuid',
-            headerName: 'Link',
-            renderCell: (params: GridRenderCellParams<string>) => {
-                return (
-                    <IconButton onClick={() => navigate(`/elisa_well/${params.value}/`)}>
-                        <LinkIcon />
-                    </IconButton>
-                )
-            },
-            width: 50
-        },
+        IconLinkUUIDGridColDef("/elisa_well/"),
         {
             field: 'plate',
             headerName: 'Plate',
