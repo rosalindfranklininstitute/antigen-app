@@ -8,6 +8,13 @@ export type UniProtAntigen = {
     name: string
 }
 
+export type LocalAntigen = {
+    antigen: string
+    sequence: string
+    molecular_mass: number
+    name: string
+}
+
 export type Antigen = {
     uuid: string
     sequence: string
