@@ -1,11 +1,11 @@
-import { Button, Card, CardContent, IconButton, Link } from "@mui/material";
+import { Card, CardContent, IconButton } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar, GridRenderCellParams } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { ElisaWell, locationToGrid } from "./utils";
 import LinkIcon from '@mui/icons-material/Link';
-import { LinkUUIDCellRenderer, WellCellRenderer } from "../utils/elements";
+import { LinkUUIDCellRenderer } from "../utils/elements";
 
 export default function ElisaWellsView() {
     const navigate = useNavigate();
@@ -49,7 +49,7 @@ export default function ElisaWellsView() {
         {
             field: 'plate',
             headerName: 'Plate',
-            renderCell: (params: GridRenderCellParams<string>) => LinkUUIDCellRenderer("/elisa_plate/", params),
+            renderCell: LinkUUIDCellRenderer("/elisa_plate/"),
             flex: 1,
         },
         {
@@ -61,13 +61,13 @@ export default function ElisaWellsView() {
         {
             field: 'antigen',
             headerName: 'Antigen UUID',
-            renderCell: (params: GridRenderCellParams<string>) => LinkUUIDCellRenderer("/antigen/", params),
+            renderCell: LinkUUIDCellRenderer("/antigen/"),
             flex: 1,
         },
         {
             field: 'nanobody',
             headerName: 'Nanobody UUID',
-            renderCell: (params: GridRenderCellParams<string>) => LinkUUIDCellRenderer("/nanobody/", params),
+            renderCell: LinkUUIDCellRenderer("/nanobody/"),
             flex: 1,
         },
         {
