@@ -39,7 +39,7 @@ export default function AntigensView() {
             headerName: 'Link',
             renderCell: (params: GridRenderCellParams<string>) => {
                 return (
-                    <IconButton onClick={() => navigate(`/ antigen / ${params.value} / `)}>
+                    <IconButton onClick={() => navigate(`/antigen/${params.value}/`)}>
                         <LinkIcon />
                     </IconButton>
                 )
