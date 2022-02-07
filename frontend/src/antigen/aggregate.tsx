@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { Antigen } from "./utils";
 import LinkIcon from '@mui/icons-material/Link';
+import { WellCellRenderer } from "../utils/elements";
 
 export default function AntigensView() {
     const navigate = useNavigate();
@@ -30,38 +31,6 @@ export default function AntigensView() {
 
     if (!antigens.length) {
         return <FailedRetrievalPaper text="Could not retrieve antigen list." />
-    }
-
-    const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
-        const navigate = useNavigate();
-
-        const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-
-        return (
-            <div>
-                <Button
-
-                    variant="text"
-                    onClick={(evt) => setAnchorEl(evt.currentTarget)}
-                >
-                    {params.value.length}
-                </Button>
-                <Menu
-                    open={Boolean(anchorEl) && Boolean(params.value.length)}
-                    anchorEl={anchorEl}
-                    onClose={(evt) => setAnchorEl(null)}
-                >
-                    <MenuList dense>
-                        {
-                            params.value.map((well, idx) => (
-                                <MenuItem onClick={() => navigate(`/elisa_wells/${well}`)}>{well}</MenuItem>
-                            ))
-                        }
-                    </MenuList>
-                </Menu>
-            </div >
-
-        )
     }
 
     const columns: GridColDef[] = [
