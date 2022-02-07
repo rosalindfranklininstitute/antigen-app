@@ -12,6 +12,8 @@ import AddLocalAntigenView from '../antigen/addLocal';
 import NanobodiesView from '../nanobody/aggregate';
 import NanobodyView from '../nanobody/individual';
 import AddNanobodyView from '../nanobody/add';
+import ElisaWellsView from '../elisa_well/aggregate';
+import ElisaWellView from '../elisa_well/individual';
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
           <Route path="/nanobody/" element={<NanobodiesView />} />
           <Route path="/nanobody/:uuid" element={<NanobodyView />} />
           <Route path="/nanobody/add/" element={<AddNanobodyView />} />
+          <Route path="/elisa_well/" element={<ElisaWellsView />} />
+          <Route path="/elisa_well/:uuid" element={<ElisaWellView />} />
         </Routes>
       </Container>
     </BrowserRouter>
