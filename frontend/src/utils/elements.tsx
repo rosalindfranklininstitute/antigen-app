@@ -41,7 +41,7 @@ export const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
                 <MenuList dense>
                     {
                         params.value.map((well, idx) => (
-                            <MenuItem onClick={() => navigate(`/elisa_wells/${well}`)}>{well}</MenuItem>
+                            <MenuItem onClick={() => navigate(`/elisa_well/${well}`)}>{well}</MenuItem>
                         ))
                     }
                 </MenuList>
