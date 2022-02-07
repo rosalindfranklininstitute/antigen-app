@@ -1,9 +1,9 @@
-import { Card, CardContent, TextField, Typography, Stack, Divider, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
+import { Card, CardContent, Typography, Stack, Divider, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
 import { Nanobody, NanobodyInfo } from "./utils";
-import { getAPI, postAPI } from "../utils/api";
+import { postAPI } from "../utils/api";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function AddNanobodyView() {
