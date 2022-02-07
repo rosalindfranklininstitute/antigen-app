@@ -1,10 +1,14 @@
-import { Paper, TableCell, TableContainer, TableHead, TableRow, Table, TableBody } from "@mui/material";
+import { Button, Card, CardContent, IconButton, Menu, MenuList, MenuItem } from "@mui/material";
+import { DataGrid, GridColDef, GridToolbar, GridRenderCellParams } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { Antigen } from "./utils";
+import LinkIcon from '@mui/icons-material/Link';
 
 export default function AntigensView() {
+    const navigate = useNavigate();
+
     const [antigens, setAntigens] = useState<Antigen[]>([]);
     const [response, setResponse] = useState<Response | null>(null);
 
@@ -28,30 +32,105 @@ export default function AntigensView() {
         return <FailedRetrievalPaper text="Could not retrieve antigen list." />
     }
 
+    const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
+        const navigate = useNavigate();
+
+        const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
+        return (
+            <div>
+                <Button
+
+                    variant="text"
+                    onClick={(evt) => setAnchorEl(evt.currentTarget)}
+                >
+                    {params.value.length}
+                </Button>
+                <Menu
+                    open={Boolean(anchorEl) && Boolean(params.value.length)}
+                    anchorEl={anchorEl}
+                    onClose={(evt) => setAnchorEl(null)}
+                >
+                    <MenuList dense>
+                        {
+                            params.value.map((well, idx) => (
+                                <MenuItem onClick={() => navigate(`/elisa_wells/${well}`)}>{well}</MenuItem>
+                            ))
+                        }
+                    </MenuList>
+                </Menu>
+            </div >
+
+        )
+    }
+
+    const columns: GridColDef[] = [
+        {
+            field: 'uuid',
+            headerName: 'Link',
+            renderCell: (params: GridRenderCellParams<string>) => {
+                return (
+                    <IconButton onClick={() => navigate(`/ antigen / ${params.value} / `)}>
+                        <LinkIcon />
+                    </IconButton>
+                )
+            },
+            width: 50
+        },
+        {
+            field: 'name',
+            headerName: 'Antigen Name',
+            flex: 1,
+        },
+        {
+            field: 'sequence',
+            headerName: 'Sequence',
+            flex: 1
+        },
+        {
+            field: 'molecular_mass',
+            headerName: 'Molecular Mass',
+            flex: 1
+        },
+        {
+            field: 'uniprot_accession_number',
+            headerName: 'UniProt Accessation Number',
+            flex: 1
+        },
+        {
+            field: 'antigen_elisa_wells',
+            headerName: 'Associated Wells',
+            renderCell: WellCellRenderer,
+            flex: 1,
+        },
+        {
+            field: 'creation_time',
+            headerName: 'Creation Time',
+            flex: 1
+        }
+    ]
+
     return (
-        <TableContainer component={Paper}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Name</TableCell>
-                        <TableCell>Molecular Mass</TableCell>
-                        <TableCell>Associated Wells</TableCell>
-                        <TableCell>Creation Time</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {
-                        antigens.map((antigen, idx) => (
-                            <TableRow key={idx}>
-                                <TableCell><Link to={`/antigen/${antigen.uuid}`}>{antigen.name}</Link></TableCell>
-                                <TableCell>{antigen.molecular_mass}</TableCell>
-                                <TableCell>{antigen.antigen_elisa_wells.length}</TableCell>
-                                <TableCell>{antigen.creation_time}</TableCell>
-                            </TableRow>
-                        ))
-                    }
-                </TableBody>
-            </Table>
-        </TableContainer>
+        <Card>
+            <CardContent>
+                <DataGrid
+                    autoHeight
+                    rows={antigens}
+                    columns={columns}
+                    getRowId={(row) => row.uuid}
+                    components={{ Toolbar: GridToolbar }}
+                    initialState={{
+                        columns: {
+                            columnVisibilityModel: {
+                                sequence: false,
+                                uniprot_accession_number: false
+                            }
+                        }
+                    }}
+                    style={{ border: 0 }}
+                />
+            </CardContent>
+        </Card>
+
     )
 };
