@@ -10,7 +10,7 @@ import { WellCellRenderer } from "../utils/elements";
 export default function NanobodiesView() {
     const navigate = useNavigate();
 
-    const [nanobodies, setAntigens] = useState<Nanobody[]>([]);
+    const [nanobodies, setNanobodies] = useState<Nanobody[]>([]);
     const [response, setResponse] = useState<Response | null>(null);
 
     useEffect(() => {
@@ -18,8 +18,8 @@ export default function NanobodiesView() {
             const response = await getAPI("nanobody");
             setResponse(response);
             if (response.ok) {
-                const antigens = await response.json();
-                setAntigens(antigens);
+                const nanobodies = await response.json();
+                setNanobodies(nanobodies);
             }
         };
         fetchNanobodies();
