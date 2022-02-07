@@ -61,14 +61,26 @@ function NanobodyCard() {
     )
 }
 
-function ElisaCard() {
+function ElisaPlateCard() {
     const navigate = useNavigate();
     return (
         <Card>
             <CardContent>
-                <Typography variant="h5">Elisa Experiments</Typography>
-                <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_experiments/")}>View All</Button>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/elisa_experiments/add/")}>Add New</Button>
+                <Typography variant="h5">Elisa Plates</Typography>
+                <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_plate/")}>View All</Button>
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/elisa_plate/add/")}>Add New</Button>
+            </CardContent>
+        </Card>
+    )
+}
+
+function ElisaWellCard() {
+    const navigate = useNavigate();
+    return (
+        <Card>
+            <CardContent>
+                <Typography variant="h5">Elisa Wells</Typography>
+                <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_well/")}>View All</Button>
             </CardContent>
         </Card>
     )
@@ -80,7 +92,8 @@ function HomeView() {
         <Grid container spacing={2} justifyContent="center">
             <Grid item><AntigenCard /></Grid>
             <Grid item><NanobodyCard /></Grid>
-            <Grid item><ElisaCard /></Grid>
+            <Grid item><ElisaPlateCard /></Grid>
+            <Grid item><ElisaWellCard /></Grid>
         </Grid>
     )
 }
