@@ -54,8 +54,8 @@ function NanobodyCard() {
         <Card>
             <CardContent>
                 <Typography variant="h5">Nanobodies</Typography>
-                <Button startIcon={<ListIcon />} onClick={() => navigate("/nanobodies/")}>View All</Button>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/nanobodies/add/")}>Add New</Button>
+                <Button startIcon={<ListIcon />} onClick={() => navigate("/nanobody/")}>View All</Button>
+                <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/nanobody/add/")}>Add New</Button>
             </CardContent>
         </Card>
     )
