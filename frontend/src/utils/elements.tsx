@@ -3,17 +3,21 @@ import { GridRenderCellParams } from "@mui/x-data-grid";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export const LinkUUIDCellRenderer = (rootURI: string, params: GridRenderCellParams<string>) => {
+export const LinkUUID = (params: { rootURI: string, UUID: string }) => {
     const navigate = useNavigate();
 
     return (
         <Link
-            onClick={() => navigate(`${rootURI}${params.value}`)}
+            onClick={() => navigate(`${params.rootURI}${params.UUID}`)}
         >
-            {params.value}
+            {params.UUID}
         </Link>
     )
 }
+export const LinkUUIDCellRenderer = (rootURI: string) => {
+    return (params: GridRenderCellParams<string>) => <LinkUUID rootURI={rootURI} UUID={params.value} />
+}
+
 
 export const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
     const navigate = useNavigate();
