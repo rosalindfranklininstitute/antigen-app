@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Button, Card, CardContent, Grid, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from '@mui/material';
+import { Button, Card, CardActions, CardContent, Grid, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import CreateIcon from '@mui/icons-material/Create';
@@ -16,6 +16,8 @@ function AntigenCard() {
         <Card>
             <CardContent>
                 <Typography variant="h5">Antigens</Typography>
+            </CardContent>
+            <CardActions>
                 <Button startIcon={<ListIcon />} onClick={() => navigate("/antigen/")}>View All</Button>
                 <Button
                     variant="contained"
@@ -43,7 +45,7 @@ function AntigenCard() {
                         <ListItemText>Manual Entry</ListItemText>
                     </MenuItem>
                 </Menu>
-            </CardContent>
+            </CardActions>
         </Card >
     )
 }
@@ -54,9 +56,11 @@ function NanobodyCard() {
         <Card>
             <CardContent>
                 <Typography variant="h5">Nanobodies</Typography>
+            </CardContent>
+            <CardActions>
                 <Button startIcon={<ListIcon />} onClick={() => navigate("/nanobody/")}>View All</Button>
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/nanobody/add/")}>Add New</Button>
-            </CardContent>
+            </CardActions>
         </Card>
     )
 }
@@ -67,9 +71,11 @@ function ElisaPlateCard() {
         <Card>
             <CardContent>
                 <Typography variant="h5">Elisa Plates</Typography>
+            </CardContent>
+            <CardActions>
                 <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_plate/")}>View All</Button>
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/elisa_plate/add/")}>Add New</Button>
-            </CardContent>
+            </CardActions>
         </Card>
     )
 }
@@ -80,8 +86,10 @@ function ElisaWellCard() {
         <Card>
             <CardContent>
                 <Typography variant="h5">Elisa Wells</Typography>
-                <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_well/")}>View All</Button>
             </CardContent>
+            <CardActions>
+                <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_well/")}>View All</Button>
+            </CardActions>
         </Card>
     )
 }
