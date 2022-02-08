@@ -25,7 +25,7 @@ export default function ElisaPlatesView() {
         return <LoadingPaper text="Retrieving elisa plate list from database." />
     }
 
-    if (!elisaPlates.length) {
+    if (!response.ok) {
         return <FailedRetrievalPaper text="Could not retrieve elisa plate list." />
     }
 

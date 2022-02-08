@@ -25,7 +25,7 @@ export default function ElisaWellsView() {
         return <LoadingPaper text="Retrieving elisa well list from database." />
     }
 
-    if (!elisaWells.length) {
+    if (!response.ok) {
         return <FailedRetrievalPaper text="Could not retrieve elisa well list." />
     }
 
