@@ -17,7 +17,7 @@ export function locationToCoords(location: number): [number, number] {
 
 export function locationToGrid(location: number) {
     const [row, col] = locationToCoords(location)
-    return [String.fromCharCode(65 + row).concat(col.toString())]
+    return [String.fromCharCode(65 + row).concat((col + 1).toString())]
 }
 
 export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
@@ -43,7 +43,7 @@ export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
                     </TableRow>
                     <TableRow>
                         <TableCell>Location:</TableCell>
-                        <TableCell>{params.elisaWell.location}</TableCell>
+                        <TableCell>{locationToGrid(params.elisaWell.location)}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Antigen:</TableCell>
