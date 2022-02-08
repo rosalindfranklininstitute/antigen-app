@@ -25,7 +25,7 @@ export default function AntigensView() {
         return <LoadingPaper text="Retrieving antigen list from database." />
     }
 
-    if (!antigens.length) {
+    if (!response.ok) {
         return <FailedRetrievalPaper text="Could not retrieve antigen list." />
     }
 

@@ -25,7 +25,7 @@ export default function NanobodiesView() {
         return <LoadingPaper text="Retrieving nanobody list from database." />
     }
 
-    if (!nanobodies.length) {
+    if (!response.ok) {
         return <FailedRetrievalPaper text="Could not retrieve nanobody list." />
     }
 
