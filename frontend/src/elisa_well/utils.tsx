@@ -1,5 +1,5 @@
 import { Link, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material"
-import { useNavigate } from "react-router-dom"
+import { Link as RouterLink } from "react-router-dom"
 
 export type ElisaWell = {
     uuid: string
@@ -21,8 +21,6 @@ export function locationToGrid(location: number) {
 }
 
 export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
-    const navigate = useNavigate()
-
     return (
         <TableContainer>
             <Table>
@@ -35,7 +33,8 @@ export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
                         <TableCell>Plate:</TableCell>
                         <TableCell>
                             <Link
-                                onClick={() => navigate(`/elisa_plate/${params.elisaWell.plate}`)}
+                                component={RouterLink}
+                                to={`/elisa_plate/${params.elisaWell.plate}`}
                             >
                                 {params.elisaWell.plate}
                             </Link>
@@ -49,7 +48,8 @@ export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
                         <TableCell>Antigen:</TableCell>
                         <TableCell>
                             <Link
-                                onClick={() => navigate(`/antigen/${params.elisaWell.antigen}`)}
+                                component={RouterLink}
+                                to={`/antigen/${params.elisaWell.antigen}`}
                             >
                                 {params.elisaWell.antigen}
                             </Link>
@@ -59,7 +59,8 @@ export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
                         <TableCell>Nanobody:</TableCell>
                         <TableCell>
                             <Link
-                                onClick={() => navigate(`/nanobody/${params.elisaWell.nanobody}`)}
+                                component={RouterLink}
+                                to={`/nanobody/${params.elisaWell.nanobody}`}
                             >
                                 {params.elisaWell.nanobody}
                             </Link>

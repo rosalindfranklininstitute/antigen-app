@@ -1,5 +1,5 @@
 import { TableCell, TableContainer, TableRow, Table, TableBody, Stack, Link } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 
 export type UniProtAntigen = {
     antigen: string
@@ -27,8 +27,6 @@ export type Antigen = {
 };
 
 export function AntigenInfo(params: { antigen: Antigen }) {
-    const navigate = useNavigate()
-
     return (
         <TableContainer>
             <Table>
@@ -54,7 +52,7 @@ export function AntigenInfo(params: { antigen: Antigen }) {
                         <TableCell>
                             <Stack>
                                 {params.antigen.antigen_elisa_wells.map((well, idx) => (
-                                    <Link onClick={() => navigate(`/elisa_well/${well}`)}>{well}</Link>
+                                    <Link component={RouterLink} to={`/elisa_well/${well}`}>{well}</Link>
                                 ))}
                             </Stack>
                         </TableCell>
