@@ -143,7 +143,7 @@ PlateLocations = IntegerChoices(
     "PlateLocations",
     [
         f"{chr(row)}{col}"
-        for row, col in product(range(ord("A"), ord("H") + 1), range(1, 12))
+        for row, col in product(range(ord("A"), ord("H") + 1), range(1, 12 + 1))
     ],
 )
 
