@@ -1,4 +1,5 @@
-import { Stack, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material"
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
+import { DetailedElisaWell, locationToGrid } from "../elisa_well/utils"
 import { LinkUUID } from "../utils/elements"
 
 export type ElisaPlate = {
@@ -8,15 +9,18 @@ export type ElisaPlate = {
     creation_time: Date
 }
 
-export function ElisaPlateInfo(params: { elisaPlate: ElisaPlate }) {
+export type DetailedElisaPlate = {
+    uuid: string
+    threshold: number
+    plate_elisa_wells: DetailedElisaWell[]
+    creation_time: Date
+}
+
+export function ElisaPlateInfo(params: { elisaPlate: DetailedElisaPlate }) {
     return (
         <TableContainer>
             <Table>
                 <TableBody>
-                    <TableRow>
-                        <TableCell>UUID:</TableCell>
-                        <TableCell>{params.elisaPlate.uuid}</TableCell>
-                    </TableRow>
                     <TableRow>
                         <TableCell>Threshold:</TableCell>
                         <TableCell>{params.elisaPlate.threshold}</TableCell>
@@ -24,13 +28,30 @@ export function ElisaPlateInfo(params: { elisaPlate: ElisaPlate }) {
                     <TableRow>
                         <TableCell>Wells:</TableCell>
                         <TableCell>
-                            <Stack>
-                                {
-                                    params.elisaPlate.plate_elisa_wells.map((well, idx) => (
-                                        <LinkUUID rootURI="/elisa_well/" UUID={well} />
-                                    ))
-                                }
-                            </Stack>
+                            <TableContainer>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>UUID</TableCell>
+                                            <TableCell>Location</TableCell>
+                                            <TableCell>Antigen</TableCell>
+                                            <TableCell>Nanobody</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            params.elisaPlate.plate_elisa_wells.map((well, idx) => (
+                                                <TableRow>
+                                                    <TableCell><LinkUUID rootURI="/elisa_well/" UUID={well.uuid} /></TableCell>
+                                                    <TableCell>{locationToGrid(well.location)}</TableCell>
+                                                    <TableCell>{well.antigen.name}</TableCell>
+                                                    <TableCell>{well.nanobody.name}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
                         </TableCell>
                     </TableRow>
                     <TableRow>
