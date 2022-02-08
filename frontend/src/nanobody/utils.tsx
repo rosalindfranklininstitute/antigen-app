@@ -1,5 +1,5 @@
 import { TableCell, TableContainer, TableRow, Table, TableBody, Stack, Link } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 
 
 export type Nanobody = {
@@ -10,8 +10,6 @@ export type Nanobody = {
 };
 
 export function NanobodyInfo(params: { nanobody: Nanobody }) {
-    const navigate = useNavigate()
-
     return (
         <TableContainer>
             <Table>
@@ -25,7 +23,7 @@ export function NanobodyInfo(params: { nanobody: Nanobody }) {
                         <TableCell>
                             <Stack>
                                 {params.nanobody.nanobody_elisa_wells.map((well, idx) => (
-                                    <Link onClick={() => navigate(`/elisa_well/${well}`)}>{well}</Link>
+                                    <Link component={RouterLink} to={`/elisa_well/${well}`}>{well}</Link>
                                 ))}
                             </Stack>
                         </TableCell>

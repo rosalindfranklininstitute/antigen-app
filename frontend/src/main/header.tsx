@@ -1,12 +1,19 @@
-import { AppBar, Toolbar, Typography } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
+import { AppBar, Link, Toolbar } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 
 function Header(props: { logo: string, title: string }) {
-    const navigate = useNavigate();
     return (
         <AppBar position="static">
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} onClick={() => { navigate("/") }}>Antigen App</Typography>
+                <Link
+                    variant="h6"
+                    component={RouterLink}
+                    to="/"
+                    color="textPrimary"
+                    underline="none"
+                >
+                    Antigen App
+                </Link>
             </Toolbar>
         </AppBar>
     );

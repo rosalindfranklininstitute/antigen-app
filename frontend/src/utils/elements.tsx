@@ -1,15 +1,13 @@
 import { Button, IconButton, Link, Menu, MenuItem, MenuList } from "@mui/material";
 import { GridRenderCellParams, GridColDef } from "@mui/x-data-grid";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import LinkIcon from '@mui/icons-material/Link';
 
 export const LinkUUID = (params: { rootURI: string, UUID: string }) => {
-    const navigate = useNavigate();
-
     return (
         <Link
-            onClick={() => navigate(`${params.rootURI}${params.UUID}`)}
+            component={RouterLink} to={`${params.rootURI}${params.UUID}`}
         >
             {params.UUID}
         </Link>
@@ -20,11 +18,9 @@ export const LinkUUIDCellRenderer = (rootURI: string) => {
 }
 
 export const IconLinkUUID = (params: { rootURI: string, UUID: string }) => {
-    const navigate = useNavigate();
-
     return (
         <IconButton
-            onClick={() => navigate(`${params.rootURI}${params.UUID}`)}
+            component={RouterLink} to={`${params.rootURI}${params.UUID}`}
         >
             <LinkIcon />
         </IconButton>
@@ -45,8 +41,6 @@ export const IconLinkUUIDGridColDef = (rootURI: string): GridColDef => {
 }
 
 export const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
-    const navigate = useNavigate();
-
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
     return (
@@ -66,7 +60,7 @@ export const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
                 <MenuList dense>
                     {
                         params.value.map((well, idx) => (
-                            <MenuItem onClick={() => navigate(`/elisa_well/${well}`)}>{well}</MenuItem>
+                            <MenuItem component={RouterLink} to={`/elisa_well/${well}`}>{well}</MenuItem>
                         ))
                     }
                 </MenuList>

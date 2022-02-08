@@ -1,13 +1,12 @@
-import { useNavigate } from 'react-router-dom';
 import { Button, Card, CardActions, CardContent, Grid, ListItemIcon, ListItemText, Menu, MenuItem, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import AddLinkIcon from '@mui/icons-material/AddLink';
 import CreateIcon from '@mui/icons-material/Create';
 import ListIcon from '@mui/icons-material/List';
 import { useState, MouseEvent } from 'react';
+import { Link as RouterLink } from "react-router-dom";
 
 function AntigenCard() {
-    const navigate = useNavigate();
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const add_open = Boolean(anchorEl);
@@ -18,7 +17,7 @@ function AntigenCard() {
                 <Typography variant="h5">Antigens</Typography>
             </CardContent>
             <CardActions>
-                <Button startIcon={<ListIcon />} onClick={() => navigate("/antigen/")}>View All</Button>
+                <Button startIcon={<ListIcon />} component={RouterLink} to="/antigen/">View All</Button>
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
@@ -36,11 +35,11 @@ function AntigenCard() {
                     onClose={() => { setAnchorEl(null) }}
                     MenuListProps={{ 'aria-labelledby': 'add-button' }}
                 >
-                    <MenuItem onClick={() => navigate("/antigen/uniprot/add/")}>
+                    <MenuItem component={RouterLink} to="/antigen/uniprot/add/">
                         <ListItemIcon><AddLinkIcon /></ListItemIcon>
                         <ListItemText>From UniProt</ListItemText>
                     </MenuItem>
-                    <MenuItem onClick={() => navigate("/antigen/local/add/")}>
+                    <MenuItem component={RouterLink} to="/antigen/local/add/">
                         <ListItemIcon><CreateIcon /></ListItemIcon>
                         <ListItemText>Manual Entry</ListItemText>
                     </MenuItem>
@@ -51,44 +50,41 @@ function AntigenCard() {
 }
 
 function NanobodyCard() {
-    const navigate = useNavigate();
     return (
         <Card>
             <CardContent>
                 <Typography variant="h5">Nanobodies</Typography>
             </CardContent>
             <CardActions>
-                <Button startIcon={<ListIcon />} onClick={() => navigate("/nanobody/")}>View All</Button>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/nanobody/add/")}>Add New</Button>
+                <Button startIcon={<ListIcon />} component={RouterLink} to="/nanobody/">View All</Button>
+                <Button variant="contained" startIcon={<AddIcon />} component={RouterLink} to="/nanobody/add/">Add New</Button>
             </CardActions>
         </Card>
     )
 }
 
 function ElisaPlateCard() {
-    const navigate = useNavigate();
     return (
         <Card>
             <CardContent>
                 <Typography variant="h5">Elisa Plates</Typography>
             </CardContent>
             <CardActions>
-                <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_plate/")}>View All</Button>
-                <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/elisa_plate/add/")}>Add New</Button>
+                <Button startIcon={<ListIcon />} component={RouterLink} to="/elisa_plate/">View All</Button>
+                <Button variant="contained" startIcon={<AddIcon />} component={RouterLink} to="/elisa_plate/add/">Add New</Button>
             </CardActions>
         </Card>
     )
 }
 
 function ElisaWellCard() {
-    const navigate = useNavigate();
     return (
         <Card>
             <CardContent>
                 <Typography variant="h5">Elisa Wells</Typography>
             </CardContent>
             <CardActions>
-                <Button startIcon={<ListIcon />} onClick={() => navigate("/elisa_well/")}>View All</Button>
+                <Button startIcon={<ListIcon />} component={RouterLink} to="/elisa_well/">View All</Button>
             </CardActions>
         </Card>
     )
