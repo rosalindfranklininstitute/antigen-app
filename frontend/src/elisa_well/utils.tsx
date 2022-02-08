@@ -12,7 +12,7 @@ export type ElisaWell = {
 }
 
 export function locationToCoords(location: number): [number, number] {
-    return [Math.floor(location.valueOf() / 12), location.valueOf() % 12]
+    return [Math.floor((location.valueOf() - 1) / 12), (location.valueOf() - 1) % 12]
 }
 
 export function locationToGrid(location: number) {
