@@ -1,5 +1,7 @@
 import { Link, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material"
 import { Link as RouterLink } from "react-router-dom"
+import { Antigen, AntigenInfo } from "../antigen/utils"
+import { Nanobody, NanobodyInfo } from "../nanobody/utils"
 
 export type ElisaWell = {
     uuid: string
@@ -7,6 +9,16 @@ export type ElisaWell = {
     location: number
     antigen: string
     nanobody: string
+    optical_density: number
+    functional: boolean
+}
+
+export type DetailedElisaWell = {
+    uuid: string
+    plate: string
+    location: number
+    antigen: Antigen
+    nanobody: Nanobody
     optical_density: number
     functional: boolean
 }
@@ -20,7 +32,7 @@ export function locationToGrid(location: number) {
     return [String.fromCharCode(65 + row).concat((col + 1).toString())]
 }
 
-export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
+export function ElisaWellInfo(params: { elisaWell: DetailedElisaWell }) {
     return (
         <TableContainer>
             <Table>
@@ -47,23 +59,13 @@ export function ElisaWellInfo(params: { elisaWell: ElisaWell }) {
                     <TableRow>
                         <TableCell>Antigen:</TableCell>
                         <TableCell>
-                            <Link
-                                component={RouterLink}
-                                to={`/antigen/${params.elisaWell.antigen}`}
-                            >
-                                {params.elisaWell.antigen}
-                            </Link>
+                            <AntigenInfo antigen={params.elisaWell.antigen} />
                         </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Nanobody:</TableCell>
                         <TableCell>
-                            <Link
-                                component={RouterLink}
-                                to={`/nanobody/${params.elisaWell.nanobody}`}
-                            >
-                                {params.elisaWell.nanobody}
-                            </Link>
+                            <NanobodyInfo nanobody={params.elisaWell.nanobody} />
                         </TableCell>
                     </TableRow>
                     <TableRow>
