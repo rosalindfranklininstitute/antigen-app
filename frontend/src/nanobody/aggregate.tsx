@@ -59,6 +59,7 @@ export default function NanobodiesView() {
                     getRowId={(row) => row.uuid}
                     components={{ Toolbar: GridToolbar }}
                     sx={{ border: 0 }}
+                    disableSelectionOnClick
                 />
             </CardContent>
         </Card>
