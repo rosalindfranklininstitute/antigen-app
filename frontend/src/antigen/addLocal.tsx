@@ -15,15 +15,14 @@ export default function AddLocalAntigenView() {
 
     const submit = async () => {
         setLoading(true);
-        postAPI(
+        postAPI<LocalAntigen>(
             "local_antigen",
             {
                 'sequence': sequence,
                 'molecular_mass': molecularMass
             }
         ).then(
-            async (response) => {
-                const localAntigen: LocalAntigen = await response.json();
+            async (localAntigen) => {
                 fetchAntigen(localAntigen.antigen).then(
                     (antigen) => {
                         setAntigens([...antigens, antigen]);

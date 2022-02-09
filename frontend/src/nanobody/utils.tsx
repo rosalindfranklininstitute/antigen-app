@@ -11,9 +11,7 @@ export type Nanobody = {
 };
 
 export async function fetchNanobody(uuid: string): Promise<Nanobody> {
-    return getAPI(`nanobody/${uuid}`).then(
-        async (response) => await response.json()
-    )
+    return getAPI(`nanobody/${uuid}`);
 }
 
 export function NanobodyInfo(params: { nanobody: Nanobody }) {

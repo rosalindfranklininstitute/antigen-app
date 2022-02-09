@@ -1,10 +1,12 @@
 import { LinearProgress, Paper, Typography } from "@mui/material"
 
-export function getAPI(uriFrag: string) {
-    return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?format=json`)
+export async function getAPI<Type>(uriFrag: string): Promise<Type> {
+    return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?format=json`).then(
+        async (response) => await response.json()
+    )
 }
 
-export function postAPI(uriFrag: string, post: object) {
+export async function postAPI<Type>(uriFrag: string, post: object): Promise<Type> {
     return fetch(
         `http://127.0.0.1:8000/api/${uriFrag}/`,
         {
@@ -17,6 +19,8 @@ export function postAPI(uriFrag: string, post: object) {
             },
             body: JSON.stringify(post)
         }
+    ).then(
+        async (response) => await response.json()
     )
 }
 
