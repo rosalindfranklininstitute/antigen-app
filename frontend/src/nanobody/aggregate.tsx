@@ -58,7 +58,7 @@ export default function NanobodiesView() {
                     columns={columns}
                     getRowId={(row) => row.uuid}
                     components={{ Toolbar: GridToolbar }}
-                    style={{ border: 0 }}
+                    sx={{ border: 0 }}
                 />
             </CardContent>
         </Card>
