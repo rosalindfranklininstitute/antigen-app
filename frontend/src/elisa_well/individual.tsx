@@ -15,8 +15,7 @@ export default function DetailedElisaWellView() {
             setLoading(false);
             return;
         };
-        const response = fetchDetailedElisaWell(uuid);
-        response.then(
+        fetchDetailedElisaWell(uuid).then(
             (elisaWell) => {
                 setDetailedElisaWell(elisaWell)
                 setLoading(false)
