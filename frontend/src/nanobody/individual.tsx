@@ -1,36 +1,31 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { Nanobody, NanobodyInfo } from "./utils";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { fetchNanobody, Nanobody, NanobodyInfo } from "./utils";
 
 
 export default function NanobodyView() {
-    let params = useParams();
-
+    const { uuid } = useParams<{ uuid: string }>();
     const [nanobody, setNanobody] = useState<Nanobody | null>(null);
-    const [response, setResponse] = useState<Response | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const fetchNanobody = async () => {
-            const response = await getAPI(`nanobody/${params.uuid}`);
-            setResponse(response);
-            if (response.ok) {
-                const nanobody: Nanobody = await response.json();
-                setNanobody(nanobody);
-            };
+        if (!uuid) {
+            setLoading(false);
+            return;
         };
-        fetchNanobody();
-    }, [params]);
+        fetchNanobody(uuid).then(
+            (nanobody) => {
+                setNanobody(nanobody);
+                setLoading(false);
+            },
+            () => setLoading(false)
+        );
+    }, [uuid]);
 
-    if (!response) {
-        return <LoadingPaper text="Retrieving nanobody from database." />
-    }
-
-    if (!nanobody) {
-        let text = `Could not retrieve entry for ${window.location.href.split("/").pop()}`
-        return <FailedRetrievalPaper text={text} />
-    }
+    if (loading) return <LoadingPaper text="Retrieving nanobody from database." />
+    if (!nanobody) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
 
     return (
         <Card>

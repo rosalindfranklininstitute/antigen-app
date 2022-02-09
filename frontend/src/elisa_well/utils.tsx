@@ -1,7 +1,7 @@
 import { Link, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material"
 import { Link as RouterLink } from "react-router-dom"
 import { Antigen, AntigenInfo, fetchAntigen } from "../antigen/utils"
-import { Nanobody, NanobodyInfo } from "../nanobody/utils"
+import { fetchNanobody, Nanobody, NanobodyInfo } from "../nanobody/utils"
 import { getAPI } from "../utils/api"
 
 export type ElisaWell = {
@@ -38,10 +38,9 @@ export async function fetchDetailedElisaWell(uuid: string): Promise<DetailedElis
         async (response) => {
             const elisaWell: ElisaWell = await response.json();
             const antigenPromise = fetchAntigen(elisaWell.antigen);
-            const nanobodyResponse = getAPI(`nanobody/${elisaWell.nanobody}`);
-            const detailedElisaWellPromise = Promise.all([antigenPromise, nanobodyResponse]).then(
-                async ([antigen, nanobodyResponse]) => {
-                    const nanobody: Nanobody = await nanobodyResponse.json();
+            const nanobodyPromise = fetchNanobody(elisaWell.nanobody);
+            const detailedElisaWellPromise = Promise.all([antigenPromise, nanobodyPromise]).then(
+                async ([antigen, nanobody]) => {
                     const detailedElisaWell: DetailedElisaWell = {
                         uuid: elisaWell.uuid,
                         plate: elisaWell.plate,
