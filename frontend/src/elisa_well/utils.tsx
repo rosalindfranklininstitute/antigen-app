@@ -33,30 +33,34 @@ export function locationToGrid(location: number) {
     return [String.fromCharCode(65 + row).concat((col + 1).toString())]
 }
 
-export async function fetchDetailedElisaWell(uuid: string): Promise<DetailedElisaWell> {
-    const detailedElisaWellPromise = getAPI(`elisa_well/${uuid}`).then(
-        async (response) => {
-            const elisaWell: ElisaWell = await response.json();
-            const antigenPromise = fetchAntigen(elisaWell.antigen);
-            const nanobodyPromise = fetchNanobody(elisaWell.nanobody);
-            const detailedElisaWellPromise = Promise.all([antigenPromise, nanobodyPromise]).then(
-                async ([antigen, nanobody]) => {
-                    const detailedElisaWell: DetailedElisaWell = {
-                        uuid: elisaWell.uuid,
-                        plate: elisaWell.plate,
-                        location: elisaWell.location,
-                        antigen: antigen,
-                        nanobody: nanobody,
-                        optical_density: elisaWell.optical_density,
-                        functional: elisaWell.functional
-                    };
-                    return detailedElisaWell;
-                });
-            return detailedElisaWellPromise;
-        });
-    return detailedElisaWellPromise;
-};
+export async function fetchElisaWell(uuid: string): Promise<ElisaWell> {
+    return getAPI(`elisa_well/${uuid}`).then(
+        async (response) => await response.json()
+    )
+}
 
+export async function fetchDetailedElisaWell(uuid: string): Promise<DetailedElisaWell> {
+    return fetchElisaWell(uuid).then(
+        async (elisaWell) => Promise.all(
+            [
+                fetchAntigen(elisaWell.antigen),
+                fetchNanobody(elisaWell.nanobody)
+            ]
+        ).then(
+            async ([antigen, nanobody]) => (
+                {
+                    uuid: elisaWell.uuid,
+                    plate: elisaWell.plate,
+                    location: elisaWell.location,
+                    antigen: antigen,
+                    nanobody: nanobody,
+                    optical_density: elisaWell.optical_density,
+                    functional: elisaWell.functional
+                }
+            )
+        )
+    );
+};
 
 export function ElisaWellInfo(params: { elisaWell: DetailedElisaWell }) {
     return (
