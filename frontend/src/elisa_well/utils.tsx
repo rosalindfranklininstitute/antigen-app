@@ -34,26 +34,28 @@ export function locationToGrid(location: number) {
 }
 
 export async function fetchDetailedElisaWell(uuid: string): Promise<DetailedElisaWell> {
-    const detailedElisaWellPromise = getAPI(`elisa_well/${uuid}`).then(async (response) => {
-        const elisaWell: ElisaWell = await response.json();
-        const antigenResponse = getAPI(`antigen/${elisaWell.antigen}`);
-        const nanobodyResponse = getAPI(`nanobody/${elisaWell.nanobody}`);
-        const detailedElisaWellPromise = Promise.all([antigenResponse, nanobodyResponse]).then(async ([antigenResponse, nanobodyResponse]) => {
-            const antigen: Antigen = await antigenResponse.json();
-            const nanobody: Nanobody = await nanobodyResponse.json();
-            const detailedElisaWell: DetailedElisaWell = {
-                uuid: elisaWell.uuid,
-                plate: elisaWell.plate,
-                location: elisaWell.location,
-                antigen: antigen,
-                nanobody: nanobody,
-                optical_density: elisaWell.optical_density,
-                functional: elisaWell.functional
-            };
-            return detailedElisaWell;
+    const detailedElisaWellPromise = getAPI(`elisa_well/${uuid}`).then(
+        async (response) => {
+            const elisaWell: ElisaWell = await response.json();
+            const antigenResponse = getAPI(`antigen/${elisaWell.antigen}`);
+            const nanobodyResponse = getAPI(`nanobody/${elisaWell.nanobody}`);
+            const detailedElisaWellPromise = Promise.all([antigenResponse, nanobodyResponse]).then(
+                async ([antigenResponse, nanobodyResponse]) => {
+                    const antigen: Antigen = await antigenResponse.json();
+                    const nanobody: Nanobody = await nanobodyResponse.json();
+                    const detailedElisaWell: DetailedElisaWell = {
+                        uuid: elisaWell.uuid,
+                        plate: elisaWell.plate,
+                        location: elisaWell.location,
+                        antigen: antigen,
+                        nanobody: nanobody,
+                        optical_density: elisaWell.optical_density,
+                        functional: elisaWell.functional
+                    };
+                    return detailedElisaWell;
+                });
+            return detailedElisaWellPromise;
         });
-        return detailedElisaWellPromise;
-    });
     return detailedElisaWellPromise;
 };
 
