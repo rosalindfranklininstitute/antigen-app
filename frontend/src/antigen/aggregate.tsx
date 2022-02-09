@@ -82,6 +82,7 @@ export default function AntigensView() {
                         }
                     }}
                     sx={{ border: 0 }}
+                    disableSelectionOnClick
                 />
             </CardContent>
         </Card>

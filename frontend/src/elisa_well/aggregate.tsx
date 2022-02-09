@@ -85,6 +85,7 @@ export default function ElisaWellsView() {
                         }
                     }}
                     sx={{ border: 0 }}
+                    disableSelectionOnClick
                 />
             </CardContent>
         </Card>
