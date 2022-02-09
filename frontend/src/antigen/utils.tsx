@@ -28,15 +28,11 @@ export type Antigen = {
 };
 
 export async function fetchAntigen(uuid: string): Promise<Antigen> {
-    return getAPI(`antigen/${uuid}`).then(
-        async (response) => await response.json()
-    )
+    return getAPI(`antigen/${uuid}`);
 }
 
 export async function fetchAntigens(): Promise<Antigen[]> {
-    return getAPI(`antigen`).then(
-        async (response) => await response.json()
-    )
+    return getAPI(`antigen`);
 }
 
 export function AntigenInfo(params: { antigen: Antigen }) {

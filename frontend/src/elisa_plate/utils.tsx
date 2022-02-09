@@ -18,9 +18,7 @@ export type DetailedElisaPlate = {
 }
 
 export async function fetchElisaPlate(uuid: string): Promise<ElisaPlate> {
-    return getAPI(`elisa_plate/${uuid}`).then(
-        async (response) => await response.json()
-    )
+    return getAPI(`elisa_plate/${uuid}`);
 }
 
 export async function fetchDetailedElisaPlate(uuid: string): Promise<DetailedElisaPlate> {
