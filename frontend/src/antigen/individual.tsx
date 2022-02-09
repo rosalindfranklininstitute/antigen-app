@@ -6,7 +6,7 @@ import { Antigen, AntigenInfo, fetchAntigen } from "./utils";
 
 
 export default function AntigenView() {
-    let { uuid } = useParams<{ uuid: string }>();
+    const { uuid } = useParams<{ uuid: string }>();
     const [antigen, setAntigen] = useState<Antigen | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -24,14 +24,8 @@ export default function AntigenView() {
         );
     }, [uuid]);
 
-    if (loading) {
-        return <LoadingPaper text="Retrieving antigen from database." />
-    }
-
-    if (!antigen) {
-        let text = `Could not retrieve entry for ${window.location.href.split("/").pop()}`
-        return <FailedRetrievalPaper text={text} />
-    }
+    if (loading) return <LoadingPaper text="Retrieving antigen from database." />
+    if (!antigen) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
 
     return (
         <Card>
