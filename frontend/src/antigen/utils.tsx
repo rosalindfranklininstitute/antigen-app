@@ -33,6 +33,12 @@ export async function fetchAntigen(uuid: string): Promise<Antigen> {
     )
 }
 
+export async function fetchAntigens(): Promise<Antigen[]> {
+    return getAPI(`antigen`).then(
+        async (response) => await response.json()
+    )
+}
+
 export function AntigenInfo(params: { antigen: Antigen }) {
     return (
         <TableContainer>
