@@ -1,33 +1,26 @@
 import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
-import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { Antigen } from "./utils";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { Antigen, fetchAntigens } from "./utils";
 import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
 
 export default function AntigensView() {
     const [antigens, setAntigens] = useState<Antigen[]>([]);
-    const [response, setResponse] = useState<Response | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const fetchAntigens = async () => {
-            const response = await getAPI("antigen");
-            setResponse(response);
-            if (response.ok) {
-                const antigens = await response.json();
+        fetchAntigens().then(
+            (antigens) => {
                 setAntigens(antigens);
-            }
-        };
-        fetchAntigens();
+                setLoading(false);
+            },
+            () => setLoading(false)
+        );
     }, []);
 
-    if (!response) {
-        return <LoadingPaper text="Retrieving antigen list from database." />
-    }
-
-    if (!response.ok) {
-        return <FailedRetrievalPaper text="Could not retrieve antigen list." />
-    }
+    if (loading) return <LoadingPaper text="Retrieving antigen list from database." />
+    if (!antigens) return <FailedRetrievalPaper text="Could not retrieve antigen list." />
 
     const columns: GridColDef[] = [
         IconLinkUUIDGridColDef("/antigen/"),
