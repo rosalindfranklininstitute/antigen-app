@@ -1,5 +1,6 @@
 import { TableCell, TableContainer, TableRow, Table, TableBody, Stack, Link } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
+import { getAPI } from "../utils/api";
 
 
 export type Nanobody = {
@@ -8,6 +9,12 @@ export type Nanobody = {
     nanobody_elisa_wells: string[]
     creation_time: Date
 };
+
+export async function fetchNanobody(uuid: string): Promise<Nanobody> {
+    return getAPI(`nanobody/${uuid}`).then(
+        async (response) => await response.json()
+    )
+}
 
 export function NanobodyInfo(params: { nanobody: Nanobody }) {
     return (
