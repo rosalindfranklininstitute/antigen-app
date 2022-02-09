@@ -7,27 +7,20 @@ import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
 
 export default function NanobodiesView() {
     const [nanobodies, setNanobodies] = useState<Nanobody[]>([]);
-    const [response, setResponse] = useState<Response | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const fetchNanobodies = async () => {
-            const response = await getAPI("nanobody");
-            setResponse(response);
-            if (response.ok) {
-                const nanobodies = await response.json();
+        getAPI<Nanobody[]>("nanobody").then(
+            (nanobodies) => {
                 setNanobodies(nanobodies);
-            }
-        };
-        fetchNanobodies();
+                setLoading(false);
+            },
+            () => setLoading(false)
+        );
     }, []);
 
-    if (!response) {
-        return <LoadingPaper text="Retrieving nanobody list from database." />
-    }
-
-    if (!response.ok) {
-        return <FailedRetrievalPaper text="Could not retrieve nanobody list." />
-    }
+    if (loading) return <LoadingPaper text="Retrieving nanobody list from database." />
+    if (!nanobodies) return <FailedRetrievalPaper text="Could not retrieve nanobody list." />
 
     const columns: GridColDef[] = [
         IconLinkUUIDGridColDef("/nanobody/"),

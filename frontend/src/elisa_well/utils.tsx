@@ -34,9 +34,7 @@ export function locationToGrid(location: number) {
 }
 
 export async function fetchElisaWell(uuid: string): Promise<ElisaWell> {
-    return getAPI(`elisa_well/${uuid}`).then(
-        async (response) => await response.json()
-    )
+    return getAPI(`elisa_well/${uuid}`);
 }
 
 export async function fetchDetailedElisaWell(uuid: string): Promise<DetailedElisaWell> {

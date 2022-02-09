@@ -7,27 +7,20 @@ import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
 
 export default function ElisaPlatesView() {
     const [elisaPlates, setElisaPlates] = useState<ElisaPlate[]>([]);
-    const [response, setResponse] = useState<Response | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const fetchElisaPlates = async () => {
-            const response = await getAPI("elisa_plate");
-            setResponse(response);
-            if (response.ok) {
-                const elisaPlates = await response.json();
+        getAPI<ElisaPlate[]>(`elisa_plate`).then(
+            (elisaPlates) => {
                 setElisaPlates(elisaPlates);
-            }
-        };
-        fetchElisaPlates();
+                setLoading(false);
+            },
+            () => setLoading(false)
+        )
     }, []);
 
-    if (!response) {
-        return <LoadingPaper text="Retrieving elisa plate list from database." />
-    }
-
-    if (!response.ok) {
-        return <FailedRetrievalPaper text="Could not retrieve elisa plate list." />
-    }
+    if (loading) return <LoadingPaper text="Retrieving elisa plate list from database." />
+    if (!elisaPlates) return <FailedRetrievalPaper text="Could not retrieve elisa plate list." />
 
     const columns: GridColDef[] = [
         IconLinkUUIDGridColDef("/elisa_plate/"),

@@ -7,27 +7,20 @@ import { IconLinkUUIDGridColDef, LinkUUIDCellRenderer } from "../utils/elements"
 
 export default function ElisaWellsView() {
     const [elisaWells, setElisaWells] = useState<ElisaWell[]>([]);
-    const [response, setResponse] = useState<Response | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const fetchElisaWells = async () => {
-            const response = await getAPI("elisa_well");
-            setResponse(response);
-            if (response.ok) {
-                const elisaWells = await response.json();
+        getAPI<ElisaWell[]>(`elisa_well`).then(
+            (elisaWells) => {
                 setElisaWells(elisaWells);
-            }
-        };
-        fetchElisaWells();
+                setLoading(false);
+            },
+            () => setLoading(false)
+        );
     }, []);
 
-    if (!response) {
-        return <LoadingPaper text="Retrieving elisa well list from database." />
-    }
-
-    if (!response.ok) {
-        return <FailedRetrievalPaper text="Could not retrieve elisa well list." />
-    }
+    if (loading) return <LoadingPaper text="Retrieving elisa well list from database." />
+    if (!elisaWells) return <FailedRetrievalPaper text="Could not retrieve elisa well list." />
 
     const columns: GridColDef[] = [
         IconLinkUUIDGridColDef("/elisa_well/"),
