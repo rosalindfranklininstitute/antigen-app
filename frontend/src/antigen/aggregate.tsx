@@ -81,7 +81,7 @@ export default function AntigensView() {
                             }
                         }
                     }}
-                    style={{ border: 0 }}
+                    sx={{ border: 0 }}
                 />
             </CardContent>
         </Card>
