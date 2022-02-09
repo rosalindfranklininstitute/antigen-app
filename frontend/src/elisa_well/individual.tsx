@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Antigen } from "../antigen/utils";
 import { Nanobody } from "../nanobody/utils";
-import { getAPI, FailedRetrievalPaper } from "../utils/api";
+import { getAPI, FailedRetrievalPaper, LoadingPaper } from "../utils/api";
 import { DetailedElisaWell, ElisaWell, ElisaWellInfo } from "./utils";
 
 
@@ -11,12 +11,24 @@ export default function ElisaWellView() {
     let params = useParams();
 
     const [elisaWell, setElisaWell] = useState<DetailedElisaWell | null>(null);
+    const [responses, setResponses] = useState<[Response | null, Response | null, Response | null]>([null, null, null]);
 
     useEffect(() => {
         const fetchElisaWell = async () => {
-            const elisaWell: ElisaWell = await (await getAPI(`elisa_well/${params.uuid}`)).json();
-            const antigen: Antigen = await (await getAPI(`antigen/${elisaWell.antigen}`)).json();
-            const nanobody: Nanobody = await (await getAPI(`nanobody/${elisaWell.nanobody}`)).json();
+            const elisaWellResponse = await getAPI(`elisa_well/${params.uuid}`);
+            setResponses([elisaWellResponse, null, null]);
+            if (!elisaWellResponse.ok) return;
+            const elisaWell: ElisaWell = await elisaWellResponse.json();
+
+            const antigenResponse = await getAPI(`antigen/${elisaWell.antigen}`);
+            setResponses([elisaWellResponse, antigenResponse, null]);
+            if (!antigenResponse.ok) return;
+            const antigen: Antigen = await antigenResponse.json();
+
+            const nanobodyResponse = await getAPI(`nanobody/${elisaWell.nanobody}`);
+            setResponses([elisaWellResponse, antigenResponse, nanobodyResponse]);
+            if (!nanobodyResponse.ok) return;
+            const nanobody: Nanobody = await nanobodyResponse.json();
 
             const detailedElisaWell: DetailedElisaWell = {
                 uuid: elisaWell.uuid,
@@ -32,10 +44,8 @@ export default function ElisaWellView() {
         fetchElisaWell();
     }, [params]);
 
-    if (!elisaWell) {
-        let text = `Could not retrieve entry for ${window.location.href.split("/").pop()}`
-        return <FailedRetrievalPaper text={text} />
-    }
+    if (!responses.every((response) => response && response.ok)) return <LoadingPaper text="Retrieving elisa well from database." />
+    if (!elisaWell) return <FailedRetrievalPaper text={`Could not retrieve entry for ${window.location.href.split("/").pop()}`} />
 
     return (
         <Card>
