@@ -1,29 +1,30 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { Antigen, AntigenInfo } from "./utils";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { Antigen, AntigenInfo, fetchAntigen } from "./utils";
 
 
 export default function AntigenView() {
-    let params = useParams();
-
+    let { uuid } = useParams<{ uuid: string }>();
     const [antigen, setAntigen] = useState<Antigen | null>(null);
-    const [response, setResponse] = useState<Response | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        const fetchAntigen = async () => {
-            const response = await getAPI(`antigen/${params.uuid}`);
-            setResponse(response);
-            if (response.ok) {
-                const antigen: Antigen = await response.json();
-                setAntigen(antigen);
-            };
+        if (!uuid) {
+            setLoading(false);
+            return;
         };
-        fetchAntigen();
-    }, [params]);
+        fetchAntigen(uuid).then(
+            (antigen) => {
+                setAntigen(antigen);
+                setLoading(false);
+            },
+            () => setLoading(false)
+        );
+    }, [uuid]);
 
-    if (!response) {
+    if (loading) {
         return <LoadingPaper text="Retrieving antigen from database." />
     }
 

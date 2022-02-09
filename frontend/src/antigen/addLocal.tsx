@@ -2,43 +2,38 @@ import { Card, CardContent, TextField, Typography, Stack, Divider, Accordion, Ac
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
-import { Antigen, AntigenInfo, LocalAntigen } from "./utils";
-import { getAPI, postAPI } from "../utils/api";
+import { Antigen, AntigenInfo, fetchAntigen, LocalAntigen } from "./utils";
+import { postAPI } from "../utils/api";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function AddLocalAntigenView() {
 
     const [sequence, setSequence] = useState<string>("");
     const [molecularMass, setMolecularMass] = useState<number>(0);
-    const [waiting, setWaiting] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [antigens, setAntigens] = useState<Antigen[]>([]);
 
     const submit = async () => {
-        setWaiting(true);
-        const response = await postAPI(
+        setLoading(true);
+        postAPI(
             "local_antigen",
             {
                 'sequence': sequence,
                 'molecular_mass': molecularMass
             }
-        )
-
-        if (!response.ok) {
-            setWaiting(false);
-            return
-        }
-
-        let antigenUUID = ((await response.json()) as LocalAntigen).antigen
-        const getResponse = await getAPI(`antigen/${antigenUUID}`)
-
-        if (!getResponse.ok) {
-            setWaiting(false);
-            return
-        }
-
-        var antigen: Antigen = await getResponse.json();
-        setAntigens([...antigens, antigen]);
-        setWaiting(false);
+        ).then(
+            async (response) => {
+                const localAntigen: LocalAntigen = await response.json();
+                fetchAntigen(localAntigen.antigen).then(
+                    (antigen) => {
+                        setAntigens([...antigens, antigen]);
+                        setLoading(false);
+                    },
+                    () => setLoading(false)
+                )
+            },
+            () => setLoading(false)
+        );
     }
 
     return (
@@ -62,7 +57,7 @@ export default function AddLocalAntigenView() {
                         />
                         <LoadingButton
                             variant="contained"
-                            loading={waiting}
+                            loading={loading}
                             endIcon={<SendIcon />}
                             onClick={submit}
                         >
