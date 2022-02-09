@@ -1,7 +1,7 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { fetchNanobody, Nanobody, NanobodyInfo } from "./utils";
 
 
