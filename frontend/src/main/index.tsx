@@ -13,7 +13,7 @@ import NanobodiesView from '../nanobody/aggregate';
 import NanobodyView from '../nanobody/individual';
 import AddNanobodyView from '../nanobody/add';
 import ElisaWellsView from '../elisa_well/aggregate';
-import ElisaWellView from '../elisa_well/individual';
+import DetailedElisaWellView from '../elisa_well/individual';
 import ElisaPlatesView from '../elisa_plate/aggregate';
 import ElisaPlateView from '../elisa_plate/individual';
 
@@ -32,7 +32,7 @@ function App() {
           <Route path="/nanobody/:uuid" element={<NanobodyView />} />
           <Route path="/nanobody/add/" element={<AddNanobodyView />} />
           <Route path="/elisa_well/" element={<ElisaWellsView />} />
-          <Route path="/elisa_well/:uuid" element={<ElisaWellView />} />
+          <Route path="/elisa_well/:uuid" element={<DetailedElisaWellView />} />
           <Route path="/elisa_plate/" element={<ElisaPlatesView />} />
           <Route path="/elisa_plate/:uuid" element={<ElisaPlateView />} />
         </Routes>
