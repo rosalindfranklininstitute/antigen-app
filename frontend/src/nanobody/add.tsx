@@ -12,16 +12,13 @@ export default function AddNanobodyView() {
 
     const submit = async () => {
         setWaiting(true);
-        const response = await postAPI("nanobody", {})
-
-        if (!response.ok) {
-            setWaiting(false);
-            return
-        }
-
-        let nanobody = ((await response.json()) as Nanobody)
-        setNanobodies([...nanobodies, nanobody]);
-        setWaiting(false);
+        postAPI<Nanobody>("nanobody", {}).then(
+            (nanobody) => {
+                setNanobodies([...nanobodies, nanobody]);
+                setWaiting(false);
+            },
+            () => setWaiting(false)
+        );
     }
 
     return (

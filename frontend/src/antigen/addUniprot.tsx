@@ -14,14 +14,13 @@ export default function AddUniProtAntigenView() {
 
     const submit = async () => {
         setLoading(true);
-        postAPI(
+        postAPI<UniProtAntigen>(
             "uniprot_antigen",
             {
                 'uniprot_accession_number': accessionNumber
             }
         ).then(
-            async (response) => {
-                const uniProtAntigen: UniProtAntigen = await response.json();
+            async (uniProtAntigen) => {
                 fetchAntigen(uniProtAntigen.antigen).then(
                     (antigen) => {
                         setAntigens([...antigens, antigen]);
