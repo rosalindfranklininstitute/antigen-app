@@ -1,5 +1,6 @@
 import { TableCell, TableContainer, TableRow, Table, TableBody, Stack, Link } from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
+import { getAPI } from "../utils/api";
 
 export type UniProtAntigen = {
     antigen: string
@@ -25,6 +26,12 @@ export type Antigen = {
     antigen_elisa_wells: Array<string>
     creation_time: Date
 };
+
+export async function fetchAntigen(uuid: string): Promise<Antigen> {
+    return getAPI(`antigen/${uuid}`).then(
+        async (response) => await response.json()
+    )
+}
 
 export function AntigenInfo(params: { antigen: Antigen }) {
     return (

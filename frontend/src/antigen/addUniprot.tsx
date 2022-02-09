@@ -2,41 +2,36 @@ import { Card, CardContent, TextField, Typography, Stack, Accordion, AccordionSu
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
-import { Antigen, AntigenInfo, UniProtAntigen } from "./utils";
-import { getAPI, postAPI } from "../utils/api";
+import { Antigen, AntigenInfo, fetchAntigen, UniProtAntigen } from "./utils";
+import { postAPI } from "../utils/api";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function AddUniProtAntigenView() {
 
     const [accessionNumber, setAccessionNumber] = useState<string>("");
-    const [waiting, setWaiting] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [antigens, setAntigens] = useState<Antigen[]>([]);
 
     const submit = async () => {
-        setWaiting(true);
-        const response = await postAPI(
+        setLoading(true);
+        postAPI(
             "uniprot_antigen",
             {
                 'uniprot_accession_number': accessionNumber
             }
-        )
-
-        if (!response.ok) {
-            setWaiting(false);
-            return
-        }
-
-        let antigenUUID = ((await response.json()) as UniProtAntigen).antigen
-        const getResponse = await getAPI(`antigen/${antigenUUID}`)
-
-        if (!getResponse.ok) {
-            setWaiting(false);
-            return
-        }
-
-        var antigen: Antigen = await getResponse.json();
-        setAntigens([...antigens, antigen]);
-        setWaiting(false);
+        ).then(
+            async (response) => {
+                const uniProtAntigen: UniProtAntigen = await response.json();
+                fetchAntigen(uniProtAntigen.antigen).then(
+                    (antigen) => {
+                        setAntigens([...antigens, antigen]);
+                        setLoading(false);
+                    },
+                    () => setLoading(false)
+                )
+            },
+            () => setLoading(false)
+        );
     }
 
     return (
@@ -53,7 +48,7 @@ export default function AddUniProtAntigenView() {
                         />
                         <LoadingButton
                             variant="contained"
-                            loading={waiting}
+                            loading={loading}
                             endIcon={<SendIcon />}
                             onClick={submit}
                         >
