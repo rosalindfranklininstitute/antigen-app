@@ -104,22 +104,22 @@ export function ElisaWellMapElement(params: { wells: DetailedElisaWell[] }) {
 
     return (
         <Grid container spacing={2} columns={13}>
-            <Grid item xs={1} />
+            <Grid item xs={1} key={0} />
             {
                 Array.from({ length: 12 }, (_, idx) => (
-                    <Grid item xs={1}>
+                    <Grid item xs={1} key={idx + 1}>
                         <Typography>{idx + 1}</Typography>
                     </Grid>
                 ))
             }
             {
-                wellGrid.map((wellRow, idx) => {
+                wellGrid.map((wellRow, row_idx) => {
                     return [
-                        <Grid item xs={1}>
-                            <Typography>{String.fromCharCode(idx + 65)}</Typography>
+                        <Grid item xs={1} key={(row_idx + 1) * 13}>
+                            <Typography>{String.fromCharCode(row_idx + 65)}</Typography>
                         </Grid>,
-                        wellRow.map((well, idx) => (
-                            <Grid item xs={1}>
+                        wellRow.map((well, col_idx) => (
+                            <Grid item xs={1} key={(row_idx + 1) * 13 + col_idx}>
                                 <ElisaWellElement well={well} />
                             </Grid>
                         ))
