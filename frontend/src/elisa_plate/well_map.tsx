@@ -1,98 +1,56 @@
-import { Paper, Stack, Typography, Grid, Popover } from "@mui/material";
+import { Typography, Grid, Button, Paper, Popover, Stack } from "@mui/material";
 import { useState } from "react";
-import { Antigen } from "../antigen/utils";
 import { DetailedElisaWell, locationToCoords } from "../elisa_well/utils";
-import { Nanobody } from "../nanobody/utils";
 
 function uuidToColor(uuid: string) {
     const hue = Number("0x".concat(uuid.substring(0, 2)))
     return `hsl(${hue}, 50%, 50%)`;
 }
 
-
-function AntigenSemicircle(params: { antigen: Antigen | null }) {
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const hover_open = Boolean(anchorEl) && Boolean(params.antigen);
-
-    return (
-        <Paper
-            sx={{
-                backgroundColor: params.antigen ? uuidToColor(params.antigen.uuid) : "white",
-                width: "50%",
-                paddingTop: "100%",
-                borderRadius: "1000px 0 0 1000px" // Large absolute units result in equal circular radii
-            }}
-            onMouseEnter={(evt) => setAnchorEl(evt.currentTarget)}
-            onMouseLeave={() => setAnchorEl(null)}
-        >
-            <Popover
-                open={hover_open}
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                    vertical: 'center',
-                    horizontal: 'left',
-                }}
-                transformOrigin={{
-                    vertical: 'center',
-                    horizontal: 'center',
-                }}
-                onClose={() => setAnchorEl(null)}
-                sx={{
-                    pointerEvents: 'none',
-                }}
-            >
-                {params.antigen?.name}
-            </Popover>
-        </Paper>
-    )
-};
-
-function NanobodySemiCircle(params: { nanobody: Nanobody | null }) {
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const hover_open = Boolean(anchorEl) && Boolean(params.nanobody);
-
-    return (
-        <Paper
-            sx={{
-                backgroundColor: params.nanobody ? uuidToColor(params.nanobody.uuid) : "white",
-                width: "50%",
-                paddingTop: "100%",
-                borderRadius: "0 1000px 1000px 0" // Large absolute units result in equal circular radii
-            }}
-            onMouseEnter={(evt) => setAnchorEl(evt.currentTarget)}
-            onMouseLeave={() => setAnchorEl(null)}
-        >
-            <Popover
-                open={hover_open}
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                    vertical: 'center',
-                    horizontal: 'right',
-                }}
-                transformOrigin={{
-                    vertical: 'center',
-                    horizontal: 'center',
-                }}
-                onClose={() => setAnchorEl(null)}
-                sx={{
-                    pointerEvents: 'none',
-                }}
-            >
-                {params.nanobody?.name}
-            </Popover>
-        </Paper>
-    )
-};
-
 function ElisaWellElement(params: { well: DetailedElisaWell | null }) {
+    const antigenColor = params.well ? uuidToColor(params.well.antigen.uuid) : "white";
+    const nanobodyColor = params.well ? uuidToColor(params.well.nanobody.uuid) : "white";
+
+    const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+    const hoverOpen = Boolean(anchorEl) && Boolean(params.well);
+
     return (
-        <Stack direction="row">
-            <AntigenSemicircle antigen={params.well ? params.well.antigen : null} />
-            <NanobodySemiCircle nanobody={params.well ? params.well.nanobody : null} />
-        </Stack>
+        <Paper
+            sx={{
+                background: `linear-gradient(90deg, ${antigenColor} 50%, ${nanobodyColor} 50%)`,
+                borderRadius: "50%",
+            }}>
+            <Button
+                sx={{
+                    width: "100%",
+                    padding: "0 0 100% 0",
+                }}
+                onMouseEnter={(evt) => setAnchorEl(evt.currentTarget)}
+                onMouseLeave={() => setAnchorEl(null)}
+            />
+            <Popover
+                open={hoverOpen}
+                anchorEl={anchorEl}
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "center",
+                }}
+                transformOrigin={{
+                    vertical: "top",
+                    horizontal: "center",
+                }}
+                onClose={() => setAnchorEl(null)}
+                sx={{ pointerEvents: "none" }}
+            >
+                <Stack alignItems="center">
+                    <div>Antigen: {params.well?.antigen.name}</div>
+                    <div>Nanobody: {params.well?.nanobody.name}</div>
+                </Stack>
+
+            </Popover>
+        </Paper>
     )
 };
-
 
 export function ElisaWellMapElement(params: { wells: DetailedElisaWell[] }) {
     const wellGrid: Array<Array<(DetailedElisaWell | null)>> = new Array(8).fill(undefined).map((val, idx) => new Array(12).fill(null));
