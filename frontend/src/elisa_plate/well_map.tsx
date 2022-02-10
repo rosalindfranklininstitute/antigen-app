@@ -19,6 +19,7 @@ function ElisaWellElement(params: { well: DetailedElisaWell | null }) {
             sx={{
                 background: `linear-gradient(90deg, ${antigenColor} 50%, ${nanobodyColor} 50%)`,
                 borderRadius: "50%",
+                overflow: "hidden",
             }}>
             <Button
                 sx={{
@@ -46,7 +47,6 @@ function ElisaWellElement(params: { well: DetailedElisaWell | null }) {
                     <div>Antigen: {params.well?.antigen.name}</div>
                     <div>Nanobody: {params.well?.nanobody.name}</div>
                 </Stack>
-
             </Popover>
         </Paper>
     )
