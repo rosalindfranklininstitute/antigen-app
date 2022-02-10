@@ -65,7 +65,7 @@ export function ElisaPlateInfo(params: { elisaPlate: DetailedElisaPlate }) {
                                     <TableBody>
                                         {
                                             params.elisaPlate.plate_elisa_wells.map((well, idx) => (
-                                                <TableRow>
+                                                <TableRow key={idx}>
                                                     <TableCell><LinkUUID rootURI="/elisa_well/" UUID={well.uuid} /></TableCell>
                                                     <TableCell>{locationToGrid(well.location)}</TableCell>
                                                     <TableCell>{well.antigen.name}</TableCell>
