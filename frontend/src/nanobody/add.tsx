@@ -1,24 +1,22 @@
 import { Card, CardContent, Typography, Stack, Divider, Accordion, AccordionSummary, AccordionDetails } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
-import { useState } from "react";
 import { Nanobody, NanobodyInfo } from "./utils";
-import { postAPI } from "../utils/api";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useDispatch, useSelector } from "react-redux";
+import { nanobodySelector, postNanobody } from "./slice";
 
 export default function AddNanobodyView() {
-    const [waiting, setWaiting] = useState<boolean>(false);
-    const [nanobodies, setNanobodies] = useState<Nanobody[]>([]);
+    const dispatch = useDispatch();
+    const { nanobodies, posted, loading } = useSelector(nanobodySelector);
+    const postedNanobodies = posted.map(
+        (postUUID) => nanobodies.find(
+            (nanobody) => nanobody.uuid === postUUID
+        )
+    ).filter((nanobody): nanobody is Nanobody => !!nanobody)
 
     const submit = async () => {
-        setWaiting(true);
-        postAPI<Nanobody>("nanobody", {}).then(
-            (nanobody) => {
-                setNanobodies([...nanobodies, nanobody]);
-                setWaiting(false);
-            },
-            () => setWaiting(false)
-        );
+        dispatch(postNanobody());
     }
 
     return (
@@ -29,7 +27,7 @@ export default function AddNanobodyView() {
                     <Stack direction="row" spacing={2}>
                         <LoadingButton
                             variant="contained"
-                            loading={waiting}
+                            loading={loading}
                             endIcon={<SendIcon />}
                             onClick={submit}
                         >
@@ -37,7 +35,7 @@ export default function AddNanobodyView() {
                         </LoadingButton>
                     </Stack>
                     {
-                        nanobodies.map((nanobody, idx) => (
+                        postedNanobodies.map((nanobody, idx) => (
                             <div>
                                 <Divider />
                                 <Accordion>
