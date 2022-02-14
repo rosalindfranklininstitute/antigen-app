@@ -1,23 +1,18 @@
 import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
-import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { Nanobody } from "./utils";
+import { useEffect } from "react";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
+import { useDispatch, useSelector } from "react-redux";
+import { getNanobodies, nanobodySelector } from "./slice";
 
 export default function NanobodiesView() {
-    const [nanobodies, setNanobodies] = useState<Nanobody[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const dispatch = useDispatch();
+    const { nanobodies, loading } = useSelector(nanobodySelector);
 
     useEffect(() => {
-        getAPI<Nanobody[]>("nanobody").then(
-            (nanobodies) => {
-                setNanobodies(nanobodies);
-                setLoading(false);
-            },
-            () => setLoading(false)
-        );
-    }, []);
+        dispatch(getNanobodies());
+    }, [dispatch]);
 
     if (loading) return <LoadingPaper text="Retrieving nanobody list from database." />
     if (!nanobodies) return <FailedRetrievalPaper text="Could not retrieve nanobody list." />
