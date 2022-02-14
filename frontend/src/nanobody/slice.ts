@@ -1,19 +1,30 @@
 import { Nanobody } from "./utils";
-import { getAPI } from "../utils/api";
+import { getAPI, postAPI } from "../utils/api";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
 
 type NanobodyState = {
     nanobodies: Nanobody[]
+    posted: string[]
     loading: boolean
     error: string | null
 }
 
 const initialNanobodyState: NanobodyState = {
     nanobodies: [],
+    posted: [],
     loading: false,
     error: null,
 }
+
+const addUnique = (oldObjs: Nanobody[], newObjs: Nanobody[]) =>
+    oldObjs.concat(
+        newObjs.filter(
+            (newObj) => !oldObjs.find(
+                (oldObj) => oldObj.uuid === newObj.uuid
+            )
+        )
+    )
 
 export const nanobodySlice = createSlice({
     name: "nanobody",
@@ -23,7 +34,7 @@ export const nanobodySlice = createSlice({
             ...state,
             loading: true,
         }),
-        success: (state, action: PayloadAction<Nanobody[]>) => ({
+        getSuccess: (state, action: PayloadAction<Nanobody[]>) => ({
             ...state,
             loading: false,
             nanobodies: state.nanobodies.concat(
@@ -32,6 +43,12 @@ export const nanobodySlice = createSlice({
                         (oldNanobody) => newNanobody.uuid === oldNanobody.uuid)
                 )
             )
+        }),
+        postSuccess: (state, action: PayloadAction<Nanobody>) => ({
+            ...state,
+            loading: false,
+            nanobodies: addUnique(state.nanobodies, [action.payload]),
+            posted: state.posted.concat(action.payload.uuid),
         }),
         fail: (state, action: PayloadAction<string>) => ({
             ...state,
@@ -43,7 +60,8 @@ export const nanobodySlice = createSlice({
 
 export const {
     pending: nanobodyActionPending,
-    success: nanobodyActionSucess,
+    getSuccess: nanobodyActionGetSucess,
+    postSuccess: nanobodyActionPostSuccess,
     fail: nanobodyActionFail
 } = nanobodySlice.actions
 
@@ -55,7 +73,7 @@ export const getNanobodies = () => {
     return async (dispatch: DispatchType) => {
         dispatch(nanobodyActionPending());
         getAPI<Nanobody[]>(`nanobody`).then(
-            (nanobodies) => dispatch(nanobodyActionSucess(nanobodies)),
+            (nanobodies) => dispatch(nanobodyActionGetSucess(nanobodies)),
             (reason) => dispatch(nanobodyActionFail(reason)),
         );
     }
@@ -67,8 +85,18 @@ export const getNanobody = (uuid: string) => {
         if (nanobodyState.nanobodies.nanobodies.find((nanobody) => nanobody.uuid === uuid)) return;
         dispatch(nanobodyActionPending());
         getAPI<Nanobody>(`nanobody/${uuid}`).then(
-            (nanobody) => dispatch(nanobodyActionSucess([nanobody])),
+            (nanobody) => dispatch(nanobodyActionGetSucess([nanobody])),
             (reason) => dispatch(nanobodyActionFail(reason))
+        )
+    }
+}
+
+export const postNanobody = () => {
+    return async (dispatch: DispatchType) => {
+        dispatch(nanobodyActionPending());
+        postAPI<Nanobody>(`nanobody`, {}).then(
+            (nanobody) => dispatch(nanobodyActionPostSuccess(nanobody)),
+            (reason) => dispatch(nanobodyActionFail(reason)),
         )
     }
 }
