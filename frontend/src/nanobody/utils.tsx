@@ -2,7 +2,6 @@ import { TableCell, TableContainer, TableRow, Table, TableBody, Stack, Link } fr
 import { Link as RouterLink } from "react-router-dom";
 import { getAPI } from "../utils/api";
 
-
 export type Nanobody = {
     uuid: string
     name: string

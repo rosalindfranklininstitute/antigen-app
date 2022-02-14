@@ -1,30 +1,25 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { fetchNanobody, Nanobody, NanobodyInfo } from "./utils";
+import { getNanobody, nanobodySelector } from "./slice";
+import { NanobodyInfo } from "./utils";
 
 
 export default function NanobodyView() {
     const { uuid } = useParams<{ uuid: string }>();
-    const [nanobody, setNanobody] = useState<Nanobody | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const dispatch = useDispatch();
+    const { nanobodies, loading } = useSelector(nanobodySelector);
 
     useEffect(() => {
-        if (!uuid) {
-            setLoading(false);
-            return;
-        };
-        fetchNanobody(uuid).then(
-            (nanobody) => {
-                setNanobody(nanobody);
-                setLoading(false);
-            },
-            () => setLoading(false)
-        );
-    }, [uuid]);
+        if (uuid) dispatch(getNanobody(uuid))
+    }, [dispatch, uuid]);
 
     if (loading) return <LoadingPaper text="Retrieving nanobody from database." />
+
+    const nanobody = nanobodies.find((nanobody) => nanobody.uuid === uuid);
+
     if (!nanobody) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
 
     return (
