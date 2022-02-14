@@ -68,8 +68,8 @@ export const getNanobodies = () => {
 
 export const getNanobody = (uuid: string) => {
     return async (dispatch: DispatchType, getState: () => { nanobodies: NanobodyState }) => {
-        const nanobodyState = getState();
-        if (nanobodyState.nanobodies.nanobodies.find((nanobody) => nanobody.uuid === uuid)) return;
+        const state = getState();
+        if (state.nanobodies.nanobodies.find((nanobody) => nanobody.uuid === uuid)) return;
         dispatch(nanobodyActionPending());
         getAPI<Nanobody>(`nanobody/${uuid}`).then(
             (nanobody) => dispatch(nanobodyActionGetSucess([nanobody])),
