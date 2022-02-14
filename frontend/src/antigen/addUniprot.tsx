@@ -2,35 +2,20 @@ import { Card, CardContent, TextField, Typography, Stack, Accordion, AccordionSu
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
-import { Antigen, AntigenInfo, fetchAntigen, UniProtAntigen } from "./utils";
-import { postAPI } from "../utils/api";
+import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { antigenSelector, postUniProtAntigen } from "./slice";
+import { useDispatch, useSelector } from "react-redux";
+import { filterPosted } from "../utils/state_management";
 
 export default function AddUniProtAntigenView() {
-
+    const dispatch = useDispatch();
+    const { antigens, postedUniProt, loading } = useSelector(antigenSelector);
     const [accessionNumber, setAccessionNumber] = useState<string>("");
-    const [loading, setLoading] = useState<boolean>(false);
-    const [antigens, setAntigens] = useState<Antigen[]>([]);
+    const postedAntigens = filterPosted(antigens, postedUniProt);
 
     const submit = async () => {
-        setLoading(true);
-        postAPI<UniProtAntigen>(
-            "uniprot_antigen",
-            {
-                'uniprot_accession_number': accessionNumber
-            }
-        ).then(
-            async (uniProtAntigen) => {
-                fetchAntigen(uniProtAntigen.antigen).then(
-                    (antigen) => {
-                        setAntigens([...antigens, antigen]);
-                        setLoading(false);
-                    },
-                    () => setLoading(false)
-                )
-            },
-            () => setLoading(false)
-        );
+        dispatch(postUniProtAntigen(accessionNumber));
     }
 
     return (
@@ -55,7 +40,7 @@ export default function AddUniProtAntigenView() {
                         </LoadingButton>
                     </Stack>
                     {
-                        antigens.map((antigen, idx) => (
+                        postedAntigens.map((antigen, idx) => (
                             <Accordion>
                                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                     {antigen.name}
