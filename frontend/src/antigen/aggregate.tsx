@@ -1,23 +1,18 @@
 import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { Antigen, fetchAntigens } from "./utils";
 import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
+import { antigenSelector, getAntigens } from "./slice";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function AntigensView() {
-    const [antigens, setAntigens] = useState<Antigen[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const dispatch = useDispatch();
+    const { antigens, loading } = useSelector(antigenSelector);
 
     useEffect(() => {
-        fetchAntigens().then(
-            (antigens) => {
-                setAntigens(antigens);
-                setLoading(false);
-            },
-            () => setLoading(false)
-        );
-    }, []);
+        dispatch(getAntigens())
+    }, [dispatch]);
 
     if (loading) return <LoadingPaper text="Retrieving antigen list from database." />
     if (!antigens) return <FailedRetrievalPaper text="Could not retrieve antigen list." />

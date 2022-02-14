@@ -2,37 +2,21 @@ import { Card, CardContent, TextField, Typography, Stack, Divider, Accordion, Ac
 import { LoadingButton } from "@mui/lab";
 import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
-import { Antigen, AntigenInfo, fetchAntigen, LocalAntigen } from "./utils";
-import { postAPI } from "../utils/api";
+import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useDispatch, useSelector } from "react-redux";
+import { antigenSelector, postLocalAntigen } from "./slice";
+import { filterPosted } from "../utils/state_management";
 
 export default function AddLocalAntigenView() {
-
+    const dispatch = useDispatch();
+    const { antigens, postedLocal, loading } = useSelector(antigenSelector);
     const [sequence, setSequence] = useState<string>("");
     const [molecularMass, setMolecularMass] = useState<number>(0);
-    const [loading, setLoading] = useState<boolean>(false);
-    const [antigens, setAntigens] = useState<Antigen[]>([]);
+    const postedAntigens = filterPosted(antigens, postedLocal);
 
     const submit = async () => {
-        setLoading(true);
-        postAPI<LocalAntigen>(
-            "local_antigen",
-            {
-                'sequence': sequence,
-                'molecular_mass': molecularMass
-            }
-        ).then(
-            async (localAntigen) => {
-                fetchAntigen(localAntigen.antigen).then(
-                    (antigen) => {
-                        setAntigens([...antigens, antigen]);
-                        setLoading(false);
-                    },
-                    () => setLoading(false)
-                )
-            },
-            () => setLoading(false)
-        );
+        dispatch(postLocalAntigen(sequence, molecularMass));
     }
 
     return (
@@ -64,7 +48,7 @@ export default function AddLocalAntigenView() {
                         </LoadingButton>
                     </Stack>
                     {
-                        antigens.map((antigen, idx) => (
+                        postedAntigens.map((antigen, idx) => (
                             <div>
                                 <Divider />
                                 <Accordion>
