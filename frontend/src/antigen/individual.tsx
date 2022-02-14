@@ -1,30 +1,25 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { Antigen, AntigenInfo, fetchAntigen } from "./utils";
+import { antigenSelector, getAntigen } from "./slice";
+import { AntigenInfo } from "./utils";
 
 
 export default function AntigenView() {
     const { uuid } = useParams<{ uuid: string }>();
-    const [antigen, setAntigen] = useState<Antigen | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const dispatch = useDispatch();
+    const { antigens, loading } = useSelector(antigenSelector);
 
     useEffect(() => {
-        if (!uuid) {
-            setLoading(false);
-            return;
-        };
-        fetchAntigen(uuid).then(
-            (antigen) => {
-                setAntigen(antigen);
-                setLoading(false);
-            },
-            () => setLoading(false)
-        );
-    }, [uuid]);
+        if (uuid) dispatch(getAntigen(uuid))
+    }, [dispatch, uuid]);
 
     if (loading) return <LoadingPaper text="Retrieving antigen from database." />
+
+    const antigen = antigens.find((antigen) => antigen.uuid === uuid);
+
     if (!antigen) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
 
     return (

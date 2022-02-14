@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
+import { antigenReducer } from "./antigen/slice";
 import { nanobodyReducer } from "./nanobody/slice";
 
 export const store = configureStore({
     reducer: {
-        nanobodies: nanobodyReducer
+        nanobodies: nanobodyReducer,
+        antigens: antigenReducer,
     },
 })
 
