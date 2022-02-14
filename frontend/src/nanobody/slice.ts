@@ -2,6 +2,7 @@ import { Nanobody } from "./utils";
 import { getAPI, postAPI } from "../utils/api";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
+import { addUniqueUUID } from "../utils/state_management";
 
 type NanobodyState = {
     nanobodies: Nanobody[]
@@ -17,15 +18,6 @@ const initialNanobodyState: NanobodyState = {
     error: null,
 }
 
-const addUnique = (oldObjs: Nanobody[], newObjs: Nanobody[]) =>
-    oldObjs.concat(
-        newObjs.filter(
-            (newObj) => !oldObjs.find(
-                (oldObj) => oldObj.uuid === newObj.uuid
-            )
-        )
-    )
-
 export const nanobodySlice = createSlice({
     name: "nanobody",
     initialState: initialNanobodyState,
@@ -37,17 +29,12 @@ export const nanobodySlice = createSlice({
         getSuccess: (state, action: PayloadAction<Nanobody[]>) => ({
             ...state,
             loading: false,
-            nanobodies: state.nanobodies.concat(
-                action.payload.filter(
-                    (newNanobody) => !state.nanobodies.find(
-                        (oldNanobody) => newNanobody.uuid === oldNanobody.uuid)
-                )
-            )
+            nanobodies: addUniqueUUID(state.nanobodies, action.payload)
         }),
         postSuccess: (state, action: PayloadAction<Nanobody>) => ({
             ...state,
             loading: false,
-            nanobodies: addUnique(state.nanobodies, [action.payload]),
+            nanobodies: addUniqueUUID(state.nanobodies, [action.payload]),
             posted: state.posted.concat(action.payload.uuid),
         }),
         fail: (state, action: PayloadAction<string>) => ({
