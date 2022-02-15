@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
 import { FailedRetrievalPaper, LoadingPaper } from "../utils/api";
-import { getDetailedElisaWell, selectDetailedElisaWell, selectLoadingElisaWell } from "./slice";
+import { getDetailedElisaWell, selectDetailedElisaWell, selectLoadingDetailedElisaWell } from "./slice";
 import { ElisaWellInfo } from "./utils";
 
 
@@ -11,7 +11,7 @@ export default function DetailedElisaWellView() {
     const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
     const dispatch = useDispatch();
     const detailedElisaWell = useSelector(selectDetailedElisaWell(uuid));
-    const loading = useSelector(selectLoadingElisaWell);
+    const loading = useSelector(selectLoadingDetailedElisaWell);
 
     useEffect(() => {
         dispatch(getDetailedElisaWell(uuid));
