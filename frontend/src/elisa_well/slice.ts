@@ -112,10 +112,18 @@ export const getDetailedElisaWell = (uuid: string) => {
     }
 }
 
-export const postElisaWell = () => {
+export const postElisaWell = (location: number, opticalDensity: number, plate: string, antigen: string, nanobody: string) => {
     return async (dispatch: DispatchType) => {
         dispatch(elisaWellActionPending());
-        postAPI<ElisaWell>(`elisa_well`, {}).then(
+        postAPI<ElisaWell>(`elisa_well`,
+            {
+                'location': location,
+                'optical_density': opticalDensity,
+                'plate': plate,
+                'antigen': antigen,
+                'nanbody': nanobody
+            }
+        ).then(
             (elisaWell) => dispatch(elisaWellActionPostSuccess(elisaWell)),
             (reason) => dispatch(elisaWellActionFail(reason)),
         )
