@@ -1,28 +1,21 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
 import { FailedRetrievalPaper, LoadingPaper } from "../utils/api";
-import { DetailedElisaWell, ElisaWellInfo, fetchDetailedElisaWell } from "./utils";
+import { getDetailedElisaWell, selectDetailedElisaWell, selectLoadingElisaWell } from "./slice";
+import { ElisaWellInfo } from "./utils";
 
 
 export default function DetailedElisaWellView() {
-    const { uuid } = useParams<{ uuid: string }>();
-    const [detailedElisaWell, setDetailedElisaWell] = useState<DetailedElisaWell | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
+    const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
+    const dispatch = useDispatch();
+    const detailedElisaWell = useSelector(selectDetailedElisaWell(uuid));
+    const loading = useSelector(selectLoadingElisaWell);
 
     useEffect(() => {
-        if (!uuid) {
-            setLoading(false);
-            return;
-        };
-        fetchDetailedElisaWell(uuid).then(
-            (elisaWell) => {
-                setDetailedElisaWell(elisaWell)
-                setLoading(false)
-            },
-            () => setLoading(false)
-        );
-    }, [uuid]);
+        dispatch(getDetailedElisaWell(uuid));
+    }, [dispatch, uuid]);
 
     if (loading) return <LoadingPaper text="Retrieving elisa well from database." />
     if (!detailedElisaWell) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
