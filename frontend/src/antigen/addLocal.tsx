@@ -6,14 +6,14 @@ import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useDispatch, useSelector } from "react-redux";
 import { antigenSelector, postLocalAntigen } from "./slice";
-import { filterPosted } from "../utils/state_management";
+import { filterUUID } from "../utils/state_management";
 
 export default function AddLocalAntigenView() {
     const dispatch = useDispatch();
     const { antigens, postedLocal, loading } = useSelector(antigenSelector);
     const [sequence, setSequence] = useState<string>("");
     const [molecularMass, setMolecularMass] = useState<number>(0);
-    const postedAntigens = filterPosted(antigens, postedLocal);
+    const postedAntigens = filterUUID(antigens, postedLocal);
 
     const submit = async () => {
         dispatch(postLocalAntigen(sequence, molecularMass));
