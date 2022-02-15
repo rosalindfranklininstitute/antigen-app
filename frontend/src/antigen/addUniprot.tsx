@@ -6,13 +6,13 @@ import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { antigenSelector, postUniProtAntigen } from "./slice";
 import { useDispatch, useSelector } from "react-redux";
-import { filterPosted } from "../utils/state_management";
+import { filterUUID } from "../utils/state_management";
 
 export default function AddUniProtAntigenView() {
     const dispatch = useDispatch();
     const { antigens, postedUniProt, loading } = useSelector(antigenSelector);
     const [accessionNumber, setAccessionNumber] = useState<string>("");
-    const postedAntigens = filterPosted(antigens, postedUniProt);
+    const postedAntigens = filterUUID(antigens, postedUniProt);
 
     const submit = async () => {
         dispatch(postUniProtAntigen(accessionNumber));
