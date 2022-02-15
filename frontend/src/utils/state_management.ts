@@ -8,8 +8,8 @@ export function addUniqueUUID<Type extends { uuid: string }>(oldObjs: Type[], ne
     )
 }
 
-export function filterPosted<Type extends { uuid: string }>(objs: Type[], posted: string[]) {
-    return posted.map(
+export function filterUUID<Type extends { uuid: string }>(objs: Type[], uuids: string[]) {
+    return uuids.map(
         (uuid) => objs.find(
             (obj) => obj.uuid === uuid
         )
