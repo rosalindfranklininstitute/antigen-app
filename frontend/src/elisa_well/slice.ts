@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getAntigen } from "../antigen/slice";
-import { getNanobody } from "../nanobody/slice";
+import { getAntigen, selectAntigen } from "../antigen/slice";
+import { getNanobody, selectNanobody } from "../nanobody/slice";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
 import { addUniqueUUID, filterUUID } from "../utils/state_management";
@@ -62,9 +62,10 @@ export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.loa
 export const selectPostedElisaWells = (state: RootState) => filterUUID(state.elisaWells.elisaWells, state.elisaWells.posted);
 export const selectDetailedElisaWell = (uuid: string) => (state: RootState): DetailedElisaWell | undefined => {
     const elisaWell = state.elisaWells.elisaWells.find((elisaWell) => elisaWell.uuid === uuid);
-    const antigen = state.antigens.antigens.find((antigen) => antigen.uuid === elisaWell?.antigen);
-    const nanobody = state.nanobodies.nanobodies.find((nanobody) => nanobody.uuid === elisaWell?.nanobody);
-    if (!elisaWell || !antigen || !nanobody) return undefined;
+    if (!elisaWell) return undefined;
+    const antigen = selectAntigen(elisaWell.antigen)(state);
+    const nanobody = selectNanobody(elisaWell.nanobody)(state);
+    if (!antigen || !nanobody) return undefined;
     return {
         uuid: elisaWell.uuid,
         plate: elisaWell.plate,
@@ -76,12 +77,6 @@ export const selectDetailedElisaWell = (uuid: string) => (state: RootState): Det
     }
 }
 export const selectLoadingDetailedElisaWell = (state: RootState) => state.elisaWells.loading || state.antigens.loading || state.nanobodies.loading;
-
-export const detailedNanobodySelector = (state: RootState) => (
-    state.elisaWells.elisaWells.map((elisaWell) => (
-        elisaWell.antigen
-    ))
-)
 
 export const getElisaWells = () => {
     return async (dispatch: DispatchType) => {
