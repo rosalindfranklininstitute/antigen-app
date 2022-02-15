@@ -14,7 +14,7 @@ export default function AntigenView() {
     const loading = useSelector(selectLoadingAntigen);
 
     useEffect(() => {
-        if (uuid) dispatch(getAntigen(uuid))
+        dispatch(getAntigen(uuid));
     }, [dispatch, uuid]);
 
     if (loading) return <LoadingPaper text="Retrieving antigen from database." />
