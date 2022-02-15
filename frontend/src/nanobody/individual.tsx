@@ -14,7 +14,7 @@ export default function NanobodyView() {
     const loading = useSelector(selectLoadingNanobody);
 
     useEffect(() => {
-        if (uuid) dispatch(getNanobody(uuid))
+        dispatch(getNanobody(uuid));
     }, [dispatch, uuid]);
 
     if (loading) return <LoadingPaper text="Retrieving nanobody from database." />
