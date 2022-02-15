@@ -3,12 +3,13 @@ import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { useEffect } from "react";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
-import { antigenSelector, getAntigens } from "./slice";
+import { getAntigens, selectAntigens, selectLoadingAntigen } from "./slice";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function AntigensView() {
     const dispatch = useDispatch();
-    const { antigens, loading } = useSelector(antigenSelector);
+    const antigens = useSelector(selectAntigens);
+    const loading = useSelector(selectLoadingAntigen);
 
     useEffect(() => {
         dispatch(getAntigens())
