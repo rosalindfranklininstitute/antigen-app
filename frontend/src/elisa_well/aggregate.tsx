@@ -1,23 +1,20 @@
 import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
-import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { ElisaWell, locationToGrid } from "./utils";
+import { useEffect } from "react";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { locationToGrid } from "./utils";
 import { IconLinkUUIDGridColDef, LinkUUIDCellRenderer } from "../utils/elements";
+import { useDispatch, useSelector } from "react-redux";
+import { getElisaWells, selectElisaWells, selectLoadingElisaWell } from "./slice";
 
 export default function ElisaWellsView() {
-    const [elisaWells, setElisaWells] = useState<ElisaWell[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const dispatch = useDispatch();
+    const elisaWells = useSelector(selectElisaWells);
+    const loading = useSelector(selectLoadingElisaWell);
 
     useEffect(() => {
-        getAPI<ElisaWell[]>(`elisa_well`).then(
-            (elisaWells) => {
-                setElisaWells(elisaWells);
-                setLoading(false);
-            },
-            () => setLoading(false)
-        );
-    }, []);
+        dispatch(getElisaWells())
+    }, [dispatch]);
 
     if (loading) return <LoadingPaper text="Retrieving elisa well list from database." />
     if (!elisaWells) return <FailedRetrievalPaper text="Could not retrieve elisa well list." />
