@@ -2,7 +2,7 @@ import { Nanobody } from "./utils";
 import { getAPI, postAPI } from "../utils/api";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
-import { addUniqueUUID } from "../utils/state_management";
+import { addUniqueUUID, filterUUID } from "../utils/state_management";
 
 type NanobodyState = {
     nanobodies: Nanobody[]
@@ -54,7 +54,10 @@ export const {
 
 export const nanobodyReducer = nanobodySlice.reducer;
 
-export const nanobodySelector = (state: RootState) => state.nanobodies;
+export const selectNanobodies = (state: RootState) => state.nanobodies.nanobodies;
+export const selectNanobody = (uuid: string) => (state: RootState) => state.nanobodies.nanobodies.find((nanobody) => nanobody.uuid === uuid)
+export const selectLoadingNanobody = (state: RootState) => state.nanobodies.loading;
+export const selectPostedNanobodies = (state: RootState) => filterUUID(state.nanobodies.nanobodies, state.nanobodies.posted);
 
 export const getNanobodies = () => {
     return async (dispatch: DispatchType) => {

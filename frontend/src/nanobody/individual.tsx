@@ -3,23 +3,21 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { getNanobody, nanobodySelector } from "./slice";
+import { getNanobody, selectLoadingNanobody, selectNanobody } from "./slice";
 import { NanobodyInfo } from "./utils";
 
 
 export default function NanobodyView() {
-    const { uuid } = useParams<{ uuid: string }>();
+    const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
     const dispatch = useDispatch();
-    const { nanobodies, loading } = useSelector(nanobodySelector);
+    const nanobody = useSelector(selectNanobody(uuid));
+    const loading = useSelector(selectLoadingNanobody);
 
     useEffect(() => {
         if (uuid) dispatch(getNanobody(uuid))
     }, [dispatch, uuid]);
 
     if (loading) return <LoadingPaper text="Retrieving nanobody from database." />
-
-    const nanobody = nanobodies.find((nanobody) => nanobody.uuid === uuid);
-
     if (!nanobody) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
 
     return (
