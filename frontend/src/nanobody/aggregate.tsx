@@ -4,11 +4,12 @@ import { useEffect } from "react";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
 import { useDispatch, useSelector } from "react-redux";
-import { getNanobodies, nanobodySelector } from "./slice";
+import { getNanobodies, selectLoadingNanobody, selectNanobodies } from "./slice";
 
 export default function NanobodiesView() {
     const dispatch = useDispatch();
-    const { nanobodies, loading } = useSelector(nanobodySelector);
+    const nanobodies = useSelector(selectNanobodies);
+    const loading = useSelector(selectLoadingNanobody);
 
     useEffect(() => {
         dispatch(getNanobodies());

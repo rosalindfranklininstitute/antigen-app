@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { nanobodyActionPending } from "../nanobody/slice";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
-import { addUniqueUUID } from "../utils/state_management";
+import { addUniqueUUID, filterUUID } from "../utils/state_management";
 import { Antigen, LocalAntigen, UniProtAntigen } from "./utils";
 
 type AntigenState = {
@@ -64,7 +64,12 @@ export const {
 
 export const antigenReducer = antigenSlice.reducer;
 
-export const antigenSelector = (state: RootState) => state.antigens
+export const selectAntigens = (state: RootState) => state.antigens.antigens;
+export const selectAntigen = (uuid: string) => (state: RootState) => state.antigens.antigens.find((antigen) => antigen.uuid === uuid);
+export const selectLoadingAntigen = (state: RootState) => state.antigens.loading;
+export const selectPostedUniProtAntigens = (state: RootState) => filterUUID(state.antigens.antigens, state.antigens.postedUniProt);
+export const selectPostedLocalAntignes = (state: RootState) => filterUUID(state.antigens.antigens, state.antigens.postedLocal);
+
 
 export const getAntigens = () => {
     return async (dispatch: DispatchType) => {
