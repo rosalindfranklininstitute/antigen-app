@@ -4,15 +4,14 @@ import SendIcon from '@mui/icons-material/Send';
 import { useState } from "react";
 import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { antigenSelector, postUniProtAntigen } from "./slice";
+import { postUniProtAntigen, selectLoadingAntigen, selectPostedUniProtAntigens } from "./slice";
 import { useDispatch, useSelector } from "react-redux";
-import { filterUUID } from "../utils/state_management";
 
 export default function AddUniProtAntigenView() {
     const dispatch = useDispatch();
-    const { antigens, postedUniProt, loading } = useSelector(antigenSelector);
+    const antigens = useSelector(selectPostedUniProtAntigens);
+    const loading = useSelector(selectLoadingAntigen);
     const [accessionNumber, setAccessionNumber] = useState<string>("");
-    const postedAntigens = filterUUID(antigens, postedUniProt);
 
     const submit = async () => {
         dispatch(postUniProtAntigen(accessionNumber));
@@ -40,7 +39,7 @@ export default function AddUniProtAntigenView() {
                         </LoadingButton>
                     </Stack>
                     {
-                        postedAntigens.map((antigen, idx) => (
+                        antigens.map((antigen, idx) => (
                             <Accordion>
                                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                     {antigen.name}

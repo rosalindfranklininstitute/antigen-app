@@ -5,15 +5,14 @@ import { useState } from "react";
 import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useDispatch, useSelector } from "react-redux";
-import { antigenSelector, postLocalAntigen } from "./slice";
-import { filterUUID } from "../utils/state_management";
+import { postLocalAntigen, selectLoadingAntigen, selectPostedLocalAntignes } from "./slice";
 
 export default function AddLocalAntigenView() {
     const dispatch = useDispatch();
-    const { antigens, postedLocal, loading } = useSelector(antigenSelector);
+    const antigens = useSelector(selectPostedLocalAntignes);
+    const loading = useSelector(selectLoadingAntigen);
     const [sequence, setSequence] = useState<string>("");
     const [molecularMass, setMolecularMass] = useState<number>(0);
-    const postedAntigens = filterUUID(antigens, postedLocal);
 
     const submit = async () => {
         dispatch(postLocalAntigen(sequence, molecularMass));
@@ -48,7 +47,7 @@ export default function AddLocalAntigenView() {
                         </LoadingButton>
                     </Stack>
                     {
-                        postedAntigens.map((antigen, idx) => (
+                        antigens.map((antigen, idx) => (
                             <div>
                                 <Divider />
                                 <Accordion>

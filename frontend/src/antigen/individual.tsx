@@ -3,23 +3,21 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { antigenSelector, getAntigen } from "./slice";
+import { getAntigen, selectAntigen, selectLoadingAntigen } from "./slice";
 import { AntigenInfo } from "./utils";
 
 
 export default function AntigenView() {
-    const { uuid } = useParams<{ uuid: string }>();
+    const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
     const dispatch = useDispatch();
-    const { antigens, loading } = useSelector(antigenSelector);
+    const antigen = useSelector(selectAntigen(uuid));
+    const loading = useSelector(selectLoadingAntigen);
 
     useEffect(() => {
         if (uuid) dispatch(getAntigen(uuid))
     }, [dispatch, uuid]);
 
     if (loading) return <LoadingPaper text="Retrieving antigen from database." />
-
-    const antigen = antigens.find((antigen) => antigen.uuid === uuid);
-
     if (!antigen) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
 
     return (
