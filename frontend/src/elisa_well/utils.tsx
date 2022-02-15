@@ -1,8 +1,7 @@
 import { Link, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material"
 import { Link as RouterLink } from "react-router-dom"
-import { Antigen, AntigenInfo, fetchAntigen } from "../antigen/utils"
-import { fetchNanobody, Nanobody, NanobodyInfo } from "../nanobody/utils"
-import { getAPI } from "../utils/api"
+import { Antigen, AntigenInfo } from "../antigen/utils"
+import { Nanobody, NanobodyInfo } from "../nanobody/utils"
 
 export type ElisaWell = {
     uuid: string
@@ -32,33 +31,6 @@ export function locationToGrid(location: number) {
     const [row, col] = locationToCoords(location)
     return [String.fromCharCode(65 + row).concat((col + 1).toString())]
 }
-
-export async function fetchElisaWell(uuid: string): Promise<ElisaWell> {
-    return getAPI(`elisa_well/${uuid}`);
-}
-
-export async function fetchDetailedElisaWell(uuid: string): Promise<DetailedElisaWell> {
-    return fetchElisaWell(uuid).then(
-        async (elisaWell) => Promise.all(
-            [
-                fetchAntigen(elisaWell.antigen),
-                fetchNanobody(elisaWell.nanobody)
-            ]
-        ).then(
-            async ([antigen, nanobody]) => (
-                {
-                    uuid: elisaWell.uuid,
-                    plate: elisaWell.plate,
-                    location: elisaWell.location,
-                    antigen: antigen,
-                    nanobody: nanobody,
-                    optical_density: elisaWell.optical_density,
-                    functional: elisaWell.functional
-                }
-            )
-        )
-    );
-};
 
 export function ElisaWellInfo(params: { elisaWell: DetailedElisaWell }) {
     return (

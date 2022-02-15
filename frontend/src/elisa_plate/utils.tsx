@@ -1,6 +1,5 @@
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
-import { DetailedElisaWell, fetchDetailedElisaWell, locationToGrid } from "../elisa_well/utils"
-import { getAPI } from "../utils/api"
+import { DetailedElisaWell, locationToGrid } from "../elisa_well/utils"
 import { LinkUUID } from "../utils/elements"
 
 export type ElisaPlate = {
@@ -16,29 +15,6 @@ export type DetailedElisaPlate = {
     plate_elisa_wells: DetailedElisaWell[]
     creation_time: Date
 }
-
-export async function fetchElisaPlate(uuid: string): Promise<ElisaPlate> {
-    return getAPI(`elisa_plate/${uuid}`);
-}
-
-export async function fetchDetailedElisaPlate(uuid: string): Promise<DetailedElisaPlate> {
-    return fetchElisaPlate(uuid).then(
-        async (elisaPlate) => Promise.all(
-            elisaPlate.plate_elisa_wells.map(
-                async (wellUUID, _) => fetchDetailedElisaWell(wellUUID)
-            )
-        ).then(
-            (detailedElisaWells) => (
-                {
-                    uuid: elisaPlate.uuid,
-                    threshold: elisaPlate.threshold,
-                    plate_elisa_wells: detailedElisaWells,
-                    creation_time: elisaPlate.creation_time
-                }
-            )
-        )
-    );
-};
 
 export function ElisaPlateInfo(params: { elisaPlate: DetailedElisaPlate }) {
     return (
