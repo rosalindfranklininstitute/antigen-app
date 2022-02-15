@@ -1,5 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { antigenReducer } from "./antigen/slice";
+import { elisaPlateReducer } from "./elisa_plate/slice";
 import { elisaWellReducer } from "./elisa_well/slice";
 import { nanobodyReducer } from "./nanobody/slice";
 
@@ -8,6 +9,7 @@ export const store = configureStore({
         nanobodies: nanobodyReducer,
         antigens: antigenReducer,
         elisaWells: elisaWellReducer,
+        elisaPlates: elisaPlateReducer,
     },
 })
 
