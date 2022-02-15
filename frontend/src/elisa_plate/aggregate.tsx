@@ -1,23 +1,19 @@
 import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
-import { useEffect, useState } from "react";
-import { getAPI, LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { ElisaPlate } from "./utils";
+import { useEffect } from "react";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
+import { useDispatch, useSelector } from "react-redux";
+import { getElisaPlates, selectElisaPlates, selectLoadingElisaPlate } from "./slice";
 
 export default function ElisaPlatesView() {
-    const [elisaPlates, setElisaPlates] = useState<ElisaPlate[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const dispatch = useDispatch();
+    const elisaPlates = useSelector(selectElisaPlates);
+    const loading = useSelector(selectLoadingElisaPlate);
 
     useEffect(() => {
-        getAPI<ElisaPlate[]>(`elisa_plate`).then(
-            (elisaPlates) => {
-                setElisaPlates(elisaPlates);
-                setLoading(false);
-            },
-            () => setLoading(false)
-        )
-    }, []);
+        dispatch(getElisaPlates());
+    }, [dispatch]);
 
     if (loading) return <LoadingPaper text="Retrieving elisa plate list from database." />
     if (!elisaPlates) return <FailedRetrievalPaper text="Could not retrieve elisa plate list." />
