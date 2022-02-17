@@ -1,10 +1,9 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { elisaWellActionFail, getDetailedElisaWell, selectDetailedElisaWell, selectLoadingDetailedElisaWell } from "../elisa_well/slice";
-import { DetailedElisaWell } from "../elisa_well/utils";
+import { elisaWellActionFail } from "../elisa_well/slice";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
 import { addUniqueUUID, filterUUID } from "../utils/state_management";
-import { DetailedElisaPlate, ElisaPlate } from "./utils";
+import { ElisaPlate } from "./utils";
 
 type ElisaPlateState = {
     elisaPlates: ElisaPlate[]
@@ -60,22 +59,6 @@ export const selectElisaPlates = (state: RootState) => state.elisaPlates.elisaPl
 export const selectElisaPlate = (uuid: string) => (state: RootState) => state.elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid);
 export const selectLoadingElisaPlate = (state: RootState) => state.elisaPlates.loading;
 export const selectPostedElisaPlates = (state: RootState) => filterUUID(state.elisaPlates.elisaPlates, state.elisaPlates.posted);
-export const selectDetailedElisaPlate = (uuid: string) => (state: RootState): DetailedElisaPlate | undefined => {
-    const elisaPlate = state.elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid);
-    if (!elisaPlate) return undefined;
-    const detailedElisaWells = elisaPlate.plate_elisa_wells.map(
-        (elisaWellUUID) => selectDetailedElisaWell(elisaWellUUID)(state)
-    ).filter(
-        (detailedElisaWell): detailedElisaWell is DetailedElisaWell => !!detailedElisaWell
-    )
-    return {
-        uuid: elisaPlate.uuid,
-        threshold: elisaPlate.threshold,
-        plate_elisa_wells: detailedElisaWells,
-        creation_time: elisaPlate.creation_time,
-    }
-}
-export const selectLoadingDetailedElisaPlate = (state: RootState) => state.elisaPlates.loading || selectLoadingDetailedElisaWell(state);
 
 export const getElisaPlates = () => {
     return async (dispatch: DispatchType) => {
@@ -92,19 +75,6 @@ export const getElisaPlate = (uuid: string) => {
         dispatch(elisaPlateActionPending());
         getAPI<ElisaPlate>(`elisa_plate/${uuid}`).then(
             (elisaPlate) => dispatch(elisaPlateActionGetSuccess([elisaPlate])),
-            (reason) => dispatch(elisaPlateActionFail(reason)),
-        )
-    }
-}
-
-export const getDetailedElisaPlate = (uuid: string) => {
-    return async (dispatch: DispatchType) => {
-        dispatch(elisaPlateActionPending());
-        getAPI<ElisaPlate>(`elisa_plate/${uuid}`).then(
-            (elisaPlate) => {
-                dispatch(elisaPlateActionGetSuccess([elisaPlate]));
-                elisaPlate.plate_elisa_wells.forEach((elisaWellUUID) => dispatch(getDetailedElisaWell(elisaWellUUID)));
-            },
             (reason) => dispatch(elisaPlateActionFail(reason)),
         )
     }
