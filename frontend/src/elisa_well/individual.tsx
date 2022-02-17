@@ -9,7 +9,7 @@ import { getElisaWell, selectElisaWell, selectLoadingElisaWell } from "./slice";
 import { ElisaWellInfo } from "./utils";
 
 
-export default function DetailedElisaWellView() {
+export default function ElisaWellView() {
     const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
     const dispatch = useDispatch();
     const elisaWell = useSelector(selectElisaWell(uuid));
