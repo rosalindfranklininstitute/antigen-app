@@ -39,13 +39,13 @@ export default function AddUniProtAntigenView() {
                         </LoadingButton>
                     </Stack>
                     {
-                        antigens.map((antigen, idx) => (
+                        antigens.map((antigen) => (
                             <Accordion>
                                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                     {antigen.name}
                                 </AccordionSummary>
                                 <AccordionDetails>
-                                    <AntigenInfo antigen={antigen} />
+                                    <AntigenInfo uuid={antigen.uuid} />
                                 </AccordionDetails>
                             </Accordion>
                         ))

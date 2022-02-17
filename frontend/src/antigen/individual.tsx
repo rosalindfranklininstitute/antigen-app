@@ -25,7 +25,7 @@ export default function AntigenView() {
             <CardContent>
                 <Stack>
                     <Typography variant="h4">{antigen.name}</Typography>
-                    <AntigenInfo antigen={antigen} />
+                    <AntigenInfo uuid={uuid} />
                 </Stack>
             </CardContent>
         </Card>

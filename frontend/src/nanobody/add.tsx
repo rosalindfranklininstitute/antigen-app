@@ -39,7 +39,7 @@ export default function AddNanobodyView() {
                                         {nanobody.name}
                                     </AccordionSummary>
                                     <AccordionDetails>
-                                        <NanobodyInfo nanobody={nanobody} />
+                                        <NanobodyInfo uuid={nanobody.uuid} />
                                     </AccordionDetails>
                                 </Accordion>
                             </div>
