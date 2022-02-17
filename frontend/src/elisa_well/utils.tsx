@@ -2,8 +2,8 @@ import { Link, Table, TableBody, TableCell, TableContainer, TableRow } from "@mu
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { Link as RouterLink } from "react-router-dom"
-import { Antigen, AntigenInfo } from "../antigen/utils"
-import { Nanobody, NanobodyInfo } from "../nanobody/utils"
+import { AntigenInfo } from "../antigen/utils"
+import { NanobodyInfo } from "../nanobody/utils"
 import { getElisaWell, selectElisaWell } from "./slice"
 
 export type ElisaWell = {
@@ -12,16 +12,6 @@ export type ElisaWell = {
     location: number
     antigen: string
     nanobody: string
-    optical_density: number
-    functional: boolean
-}
-
-export type DetailedElisaWell = {
-    uuid: string
-    plate: string
-    location: number
-    antigen: Antigen
-    nanobody: Nanobody
     optical_density: number
     functional: boolean
 }
