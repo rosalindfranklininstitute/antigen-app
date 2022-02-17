@@ -1,6 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getAntigen } from "../antigen/slice";
-import { getNanobody } from "../nanobody/slice";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
 import { addUniqueUUID, filterUUID } from "../utils/state_management";
@@ -76,20 +74,6 @@ export const getElisaWell = (uuid: string) => {
         dispatch(elisaWellActionPending());
         getAPI<ElisaWell>(`elisa_well/${uuid}`).then(
             (elisaWell) => dispatch(elisaWellActionGetSuccess([elisaWell])),
-            (reason) => dispatch(elisaWellActionFail(reason)),
-        )
-    }
-}
-
-export const getDetailedElisaWell = (uuid: string) => {
-    return async (dispatch: DispatchType) => {
-        dispatch(elisaWellActionPending());
-        getAPI<ElisaWell>(`elisa_well/${uuid}`).then(
-            (elisaWell) => {
-                dispatch(elisaWellActionGetSuccess([elisaWell]));
-                dispatch(getAntigen(elisaWell.antigen));
-                dispatch(getNanobody(elisaWell.nanobody));
-            },
             (reason) => dispatch(elisaWellActionFail(reason)),
         )
     }
