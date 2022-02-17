@@ -71,7 +71,8 @@ export const getElisaPlates = () => {
 }
 
 export const getElisaPlate = (uuid: string) => {
-    return async (dispatch: DispatchType) => {
+    return async (dispatch: DispatchType, getState: () => RootState) => {
+        if (getState().elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid)) return;
         dispatch(elisaPlateActionPending());
         getAPI<ElisaPlate>(`elisa_plate/${uuid}`).then(
             (elisaPlate) => dispatch(elisaPlateActionGetSuccess([elisaPlate])),

@@ -82,9 +82,8 @@ export const getAntigens = () => {
 }
 
 export const getAntigen = (uuid: string) => {
-    return async (dispatch: DispatchType, getState: () => { antigens: AntigenState }) => {
-        const state = getState();
-        if (state.antigens.antigens.find((antigen) => antigen.uuid === uuid)) return;
+    return async (dispatch: DispatchType, getState: () => RootState) => {
+        if (getState().antigens.antigens.find((antigen) => antigen.uuid === uuid)) return;
         dispatch(antigenActionPending());
         getAPI<Antigen>(`antigen/${uuid}`).then(
             (antigen) => dispatch(antigenActionGetSuccess([antigen])),

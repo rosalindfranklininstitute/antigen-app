@@ -70,7 +70,8 @@ export const getElisaWells = () => {
 }
 
 export const getElisaWell = (uuid: string) => {
-    return async (dispatch: DispatchType) => {
+    return async (dispatch: DispatchType, getState: () => RootState) => {
+        if (getState().elisaWells.elisaWells.find((elisaWell) => elisaWell.uuid === uuid)) return;
         dispatch(elisaWellActionPending());
         getAPI<ElisaWell>(`elisa_well/${uuid}`).then(
             (elisaWell) => dispatch(elisaWellActionGetSuccess([elisaWell])),
