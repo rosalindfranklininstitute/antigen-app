@@ -25,7 +25,7 @@ export default function NanobodyView() {
             <CardContent>
                 <Stack>
                     <Typography variant="h4">{nanobody.name}</Typography>
-                    <NanobodyInfo nanobody={nanobody} />
+                    <NanobodyInfo uuid={uuid} />
                 </Stack>
             </CardContent>
         </Card>

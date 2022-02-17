@@ -1,7 +1,10 @@
 import { Link, Table, TableBody, TableCell, TableContainer, TableRow } from "@mui/material"
+import { useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import { Link as RouterLink } from "react-router-dom"
 import { Antigen, AntigenInfo } from "../antigen/utils"
 import { Nanobody, NanobodyInfo } from "../nanobody/utils"
+import { getElisaWell, selectElisaWell } from "./slice"
 
 export type ElisaWell = {
     uuid: string
@@ -32,49 +35,57 @@ export function locationToGrid(location: number) {
     return [String.fromCharCode(65 + row).concat((col + 1).toString())]
 }
 
-export function ElisaWellInfo(params: { elisaWell: DetailedElisaWell }) {
+export function ElisaWellInfo(params: { uuid: string }) {
+    const dispatch = useDispatch();
+    const elisaWell = useSelector(selectElisaWell(params.uuid));
+
+    useEffect(() => {
+        dispatch(getElisaWell(params.uuid));
+    }, [dispatch, params]);
+
+    if (!elisaWell) return null;
     return (
         <TableContainer>
             <Table>
                 <TableBody>
                     <TableRow>
                         <TableCell>UUID:</TableCell>
-                        <TableCell>{params.elisaWell.uuid}</TableCell>
+                        <TableCell>{elisaWell.uuid}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Plate:</TableCell>
                         <TableCell>
                             <Link
                                 component={RouterLink}
-                                to={`/elisa_plate/${params.elisaWell.plate}`}
+                                to={`/elisa_plate/${elisaWell.plate}`}
                             >
-                                {params.elisaWell.plate}
+                                {elisaWell.plate}
                             </Link>
                         </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Location:</TableCell>
-                        <TableCell>{locationToGrid(params.elisaWell.location)}</TableCell>
+                        <TableCell>{locationToGrid(elisaWell.location)}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Antigen:</TableCell>
                         <TableCell>
-                            <AntigenInfo antigen={params.elisaWell.antigen} />
+                            <AntigenInfo uuid={elisaWell.antigen} />
                         </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Nanobody:</TableCell>
                         <TableCell>
-                            <NanobodyInfo nanobody={params.elisaWell.nanobody} />
+                            <NanobodyInfo uuid={elisaWell.nanobody} />
                         </TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Optical Density:</TableCell>
-                        <TableCell>{params.elisaWell.optical_density}</TableCell>
+                        <TableCell>{elisaWell.optical_density}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Functional:</TableCell>
-                        <TableCell>{params.elisaWell.functional ? "yes" : "no"}</TableCell>
+                        <TableCell>{elisaWell.functional ? "yes" : "no"}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>

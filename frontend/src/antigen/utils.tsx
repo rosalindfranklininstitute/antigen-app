@@ -1,5 +1,8 @@
 import { TableCell, TableContainer, TableRow, Table, TableBody, Stack, Link } from "@mui/material";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
+import { getAntigen, selectAntigen } from "./slice";
 
 export type UniProtAntigen = {
     antigen: string
@@ -26,32 +29,40 @@ export type Antigen = {
     creation_time: Date
 };
 
-export function AntigenInfo(params: { antigen: Antigen }) {
+export function AntigenInfo(params: { uuid: string }) {
+    const dispatch = useDispatch();
+    const antigen = useSelector(selectAntigen(params.uuid));
+
+    useEffect(() => {
+        dispatch(getAntigen(params.uuid));
+    }, [dispatch, params]);
+
+    if (!antigen) return null;
     return (
         <TableContainer>
             <Table>
                 <TableBody>
                     <TableRow>
                         <TableCell>UUID:</TableCell>
-                        <TableCell>{params.antigen.uuid}</TableCell>
+                        <TableCell>{antigen.uuid}</TableCell>
                     </TableRow>
                     <TableRow >
                         <TableCell>Sequence:</TableCell>
-                        <TableCell>{params.antigen.sequence}</TableCell>
+                        <TableCell>{antigen.sequence}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Molecular Mass:</TableCell>
-                        <TableCell>{params.antigen.molecular_mass}</TableCell>
+                        <TableCell>{antigen.molecular_mass}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Uniprot Accession Number:</TableCell>
-                        <TableCell>{params.antigen.uniprot_accession_number}</TableCell>
+                        <TableCell>{antigen.uniprot_accession_number}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell>Elisa Appearances:</TableCell>
                         <TableCell>
                             <Stack>
-                                {params.antigen.antigen_elisa_wells.map((well, idx) => (
+                                {antigen.antigen_elisa_wells.map((well, idx) => (
                                     <Link component={RouterLink} to={`/elisa_well/${well}`}>{well}</Link>
                                 ))}
                             </Stack>
@@ -59,7 +70,7 @@ export function AntigenInfo(params: { antigen: Antigen }) {
                     </TableRow>
                     <TableRow>
                         <TableCell>Creation Time:</TableCell>
-                        <TableCell>{params.antigen.creation_time}</TableCell>
+                        <TableCell>{antigen.creation_time}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>

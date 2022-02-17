@@ -47,7 +47,7 @@ export default function AddLocalAntigenView() {
                         </LoadingButton>
                     </Stack>
                     {
-                        antigens.map((antigen, idx) => (
+                        antigens.map((antigen) => (
                             <div>
                                 <Divider />
                                 <Accordion>
@@ -55,7 +55,7 @@ export default function AddLocalAntigenView() {
                                         {antigen.name}
                                     </AccordionSummary>
                                     <AccordionDetails>
-                                        <AntigenInfo antigen={antigen} />
+                                        <AntigenInfo uuid={antigen.uuid} />
                                     </AccordionDetails>
                                 </Accordion>
                             </div>
