@@ -15,3 +15,12 @@ export function filterUUID<Type extends { uuid: string }>(objs: Type[], uuids: s
         )
     ).filter((obj): obj is Type => !!obj)
 }
+
+export function zip<T extends Array<Array<any>>>(...arrays: T): Array<{
+    [K in keyof T]: T[K] extends Array<any> ? T[K][0] : never
+}>;
+export function zip(...arrays: any[][]) {
+    return arrays[0].map(
+        (_, idx) => arrays.map((array) => array[idx])
+    );
+};
