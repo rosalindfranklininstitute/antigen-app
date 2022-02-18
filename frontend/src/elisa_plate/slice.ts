@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
-import { addUniqueUUID, filterUUID } from "../utils/state_management";
+import { addUniqueUUID, AllFetched, filterUUID } from "../utils/state_management";
 import { ElisaPlate } from "./utils";
 
 type ElisaPlateState = {
     elisaPlates: ElisaPlate[]
-    allFetchPending: boolean
+    allFetched: AllFetched
     fetchPending: string[]
     posted: string[]
     postPending: boolean
@@ -15,7 +15,7 @@ type ElisaPlateState = {
 
 const initialElisaPlateState: ElisaPlateState = {
     elisaPlates: [],
-    allFetchPending: false,
+    allFetched: AllFetched.False,
     fetchPending: [],
     posted: [],
     postPending: false,
@@ -28,16 +28,16 @@ export const elisaPlateSlice = createSlice({
     reducers: {
         getAllPending: (state) => ({
             ...state,
-            allFetchPending: true,
+            allFetched: AllFetched.Pending,
         }),
         getAllSuccess: (state, action: PayloadAction<ElisaPlate[]>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.True,
             elisaPlates: addUniqueUUID(state.elisaPlates, action.payload),
         }),
         getAllFail: (state, action: PayloadAction<string>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.False,
             error: action.payload,
         }),
         getPending: (state, action: PayloadAction<string>) => ({
@@ -77,12 +77,12 @@ export const elisaPlateReducer = elisaPlateSlice.reducer;
 
 export const selectElisaPlates = (state: RootState) => state.elisaPlates.elisaPlates;
 export const selectElisaPlate = (uuid: string) => (state: RootState) => state.elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid);
-export const selectLoadingElisaPlate = (state: RootState) => state.elisaPlates.allFetchPending || Boolean(state.elisaPlates.fetchPending.length);
+export const selectLoadingElisaPlate = (state: RootState) => state.elisaPlates.allFetched === AllFetched.Pending || Boolean(state.elisaPlates.fetchPending.length);
 export const selectPostedElisaPlates = (state: RootState) => filterUUID(state.elisaPlates.elisaPlates, state.elisaPlates.posted);
 
 export const getElisaPlates = () => {
     return async (dispatch: DispatchType, getState: () => RootState) => {
-        if (getState().elisaPlates.allFetchPending) return;
+        if (getState().elisaPlates.allFetched === AllFetched.False) return;
         dispatch(actions.getAllPending());
         getAPI<ElisaPlate[]>(`elisa_plate`).then(
             (elisaPlates) => dispatch(actions.getAllSuccess(elisaPlates)),
