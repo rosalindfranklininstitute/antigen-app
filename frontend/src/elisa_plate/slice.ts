@@ -6,15 +6,19 @@ import { ElisaPlate } from "./utils";
 
 type ElisaPlateState = {
     elisaPlates: ElisaPlate[]
+    allFetchPending: boolean
+    fetchPending: string[]
     posted: string[]
-    loading: boolean
+    postPending: boolean
     error: string | null
 }
 
 const initialElisaPlateState: ElisaPlateState = {
     elisaPlates: [],
+    allFetchPending: false,
+    fetchPending: [],
     posted: [],
-    loading: false,
+    postPending: false,
     error: null
 }
 
@@ -22,74 +26,95 @@ export const elisaPlateSlice = createSlice({
     name: "elisaPlates",
     initialState: initialElisaPlateState,
     reducers: {
-        pending: (state) => ({
+        getAllPending: (state) => ({
             ...state,
-            loading: true,
+            allFetchPending: true,
         }),
-        getSuccess: (state, action: PayloadAction<ElisaPlate[]>) => ({
+        getAllSuccess: (state, action: PayloadAction<ElisaPlate[]>) => ({
             ...state,
-            loading: false,
+            allFetchPending: false,
             elisaPlates: addUniqueUUID(state.elisaPlates, action.payload),
+        }),
+        getAllFail: (state, action: PayloadAction<string>) => ({
+            ...state,
+            allFetchPending: false,
+            error: action.payload,
+        }),
+        getPending: (state, action: PayloadAction<string>) => ({
+            ...state,
+            fetchPending: state.fetchPending.concat(action.payload),
+        }),
+        getSuccess: (state, action: PayloadAction<ElisaPlate>) => ({
+            ...state,
+            fetchPending: state.fetchPending.filter((uuid) => uuid !== action.payload.uuid),
+            elisaPlates: state.elisaPlates.concat(action.payload),
+        }),
+        getFail: (state, action: PayloadAction<{ uuid: string, error: string }>) => ({
+            ...state,
+            fetchPending: state.fetchPending.filter((uuid) => uuid !== action.payload.uuid),
+            error: action.payload.error,
+        }),
+        postPending: (state) => ({
+            ...state,
+            postPending: true,
         }),
         postSuccess: (state, action: PayloadAction<ElisaPlate>) => ({
             ...state,
-            loading: false,
+            postPending: false,
             elisaPlates: addUniqueUUID(state.elisaPlates, [action.payload]),
             posted: state.posted.concat(action.payload.uuid),
         }),
-        fail: (state, action: PayloadAction<string>) => ({
+        postFail: (state, action: PayloadAction<string>) => ({
             ...state,
-            loading: false,
+            postPending: false,
             error: action.payload
         }),
     }
 })
 
-export const {
-    pending: elisaPlateActionPending,
-    getSuccess: elisaPlateActionGetSuccess,
-    postSuccess: elisaPlateActionPostSuccess,
-    fail: elisaPlateActionFail,
-} = elisaPlateSlice.actions;
-
+const actions = elisaPlateSlice.actions;
 export const elisaPlateReducer = elisaPlateSlice.reducer;
 
 export const selectElisaPlates = (state: RootState) => state.elisaPlates.elisaPlates;
 export const selectElisaPlate = (uuid: string) => (state: RootState) => state.elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid);
-export const selectLoadingElisaPlate = (state: RootState) => state.elisaPlates.loading;
+export const selectLoadingElisaPlate = (state: RootState) => state.elisaPlates.allFetchPending || Boolean(state.elisaPlates.fetchPending.length);
 export const selectPostedElisaPlates = (state: RootState) => filterUUID(state.elisaPlates.elisaPlates, state.elisaPlates.posted);
 
 export const getElisaPlates = () => {
-    return async (dispatch: DispatchType) => {
-        dispatch(elisaPlateActionPending());
+    return async (dispatch: DispatchType, getState: () => RootState) => {
+        if (getState().elisaPlates.allFetchPending) return;
+        dispatch(actions.getAllPending());
         getAPI<ElisaPlate[]>(`elisa_plate`).then(
-            (elisaPlates) => dispatch(elisaPlateActionGetSuccess(elisaPlates)),
-            (reason) => dispatch(elisaPlateActionFail(reason)),
+            (elisaPlates) => dispatch(actions.getAllSuccess(elisaPlates)),
+            (reason) => dispatch(actions.getAllFail(reason)),
         )
     }
 }
 
 export const getElisaPlate = (uuid: string) => {
     return async (dispatch: DispatchType, getState: () => RootState) => {
-        if (getState().elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid)) return;
-        dispatch(elisaPlateActionPending());
+        if (
+            getState().elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid)
+            || getState().elisaPlates.fetchPending.find((elisaPlate) => elisaPlate === uuid)
+        ) return;
+        dispatch(actions.getPending(uuid));
         getAPI<ElisaPlate>(`elisa_plate/${uuid}`).then(
-            (elisaPlate) => dispatch(elisaPlateActionGetSuccess([elisaPlate])),
-            (reason) => dispatch(elisaPlateActionFail(reason)),
+            (elisaPlate) => dispatch(actions.getSuccess(elisaPlate)),
+            (reason) => dispatch(actions.getFail({ uuid: uuid, error: reason })),
         )
     }
 }
 
 export const postElisaPlate = (threshold: number) => {
     return async (dispatch: DispatchType) => {
-        dispatch(elisaPlateActionPending());
+        dispatch(actions.postPending());
         postAPI<ElisaPlate>(`elisa_plate`,
             {
                 'threshold': threshold
             }
         ).then(
-            (elisaPlate) => dispatch(elisaPlateActionPostSuccess(elisaPlate)),
-            (reason) => dispatch(elisaPlateActionFail(reason)),
+            (elisaPlate) => dispatch(actions.postSuccess(elisaPlate)),
+            (reason) => dispatch(actions.postFail(reason)),
         )
     }
 }
