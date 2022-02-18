@@ -81,7 +81,8 @@ export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.all
 export const selectPostedElisaWells = (state: RootState) => filterUUID(state.elisaWells.elisaWells, state.elisaWells.posted);
 
 export const getElisaWells = () => {
-    return async (dispatch: DispatchType) => {
+    return async (dispatch: DispatchType, getState: () => RootState) => {
+        if (getState().elisaWells.allFetchPending) return;
         dispatch(actions.getAllPending());
         getAPI<ElisaWell[]>(`elisa_well`).then(
             (elisaWells) => dispatch(actions.getAllSuccess(elisaWells)),
