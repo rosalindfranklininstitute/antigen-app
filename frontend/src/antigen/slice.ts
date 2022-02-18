@@ -85,10 +85,9 @@ export const antigenReducer = antigenSlice.reducer;
 
 export const selectAntigens = (state: RootState) => state.antigens.antigens;
 export const selectAntigen = (uuid: string) => (state: RootState) => state.antigens.antigens.find((antigen) => antigen.uuid === uuid);
-export const selectLoadingAntigen = (state: RootState) => state.antigens.allFetchPending || Boolean(state.antigens.fetchPending);
+export const selectLoadingAntigen = (state: RootState) => state.antigens.allFetchPending || Boolean(state.antigens.fetchPending.length);
 export const selectPostedUniProtAntigens = (state: RootState) => filterUUID(state.antigens.antigens, state.antigens.postedUniProt);
 export const selectPostedLocalAntignes = (state: RootState) => filterUUID(state.antigens.antigens, state.antigens.postedLocal);
-
 
 export const getAntigens = () => {
     return async (dispatch: DispatchType, getState: () => RootState) => {

@@ -77,7 +77,7 @@ export const elisaWellReducer = elisaWellSlice.reducer;
 
 export const selectElisaWells = (state: RootState) => state.elisaWells.elisaWells;
 export const selectElisaWell = (uuid: string) => (state: RootState) => state.elisaWells.elisaWells.find((elisaWell) => elisaWell.uuid === uuid);
-export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.allFetchPending || Boolean(state.elisaWells.fetchPending);
+export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.allFetchPending || Boolean(state.elisaWells.fetchPending.length);
 export const selectPostedElisaWells = (state: RootState) => filterUUID(state.elisaWells.elisaWells, state.elisaWells.posted);
 
 export const getElisaWells = () => {
