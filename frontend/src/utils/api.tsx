@@ -24,6 +24,24 @@ export async function postAPI<Type>(uriFrag: string, post: object): Promise<Type
     )
 }
 
+export async function putAPI<Type>(uriFrag: string, obj: Type): Promise<Type> {
+    return fetch(
+        `http://127.0.0.1:8000/api/${uriFrag}/`,
+        {
+            method: 'PUT',
+            mode: 'cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(obj),
+        }
+    ).then(
+        async (response) => await response.json(),
+    )
+}
+
 export const LoadingPaper = (params: { text: string }) => {
     return (
         <Paper>
