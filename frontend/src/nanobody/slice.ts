@@ -2,12 +2,11 @@ import { Nanobody } from "./utils";
 import { getAPI, postAPI } from "../utils/api";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
-import { addUniqueUUID, filterUUID } from "../utils/state_management";
-import { stringify } from "querystring";
+import { addUniqueUUID, AllFetched, filterUUID } from "../utils/state_management";
 
 type NanobodyState = {
     nanobodies: Nanobody[]
-    allFetchPending: boolean
+    allFetched: AllFetched
     fetchPending: string[]
     posted: string[]
     postPending: boolean
@@ -16,7 +15,7 @@ type NanobodyState = {
 
 const initialNanobodyState: NanobodyState = {
     nanobodies: [],
-    allFetchPending: false,
+    allFetched: AllFetched.False,
     fetchPending: [],
     posted: [],
     postPending: false,
@@ -29,16 +28,16 @@ export const nanobodySlice = createSlice({
     reducers: {
         getAllPending: (state) => ({
             ...state,
-            allFetchPending: true,
+            allFetched: AllFetched.Pending,
         }),
         getAllSuccess: (state, action: PayloadAction<Nanobody[]>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.True,
             nanobodies: addUniqueUUID(state.nanobodies, action.payload),
         }),
         getAllFail: (state, action: PayloadAction<string>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.False,
             error: action.payload,
         }),
         getPending: (state, action: PayloadAction<string>) => ({
@@ -78,12 +77,12 @@ export const nanobodyReducer = nanobodySlice.reducer;
 
 export const selectNanobodies = (state: RootState) => state.nanobodies.nanobodies;
 export const selectNanobody = (uuid: string) => (state: RootState) => state.nanobodies.nanobodies.find((nanobody) => nanobody.uuid === uuid)
-export const selectLoadingNanobody = (state: RootState) => state.nanobodies.allFetchPending || Boolean(state.nanobodies.fetchPending.length);
+export const selectLoadingNanobody = (state: RootState) => state.nanobodies.allFetched === AllFetched.Pending || Boolean(state.nanobodies.fetchPending.length);
 export const selectPostedNanobodies = (state: RootState) => filterUUID(state.nanobodies.nanobodies, state.nanobodies.posted);
 
 export const getNanobodies = () => {
     return async (dispatch: DispatchType, getState: () => RootState) => {
-        if (getState().nanobodies.allFetchPending) return;
+        if (getState().nanobodies.allFetched !== AllFetched.False) return;
         dispatch(actions.getAllPending());
         getAPI<Nanobody[]>(`nanobody`).then(
             (nanobodies) => dispatch(actions.getAllSuccess(nanobodies)),
