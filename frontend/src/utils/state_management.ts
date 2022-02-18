@@ -1,3 +1,9 @@
+export enum AllFetched {
+    False,
+    Pending,
+    True,
+}
+
 export function addUniqueUUID<Type extends { uuid: string }>(oldObjs: Type[], newObjs: Type[]) {
     return newObjs.concat(
         oldObjs.filter(

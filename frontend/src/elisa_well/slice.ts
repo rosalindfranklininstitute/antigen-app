@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
-import { addUniqueUUID, filterUUID } from "../utils/state_management";
+import { addUniqueUUID, AllFetched, filterUUID } from "../utils/state_management";
 import { ElisaWell } from "./utils";
 
 type ElisaWellState = {
     elisaWells: ElisaWell[]
-    allFetchPending: boolean
+    allFetched: AllFetched
     fetchPending: string[]
     posted: string[]
     postPending: boolean
@@ -15,7 +15,7 @@ type ElisaWellState = {
 
 const initialElisaWellState: ElisaWellState = {
     elisaWells: [],
-    allFetchPending: false,
+    allFetched: AllFetched.False,
     fetchPending: [],
     posted: [],
     postPending: false,
@@ -28,16 +28,16 @@ export const elisaWellSlice = createSlice({
     reducers: {
         getAllPending: (state) => ({
             ...state,
-            allFetchPending: true
+            allFetched: AllFetched.Pending,
         }),
         getAllSuccess: (state, action: PayloadAction<ElisaWell[]>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.True,
             elisaWells: addUniqueUUID(state.elisaWells, action.payload),
         }),
         getAllFail: (state, action: PayloadAction<string>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.False,
             error: action.payload,
         }),
         getPending: (state, action: PayloadAction<string>) => ({
@@ -77,12 +77,12 @@ export const elisaWellReducer = elisaWellSlice.reducer;
 
 export const selectElisaWells = (state: RootState) => state.elisaWells.elisaWells;
 export const selectElisaWell = (uuid: string) => (state: RootState) => state.elisaWells.elisaWells.find((elisaWell) => elisaWell.uuid === uuid);
-export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.allFetchPending || Boolean(state.elisaWells.fetchPending.length);
+export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.allFetched === AllFetched.Pending || Boolean(state.elisaWells.fetchPending.length);
 export const selectPostedElisaWells = (state: RootState) => filterUUID(state.elisaWells.elisaWells, state.elisaWells.posted);
 
 export const getElisaWells = () => {
     return async (dispatch: DispatchType, getState: () => RootState) => {
-        if (getState().elisaWells.allFetchPending) return;
+        if (getState().elisaWells.allFetched !== AllFetched.False) return;
         dispatch(actions.getAllPending());
         getAPI<ElisaWell[]>(`elisa_well`).then(
             (elisaWells) => dispatch(actions.getAllSuccess(elisaWells)),

@@ -1,12 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
-import { addUniqueUUID, filterUUID } from "../utils/state_management";
+import { addUniqueUUID, AllFetched, filterUUID } from "../utils/state_management";
 import { Antigen, LocalAntigen, UniProtAntigen } from "./utils";
 
 type AntigenState = {
     antigens: Antigen[]
-    allFetchPending: boolean
+    allFetched: AllFetched
     fetchPending: string[]
     postedUniProt: string[]
     postedLocal: string[]
@@ -16,7 +16,7 @@ type AntigenState = {
 
 const initialAntigenState: AntigenState = {
     antigens: [],
-    allFetchPending: false,
+    allFetched: AllFetched.False,
     fetchPending: [],
     postedUniProt: [],
     postedLocal: [],
@@ -30,16 +30,16 @@ export const antigenSlice = createSlice({
     reducers: {
         getAllPending: (state) => ({
             ...state,
-            allFetchPending: true,
+            allFetched: AllFetched.Pending,
         }),
         getAllSuccess: (state, action: PayloadAction<Antigen[]>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.True,
             antigens: addUniqueUUID(state.antigens, action.payload),
         }),
         getAllFail: (state, action: PayloadAction<string>) => ({
             ...state,
-            allFetchPending: false,
+            allFetched: AllFetched.False,
             error: action.payload,
         }),
         getPending: (state, action: PayloadAction<string>) => ({
@@ -85,13 +85,13 @@ export const antigenReducer = antigenSlice.reducer;
 
 export const selectAntigens = (state: RootState) => state.antigens.antigens;
 export const selectAntigen = (uuid: string) => (state: RootState) => state.antigens.antigens.find((antigen) => antigen.uuid === uuid);
-export const selectLoadingAntigen = (state: RootState) => state.antigens.allFetchPending || Boolean(state.antigens.fetchPending.length);
+export const selectLoadingAntigen = (state: RootState) => state.antigens.allFetched === AllFetched.Pending || Boolean(state.antigens.fetchPending.length);
 export const selectPostedUniProtAntigens = (state: RootState) => filterUUID(state.antigens.antigens, state.antigens.postedUniProt);
 export const selectPostedLocalAntignes = (state: RootState) => filterUUID(state.antigens.antigens, state.antigens.postedLocal);
 
 export const getAntigens = () => {
     return async (dispatch: DispatchType, getState: () => RootState) => {
-        if (getState().antigens.allFetchPending) return;
+        if (getState().antigens.allFetched !== AllFetched.False) return;
         dispatch(actions.getAllPending());
         getAPI<Antigen[]>(`antigen`).then(
             (antigens) => dispatch(actions.getAllSuccess(antigens)),
