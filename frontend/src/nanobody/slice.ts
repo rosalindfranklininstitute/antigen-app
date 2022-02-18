@@ -78,7 +78,7 @@ export const nanobodyReducer = nanobodySlice.reducer;
 
 export const selectNanobodies = (state: RootState) => state.nanobodies.nanobodies;
 export const selectNanobody = (uuid: string) => (state: RootState) => state.nanobodies.nanobodies.find((nanobody) => nanobody.uuid === uuid)
-export const selectLoadingNanobody = (state: RootState) => state.nanobodies.allFetchPending || Boolean(state.nanobodies.fetchPending);
+export const selectLoadingNanobody = (state: RootState) => state.nanobodies.allFetchPending || Boolean(state.nanobodies.fetchPending.length);
 export const selectPostedNanobodies = (state: RootState) => filterUUID(state.nanobodies.nanobodies, state.nanobodies.posted);
 
 export const getNanobodies = () => {
