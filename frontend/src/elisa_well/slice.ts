@@ -6,15 +6,19 @@ import { ElisaWell } from "./utils";
 
 type ElisaWellState = {
     elisaWells: ElisaWell[]
+    allFetchPending: boolean
+    fetchPending: string[]
     posted: string[]
-    loading: boolean
+    postPending: boolean
     error: string | null
 }
 
 const initialElisaWellState: ElisaWellState = {
     elisaWells: [],
+    allFetchPending: false,
+    fetchPending: [],
     posted: [],
-    loading: false,
+    postPending: false,
     error: null,
 }
 
@@ -22,67 +26,87 @@ export const elisaWellSlice = createSlice({
     name: "elisaWells",
     initialState: initialElisaWellState,
     reducers: {
-        pending: (state) => ({
+        getAllPending: (state) => ({
             ...state,
-            loading: true,
+            allFetchPending: true
         }),
-        getSuccess: (state, action: PayloadAction<ElisaWell[]>) => ({
+        getAllSuccess: (state, action: PayloadAction<ElisaWell[]>) => ({
             ...state,
-            loading: false,
+            allFetchPending: false,
             elisaWells: addUniqueUUID(state.elisaWells, action.payload),
+        }),
+        getAllFail: (state, action: PayloadAction<string>) => ({
+            ...state,
+            allFetchPending: false,
+            error: action.payload,
+        }),
+        getPending: (state, action: PayloadAction<string>) => ({
+            ...state,
+            fetchPending: state.fetchPending.concat(action.payload),
+        }),
+        getSuccess: (state, action: PayloadAction<ElisaWell>) => ({
+            ...state,
+            fetchPending: state.fetchPending.filter((uuid) => uuid !== action.payload.uuid),
+            elisaWells: addUniqueUUID(state.elisaWells, [action.payload]),
+        }),
+        getFail: (state, action: PayloadAction<{ uuid: string, error: string }>) => ({
+            ...state,
+            fetchPending: state.fetchPending.filter((uuid) => uuid !== action.payload.uuid),
+            error: action.payload.error,
+        }),
+        postPending: (state) => ({
+            ...state,
+            postPending: true,
         }),
         postSuccess: (state, action: PayloadAction<ElisaWell>) => ({
             ...state,
-            loading: false,
             elisaWells: addUniqueUUID(state.elisaWells, [action.payload]),
             posted: state.posted.concat(action.payload.uuid),
+            postPending: false,
         }),
-        fail: (state, action: PayloadAction<string>) => ({
+        postFail: (state, action: PayloadAction<string>) => ({
             ...state,
-            loading: false,
+            postPending: false,
             error: action.payload,
         }),
     }
 })
 
-export const {
-    pending: elisaWellActionPending,
-    getSuccess: elisaWellActionGetSuccess,
-    postSuccess: elisaWellActionPostSuccess,
-    fail: elisaWellActionFail,
-} = elisaWellSlice.actions
-
+const actions = elisaWellSlice.actions;
 export const elisaWellReducer = elisaWellSlice.reducer;
 
 export const selectElisaWells = (state: RootState) => state.elisaWells.elisaWells;
 export const selectElisaWell = (uuid: string) => (state: RootState) => state.elisaWells.elisaWells.find((elisaWell) => elisaWell.uuid === uuid);
-export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.loading;
+export const selectLoadingElisaWell = (state: RootState) => state.elisaWells.allFetchPending || Boolean(state.elisaWells.fetchPending);
 export const selectPostedElisaWells = (state: RootState) => filterUUID(state.elisaWells.elisaWells, state.elisaWells.posted);
 
 export const getElisaWells = () => {
     return async (dispatch: DispatchType) => {
-        dispatch(elisaWellActionPending());
+        dispatch(actions.getAllPending());
         getAPI<ElisaWell[]>(`elisa_well`).then(
-            (elisaWells) => dispatch(elisaWellActionGetSuccess(elisaWells)),
-            (reason) => dispatch(elisaWellActionFail(reason)),
+            (elisaWells) => dispatch(actions.getAllSuccess(elisaWells)),
+            (reason) => dispatch(actions.getAllFail(reason)),
         )
     }
 }
 
 export const getElisaWell = (uuid: string) => {
     return async (dispatch: DispatchType, getState: () => RootState) => {
-        if (getState().elisaWells.elisaWells.find((elisaWell) => elisaWell.uuid === uuid)) return;
-        dispatch(elisaWellActionPending());
+        if (
+            getState().elisaWells.elisaWells.find((elisaWell) => elisaWell.uuid === uuid)
+            || getState().elisaWells.fetchPending.find((elisaWell) => elisaWell === uuid)
+        ) return;
+        dispatch(actions.getPending(uuid));
         getAPI<ElisaWell>(`elisa_well/${uuid}`).then(
-            (elisaWell) => dispatch(elisaWellActionGetSuccess([elisaWell])),
-            (reason) => dispatch(elisaWellActionFail(reason)),
+            (elisaWell) => dispatch(actions.getSuccess(elisaWell)),
+            (reason) => dispatch(actions.getFail({ uuid: uuid, error: reason })),
         )
     }
 }
 
 export const postElisaWell = (location: number, opticalDensity: number, plate: string, antigen: string, nanobody: string) => {
     return async (dispatch: DispatchType) => {
-        dispatch(elisaWellActionPending());
+        dispatch(actions.postPending());
         postAPI<ElisaWell>(`elisa_well`,
             {
                 'location': location,
@@ -92,8 +116,8 @@ export const postElisaWell = (location: number, opticalDensity: number, plate: s
                 'nanbody': nanobody
             }
         ).then(
-            (elisaWell) => dispatch(elisaWellActionPostSuccess(elisaWell)),
-            (reason) => dispatch(elisaWellActionFail(reason)),
+            (elisaWell) => dispatch(actions.postSuccess(elisaWell)),
+            (reason) => dispatch(actions.postFail(reason)),
         )
     }
 }

@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { elisaWellActionFail } from "../elisa_well/slice";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
 import { addUniqueUUID, filterUUID } from "../utils/state_management";
@@ -90,7 +89,7 @@ export const postElisaPlate = (threshold: number) => {
             }
         ).then(
             (elisaPlate) => dispatch(elisaPlateActionPostSuccess(elisaPlate)),
-            (reason) => dispatch(elisaWellActionFail(reason)),
+            (reason) => dispatch(elisaPlateActionFail(reason)),
         )
     }
 }
