@@ -58,6 +58,8 @@ export function ElisaPlateWellTable(params: { uuids: string[] }) {
                         <TableCell>Location</TableCell>
                         <TableCell>Antigen</TableCell>
                         <TableCell>Nanobody</TableCell>
+                        <TableCell>Optical Density</TableCell>
+                        <TableCell>Functional</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -68,6 +70,8 @@ export function ElisaPlateWellTable(params: { uuids: string[] }) {
                                 <TableCell>{locationToGrid(elisaWell.location)}</TableCell>
                                 <TableCell>{antigen ? antigen.name : null}</TableCell>
                                 <TableCell>{nanobody ? nanobody.name : null}</TableCell>
+                                <TableCell>{elisaWell.optical_density}</TableCell>
+                                <TableCell>{elisaWell.functional ? "yes" : "no"}</TableCell>
                             </TableRow>
                         ))
                     }
