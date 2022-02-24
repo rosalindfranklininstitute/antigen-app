@@ -2,9 +2,11 @@ import { Typography, Grid, Button, Paper, Popover, Stack, CardContent, Card, Aut
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAntigen, getAntigens, selectAntigen, selectAntigens } from "../antigen/slice";
-import { getElisaWell, selectElisaWell } from "../elisa_well/slice";
+import { Antigen } from "../antigen/utils";
+import { getElisaWell, putElisaWell, selectElisaWell } from "../elisa_well/slice";
 import { ElisaWell, locationToCoords } from "../elisa_well/utils";
 import { getNanobodies, getNanobody, selectNanobodies, selectNanobody } from "../nanobody/slice";
+import { Nanobody } from "../nanobody/utils";
 import { RootState } from "../store";
 
 function uuidToColor(uuid: string) {
@@ -23,6 +25,27 @@ function ElisaWellEditPopover(params: { uuid: string, anchorEl: HTMLElement | nu
         dispatch(getAntigens());
         dispatch(getNanobodies());
     }, [dispatch, params])
+
+
+    const changeAntigen = (antigen: Antigen | null) => {
+        if (elisaWell && antigen) {
+            dispatch(putElisaWell({
+                ...elisaWell,
+                antigen: antigen.uuid
+            }))
+        }
+    }
+
+    const changeNanobody = (nanobody: Nanobody | null) => {
+        if (elisaWell && nanobody) {
+            dispatch(putElisaWell(
+                {
+                    ...elisaWell,
+                    nanobody: nanobody.uuid,
+                }
+            ))
+        }
+    };
 
     return (
         < Popover
@@ -46,12 +69,14 @@ function ElisaWellEditPopover(params: { uuid: string, anchorEl: HTMLElement | nu
                             options={antigens}
                             getOptionLabel={(antigen) => antigen.name}
                             defaultValue={antigens.find((antigen) => antigen.uuid === elisaWell?.antigen)}
+                            onChange={(evt, antigen) => changeAntigen(antigen)}
                         />
                         <Autocomplete
                             renderInput={(params) => <TextField {...params} label="Nanobody" sx={{ width: "32ch" }} />}
                             options={nanobodies}
                             getOptionLabel={(nanobody) => nanobody.name}
                             defaultValue={nanobodies.find((nanobody) => nanobody.uuid === elisaWell?.nanobody)}
+                            onChange={(evt, nanobody) => changeNanobody(nanobody)}
                         />
                     </Stack>
                 </CardContent>
