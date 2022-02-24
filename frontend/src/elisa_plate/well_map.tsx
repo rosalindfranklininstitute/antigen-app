@@ -2,12 +2,12 @@ import { Typography, Grid, Button, Paper, Popover, Stack, CardContent, Card, Aut
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAntigen, getAntigens, selectAntigen, selectAntigens } from "../antigen/slice";
-import { Antigen } from "../antigen/utils";
 import { getElisaWell, putElisaWell, selectElisaWell } from "../elisa_well/slice";
 import { ElisaWell, locationToCoords } from "../elisa_well/utils";
 import { getNanobodies, getNanobody, selectNanobodies, selectNanobody } from "../nanobody/slice";
-import { Nanobody } from "../nanobody/utils";
 import { RootState } from "../store";
+import DoneIcon from '@mui/icons-material/Done';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 function uuidToColor(uuid: string) {
     const hue = Number("0x".concat(uuid.substring(0, 2)))
@@ -16,7 +16,7 @@ function uuidToColor(uuid: string) {
 
 function ElisaWellEditPopover(params: { uuid: string, anchorEl: HTMLElement | null, setAnchorEl: (anchorEl: (HTMLElement | null)) => void }) {
     const dispatch = useDispatch();
-    const elisaWell = useSelector(selectElisaWell(params.uuid));
+    const [elisaWell, setElisaWell] = useState<ElisaWell>(useSelector(selectElisaWell(params.uuid)) as ElisaWell);
     const antigens = useSelector(selectAntigens);
     const nanobodies = useSelector(selectNanobodies);
 
@@ -26,26 +26,11 @@ function ElisaWellEditPopover(params: { uuid: string, anchorEl: HTMLElement | nu
         dispatch(getNanobodies());
     }, [dispatch, params])
 
-
-    const changeAntigen = (antigen: Antigen | null) => {
-        if (elisaWell && antigen) {
-            dispatch(putElisaWell({
-                ...elisaWell,
-                antigen: antigen.uuid
-            }))
+    const updateElisaWell = () => {
+        if (elisaWell) {
+            dispatch(putElisaWell(elisaWell))
         }
     }
-
-    const changeNanobody = (nanobody: Nanobody | null) => {
-        if (elisaWell && nanobody) {
-            dispatch(putElisaWell(
-                {
-                    ...elisaWell,
-                    nanobody: nanobody.uuid,
-                }
-            ))
-        }
-    };
 
     return (
         < Popover
@@ -69,15 +54,48 @@ function ElisaWellEditPopover(params: { uuid: string, anchorEl: HTMLElement | nu
                             options={antigens}
                             getOptionLabel={(antigen) => antigen.name}
                             defaultValue={antigens.find((antigen) => antigen.uuid === elisaWell?.antigen)}
-                            onChange={(evt, antigen) => changeAntigen(antigen)}
+                            onChange={(_, antigen) => {
+                                setElisaWell({ ...elisaWell, antigen: antigen ? antigen.uuid : elisaWell.antigen })
+                            }}
                         />
                         <Autocomplete
                             renderInput={(params) => <TextField {...params} label="Nanobody" sx={{ width: "32ch" }} />}
                             options={nanobodies}
                             getOptionLabel={(nanobody) => nanobody.name}
                             defaultValue={nanobodies.find((nanobody) => nanobody.uuid === elisaWell?.nanobody)}
-                            onChange={(evt, nanobody) => changeNanobody(nanobody)}
+                            onChange={(_, nanobody) => {
+                                setElisaWell({ ...elisaWell, nanobody: nanobody ? nanobody.uuid : elisaWell.nanobody })
+                            }}
                         />
+                        <TextField
+                            label="Optical Density"
+                            type="number"
+                            defaultValue={elisaWell?.optical_density}
+                            onChange={(evt) => {
+                                setElisaWell({ ...elisaWell, optical_density: Number(evt.target.value) })
+                            }}
+                        />
+                        <Stack direction="row" justifyContent="space-between">
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                endIcon={<CancelIcon />}
+                                onClick={() => params.setAnchorEl(null)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="contained"
+                                color="success"
+                                endIcon={<DoneIcon />}
+                                onClick={() => {
+                                    updateElisaWell();
+                                    params.setAnchorEl(null);
+                                }}
+                            >
+                                Save
+                            </Button>
+                        </Stack>
                     </Stack>
                 </CardContent>
             </Card>
