@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
-import { getAPI, postAPI } from "../utils/api";
+import { getAPI, postAPI, putAPI } from "../utils/api";
 import { addUniqueUUID, AllFetched, filterUUID } from "../utils/state_management";
 import { ElisaWell } from "./utils";
 
@@ -117,6 +117,16 @@ export const postElisaWell = (location: number, opticalDensity: number, plate: s
                 'nanbody': nanobody
             }
         ).then(
+            (elisaWell) => dispatch(actions.postSuccess(elisaWell)),
+            (reason) => dispatch(actions.postFail(reason)),
+        )
+    }
+}
+
+export const putElisaWell = (elisaWell: ElisaWell) => {
+    return async (dispatch: DispatchType, getState: () => void) => {
+        dispatch(actions.postPending());
+        putAPI<ElisaWell>(`elisa_well/${elisaWell.uuid}`, elisaWell).then(
             (elisaWell) => dispatch(actions.postSuccess(elisaWell)),
             (reason) => dispatch(actions.postFail(reason)),
         )
