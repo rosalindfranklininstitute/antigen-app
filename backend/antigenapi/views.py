@@ -10,6 +10,7 @@ from rest_framework.serializers import (
     PrimaryKeyRelatedField,
     ReadOnlyField,
     SerializerMethodField,
+    SlugRelatedField,
 )
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -142,7 +143,9 @@ class ElisaPlateSerializer(ModelSerializer):
     contained within it.
     """
 
-    plate_elisa_wells = PrimaryKeyRelatedField(many=True, read_only=True)
+    plate_elisa_wells = SlugRelatedField(
+        many=True, read_only=True, slug_field="location"
+    )
 
     class Meta:  # noqa: D106
         model = ElisaPlate
