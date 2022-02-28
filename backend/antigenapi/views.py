@@ -1,5 +1,8 @@
 from typing import Optional
 
+from django.db.models import CharField as DbCharField
+from django.db.models import Value
+from django.db.models.functions import Concat
 from rest_framework.serializers import (
     CharField,
     IntegerField,
@@ -159,6 +162,7 @@ class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
 
     functional = ReadOnlyField()
+    plate_location = ReadOnlyField()
 
     class Meta:  # noqa: D106
         model = ElisaWell
@@ -168,8 +172,13 @@ class ElisaWellSerializer(ModelSerializer):
 class ElisaWellViewSet(ModelViewSet):
     """A view set displaying all recorded elisa wells."""
 
-    queryset = ElisaWell.objects.all()
+    queryset = ElisaWell.objects.annotate(
+        plate_location=Concat(
+            "plate", Value(":"), "location", output_field=DbCharField()
+        )
+    ).all()
     serializer_class = ElisaWellSerializer
+    lookup_field = "plate_location"
 
     perform_create = perform_create_allow_creator_change_delete
 
