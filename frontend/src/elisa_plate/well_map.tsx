@@ -194,53 +194,31 @@ function ElisaWellElement(params: { wellKey: ElisaWellKey | null }) {
     )
 };
 
-export function ElisaWellMapElement(params: { wellKeys: ElisaWellKey[] }) {
-    const dispatch = useDispatch();
-    const elisaWells = useSelector(
-        (state: RootState) => params.wellKeys.map(
-            (wellKey) => selectElisaWell(wellKey)(state)
-        )
-    ).filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);
-
-    useEffect(() => {
-        params.wellKeys.forEach(
-            (wellKey) => dispatch(getElisaWell(wellKey))
-        )
-    }, [dispatch, params])
-
-    const elisaWellGrid: (ElisaWell | null)[][] = new Array(8).fill(undefined).map(
-        () => new Array(12).fill(null)
-    );
-
-    elisaWells.forEach((elisaWell) => {
-        const [row, col] = locationToCoords(elisaWell.location);
-        elisaWellGrid[row][col] = elisaWell;
-    })
-
+export function ElisaWellMapElement(params: { plate: string }) {
     return (
         <Grid container spacing={2} columns={13}>
             <Grid item xs={1} key={0} />
             {
-                Array.from({ length: 12 }, (_, idx) => (
-                    <Grid item xs={1} key={idx + 1}>
-                        <Typography>{idx + 1}</Typography>
+                Array.from({ length: 12 }, (_, col) => (
+                    <Grid item xs={1} key={col + 1}>
+                        <Typography>{col + 1}</Typography>
                     </Grid>
                 ))
             }
             {
-                elisaWellGrid.map((wellRow, row_idx) => {
+                Array.from({ length: 8 }, (_, row) => {
                     return [
-                        <Grid item xs={1} key={(row_idx + 1) * 13}>
-                            <Typography>{String.fromCharCode(row_idx + 65)}</Typography>
+                        <Grid item xs={1} key={(row + 1) * 13}>
+                            <Typography>{String.fromCharCode(row + 65)}</Typography>
                         </Grid>,
-                        wellRow.map((elisaWell, col_idx) => (
-                            <Grid item xs={1} key={(row_idx + 1) * 13 + col_idx}>
-                                <ElisaWellElement wellKey={elisaWell ? { plate: elisaWell.plate, location: elisaWell.location } : null} />
+                        Array.from({ length: 12 }, (_, col) => (
+                            <Grid item xs={1}>
+                                <ElisaWellElement wellKey={{ plate: params.plate, location: row * 12 + col + 1 }} />
                             </Grid>
                         ))
                     ]
                 })
             }
-        </Grid>
+        </Grid >
     )
 }

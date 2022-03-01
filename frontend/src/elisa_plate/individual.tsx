@@ -26,7 +26,7 @@ export default function ElisaPlateView() {
                 <Stack>
                     <Typography variant="h4">{elisaPlate.uuid}</Typography>
                     <ElisaPlateInfo uuid={elisaPlate.uuid} />
-                    <ElisaWellMapElement wellKeys={elisaPlate.plate_elisa_wells.map((location) => ({ plate: elisaPlate.uuid, location }))} />
+                    <ElisaWellMapElement plate={elisaPlate.uuid} />
                 </Stack>
             </CardContent>
         </Card>
