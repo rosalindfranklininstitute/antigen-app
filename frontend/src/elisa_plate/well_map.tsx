@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAntigen, getAntigens, selectAntigen, selectAntigens } from "../antigen/slice";
 import { getElisaWell, putElisaWell, selectElisaWell } from "../elisa_well/slice";
-import { ElisaWell, locationToCoords } from "../elisa_well/utils";
+import { ElisaWell, ElisaWellKey, locationToCoords } from "../elisa_well/utils";
 import { getNanobodies, getNanobody, selectNanobodies, selectNanobody } from "../nanobody/slice";
 import { RootState } from "../store";
 import DoneIcon from '@mui/icons-material/Done';
@@ -14,14 +14,14 @@ function uuidToColor(uuid: string) {
     return `hsl(${hue}, 50%, 50%)`;
 }
 
-function ElisaWellEditPopover(params: { uuid: string, anchorEl: HTMLElement | null, setAnchorEl: (anchorEl: (HTMLElement | null)) => void }) {
+function ElisaWellEditPopover(params: { wellKey: ElisaWellKey, anchorEl: HTMLElement | null, setAnchorEl: (anchorEl: (HTMLElement | null)) => void }) {
     const dispatch = useDispatch();
-    const [elisaWell, setElisaWell] = useState<ElisaWell>(useSelector(selectElisaWell(params.uuid)) as ElisaWell);
+    const [elisaWell, setElisaWell] = useState<ElisaWell>(useSelector(selectElisaWell(params.wellKey)) as ElisaWell);
     const antigens = useSelector(selectAntigens);
     const nanobodies = useSelector(selectNanobodies);
 
     useEffect(() => {
-        dispatch(getElisaWell(params.uuid));
+        dispatch(getElisaWell(params.wellKey));
         dispatch(getAntigens());
         dispatch(getNanobodies());
     }, [dispatch, params])
@@ -103,14 +103,14 @@ function ElisaWellEditPopover(params: { uuid: string, anchorEl: HTMLElement | nu
     )
 }
 
-function ElisaWellInfoPopover(params: { uuid: string, anchorEl: HTMLElement | null, setAnchorEl: (anchorEl: (HTMLAnchorElement | null)) => void }) {
+function ElisaWellInfoPopover(params: { wellKey: ElisaWellKey, anchorEl: HTMLElement | null, setAnchorEl: (anchorEl: (HTMLAnchorElement | null)) => void }) {
     const dispatch = useDispatch();
-    const elisaWell = useSelector(selectElisaWell(params.uuid));
+    const elisaWell = useSelector(selectElisaWell(params.wellKey));
     const antigen = useSelector(elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined);
     const nanobody = useSelector(elisaWell ? selectNanobody(elisaWell.nanobody) : () => undefined);
 
     useEffect(() => {
-        dispatch(getElisaWell(params.uuid));
+        dispatch(getElisaWell(params.wellKey));
     });
 
     useEffect(() => {
@@ -143,14 +143,14 @@ function ElisaWellInfoPopover(params: { uuid: string, anchorEl: HTMLElement | nu
     )
 }
 
-function ElisaWellElement(params: { uuid: string | null }) {
+function ElisaWellElement(params: { wellKey: ElisaWellKey | null }) {
     const dispatch = useDispatch();
-    const elisaWell = useSelector(params.uuid ? selectElisaWell(params.uuid) : () => undefined);
+    const elisaWell = useSelector(params.wellKey ? selectElisaWell(params.wellKey) : () => undefined);
     const antigen = useSelector(elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined);
     const nanobody = useSelector(elisaWell ? selectNanobody(elisaWell.nanobody) : () => undefined);
 
     useEffect(() => {
-        if (params.uuid) dispatch(getElisaWell(params.uuid));
+        if (params.wellKey) dispatch(getElisaWell(params.wellKey));
     }, [dispatch, params])
 
     useEffect(() => {
@@ -166,8 +166,8 @@ function ElisaWellElement(params: { uuid: string | null }) {
     const [infoAnchorEl, setInfoAnchorEl] = useState<HTMLElement | null>(null);
     const [editAnchorEl, setEditAnchorEl] = useState<HTMLElement | null>(null);
 
-    const InfoPopover = () => params.uuid ? <ElisaWellInfoPopover uuid={params.uuid} anchorEl={infoAnchorEl} setAnchorEl={setInfoAnchorEl} /> : null
-    const EditPopover = () => params.uuid ? <ElisaWellEditPopover uuid={params.uuid} anchorEl={editAnchorEl} setAnchorEl={setEditAnchorEl} /> : null;
+    const InfoPopover = () => params.wellKey ? <ElisaWellInfoPopover wellKey={params.wellKey} anchorEl={infoAnchorEl} setAnchorEl={setInfoAnchorEl} /> : null
+    const EditPopover = () => params.wellKey ? <ElisaWellEditPopover wellKey={params.wellKey} anchorEl={editAnchorEl} setAnchorEl={setEditAnchorEl} /> : null;
 
     return (
         <Paper
@@ -194,17 +194,17 @@ function ElisaWellElement(params: { uuid: string | null }) {
     )
 };
 
-export function ElisaWellMapElement(params: { uuids: string[] }) {
+export function ElisaWellMapElement(params: { wellKeys: ElisaWellKey[] }) {
     const dispatch = useDispatch();
     const elisaWells = useSelector(
-        (state: RootState) => params.uuids.map(
-            (well) => selectElisaWell(well)(state)
+        (state: RootState) => params.wellKeys.map(
+            (wellKey) => selectElisaWell(wellKey)(state)
         )
     ).filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);
 
     useEffect(() => {
-        params.uuids.forEach(
-            (uuid) => dispatch(getElisaWell(uuid))
+        params.wellKeys.forEach(
+            (wellKey) => dispatch(getElisaWell(wellKey))
         )
     }, [dispatch, params])
 
@@ -235,7 +235,7 @@ export function ElisaWellMapElement(params: { uuids: string[] }) {
                         </Grid>,
                         wellRow.map((elisaWell, col_idx) => (
                             <Grid item xs={1} key={(row_idx + 1) * 13 + col_idx}>
-                                <ElisaWellElement uuid={elisaWell ? elisaWell.uuid : null} />
+                                <ElisaWellElement wellKey={elisaWell ? { plate: elisaWell.plate, location: elisaWell.location } : null} />
                             </Grid>
                         ))
                     ]

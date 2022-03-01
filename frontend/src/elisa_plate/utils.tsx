@@ -1,27 +1,27 @@
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
+import { Link, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material"
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { getAntigen, selectAntigen } from "../antigen/slice"
 import { getElisaWell, selectElisaWell } from "../elisa_well/slice"
-import { ElisaWell, locationToGrid } from "../elisa_well/utils"
+import { ElisaWell, ElisaWellKey, locationToGrid } from "../elisa_well/utils"
 import { getNanobody, selectNanobody } from "../nanobody/slice"
 import { RootState } from "../store"
-import { LinkUUID } from "../utils/elements"
+import { Link as RouterLink } from "react-router-dom"
 import { zip } from "../utils/state_management"
 import { getElisaPlate, selectElisaPlate } from "./slice"
 
 export type ElisaPlate = {
     uuid: string
     threshold: number
-    plate_elisa_wells: string[]
+    plate_elisa_wells: number[]
     creation_time: Date
 }
 
-export function ElisaPlateWellTable(params: { uuids: string[] }) {
+export function ElisaPlateWellTable(params: { wellKeys: ElisaWellKey[] }) {
     const dispatch = useDispatch();
     const elisaWells = useSelector(
-        (state: RootState) => params.uuids.map(
-            (uuid) => selectElisaWell(uuid)(state)
+        (state: RootState) => params.wellKeys.map(
+            (wellKey) => selectElisaWell(wellKey)(state)
         )
     ).filter(
         (elisaWell): elisaWell is ElisaWell => !!elisaWell
@@ -35,8 +35,8 @@ export function ElisaPlateWellTable(params: { uuids: string[] }) {
     ));
 
     useEffect(() => {
-        params.uuids.forEach(
-            (uuid) => dispatch(getElisaWell(uuid))
+        params.wellKeys.forEach(
+            (wellKey) => dispatch(getElisaWell(wellKey))
         )
     }, [dispatch, params]);
 
@@ -66,7 +66,11 @@ export function ElisaPlateWellTable(params: { uuids: string[] }) {
                     {
                         zip(elisaWells, antigens, nanobodies).map(([elisaWell, antigen, nanobody], idx) => (
                             <TableRow key={idx}>
-                                <TableCell><LinkUUID rootURI="/elisa_well/" UUID={elisaWell.uuid} /></TableCell>
+                                <TableCell>
+                                    <Link component={RouterLink} to={`/elisa_well/${elisaWell.plate}:${elisaWell.location}/`}>
+                                        {elisaWell.plate}:{elisaWell.location}
+                                    </Link>
+                                </TableCell>
                                 <TableCell>{locationToGrid(elisaWell.location)}</TableCell>
                                 <TableCell>{antigen ? antigen.name : null}</TableCell>
                                 <TableCell>{nanobody ? nanobody.name : null}</TableCell>
@@ -103,7 +107,7 @@ export function ElisaPlateInfo(params: { uuid: string }) {
                     <TableRow>
                         <TableCell>Wells:</TableCell>
                         <TableCell>
-                            <ElisaPlateWellTable uuids={elisaPlate?.plate_elisa_wells} />
+                            <ElisaPlateWellTable wellKeys={elisaPlate?.plate_elisa_wells.map((location) => ({ plate: elisaPlate.uuid, location }))} />
                         </TableCell>
                     </TableRow>
                     <TableRow>
