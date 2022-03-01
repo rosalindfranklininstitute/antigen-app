@@ -6,20 +6,23 @@ import { getAntigen, selectAntigen } from "../antigen/slice";
 import { getNanobody, selectNanobody } from "../nanobody/slice";
 import { FailedRetrievalPaper, LoadingPaper } from "../utils/api";
 import { getElisaWell, selectElisaWell, selectLoadingElisaWell } from "./slice";
-import { ElisaWellInfo } from "./utils";
+import { ElisaWellInfo, ElisaWellKey } from "./utils";
 
+type StrElisaWellKey = { [K in keyof ElisaWellKey]: string }
 
 export default function ElisaWellView() {
-    const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
+    const { plate, location: str_location } = useParams<StrElisaWellKey>() as StrElisaWellKey;
+    const location = parseInt(str_location);
+    console.log(`Plate: ${plate} Location: ${location}`);
     const dispatch = useDispatch();
-    const elisaWell = useSelector(selectElisaWell(uuid));
+    const elisaWell = useSelector(selectElisaWell({ plate, location }));
     const antigen = useSelector(elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined);
     const nanobody = useSelector(elisaWell ? selectNanobody(elisaWell.nanobody) : () => undefined);
     const loading = useSelector(selectLoadingElisaWell);
 
     useEffect(() => {
-        dispatch(getElisaWell(uuid));
-    }, [dispatch, uuid]);
+        dispatch(getElisaWell({ plate, location }));
+    }, [dispatch, plate, location]);
     useEffect(() => {
         if (elisaWell) {
             dispatch(getAntigen(elisaWell.antigen));
@@ -28,7 +31,7 @@ export default function ElisaWellView() {
     }, [dispatch, elisaWell])
 
     if (loading) return <LoadingPaper text="Retrieving elisa well from database." />
-    if (!elisaWell) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
+    if (!elisaWell) return <FailedRetrievalPaper text={`Could not retrieve entry for ${plate}:${location}`} />
 
     return (
         <Card>
@@ -37,7 +40,7 @@ export default function ElisaWellView() {
                     <Typography variant="h4">
                         {antigen ? antigen.name : null} + {nanobody ? nanobody.name : null}
                     </Typography>
-                    <ElisaWellInfo uuid={elisaWell.uuid} />
+                    <ElisaWellInfo plate={elisaWell.plate} location={elisaWell.location} />
                 </Stack>
             </CardContent>
         </Card>

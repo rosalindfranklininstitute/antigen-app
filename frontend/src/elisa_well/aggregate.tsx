@@ -2,14 +2,20 @@ import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { useEffect } from "react";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { locationToGrid } from "./utils";
-import { IconLinkUUIDGridColDef, LinkUUIDCellRenderer } from "../utils/elements";
+import { ElisaWell, locationToGrid } from "./utils";
+import { IconLinkUUIDCellRenderer, LinkUUIDCellRenderer } from "../utils/elements";
 import { useDispatch, useSelector } from "react-redux";
 import { getElisaWells, selectElisaWells, selectLoadingElisaWell } from "./slice";
 
+export type ElisaWellPlateLoc = ElisaWell & { "plate_location": string }
+
 export default function ElisaWellsView() {
     const dispatch = useDispatch();
-    const elisaWells = useSelector(selectElisaWells);
+    const elisaWells: Array<ElisaWellPlateLoc> = useSelector(selectElisaWells).map(
+        (elisaWell) => ({
+            ...elisaWell,
+            "plate_location": `${elisaWell.plate}:${elisaWell.location}`
+        }));
     const loading = useSelector(selectLoadingElisaWell);
 
     useEffect(() => {
@@ -20,7 +26,12 @@ export default function ElisaWellsView() {
     if (!elisaWells) return <FailedRetrievalPaper text="Could not retrieve elisa well list." />
 
     const columns: GridColDef[] = [
-        IconLinkUUIDGridColDef("/elisa_well/"),
+        {
+            field: 'plate_location',
+            headerName: 'Link',
+            renderCell: IconLinkUUIDCellRenderer("/elisa_well/"),
+            width: 50,
+        },
         {
             field: 'plate',
             headerName: 'Plate',
