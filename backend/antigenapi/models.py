@@ -1,6 +1,6 @@
 from datetime import datetime
 from itertools import product
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Union
 from uuid import UUID, uuid4
 
 from django.core.validators import RegexValidator
@@ -31,6 +31,18 @@ class Antigen(Model):
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
     creation_time: datetime = DateTimeField(editable=False, default=now)
+
+    @property
+    def child(self) -> Optional[Union["LocalAntigen", "UniProtAntigen"]]:
+        """The child LocalAntigen or UniProtAntigen instance if available.
+
+        Returns:
+            Optional[Union[LocalAntigen, UniProtAntigen]]: The child LocalAntigen or
+                UniProtAntigen instance if available.
+        """
+        return getattr(self, "local_antigen", None) or getattr(
+            self, "uniprot_antigen", None
+        )
 
     @classmethod
     def get_new(cls) -> UUID:
@@ -96,7 +108,7 @@ class UniProtAntigen(Model):
         protein_data = get_protein(self.uniprot_accession_number)
         self.sequence = protein_data["sequence"]["$"]
         self.molecular_mass = protein_data["sequence"]["@mass"]
-        self.name = protein_data["protein"]["recommendedName"]["shortName"][0]
+        self.name = protein_data["protein"]["recommendedName"]["fullName"]
         return super().save(force_insert, force_update, using, update_fields)
 
 
@@ -131,7 +143,7 @@ PlateLocations = IntegerChoices(
     "PlateLocations",
     [
         f"{chr(row)}{col}"
-        for row, col in product(range(ord("A"), ord("H") + 1), range(1, 12))
+        for row, col in product(range(ord("A"), ord("H") + 1), range(1, 12 + 1))
     ],
 )
 

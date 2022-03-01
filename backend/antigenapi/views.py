@@ -1,7 +1,16 @@
+from typing import Optional
+
+from django.db.models import CharField as DbCharField
+from django.db.models import Value
+from django.db.models.functions import Concat, Substr
 from rest_framework.serializers import (
+    CharField,
+    IntegerField,
     ModelSerializer,
     PrimaryKeyRelatedField,
     ReadOnlyField,
+    SerializerMethodField,
+    SlugRelatedField,
 )
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -67,9 +76,26 @@ class AntigenSerializer(ModelSerializer):
     which reference it.
     """
 
-    local_antigen = LocalAntigenSerializer(read_only=True)
-    uniprot_antigen = UniProtAntigenSerialzer(read_only=True)
+    sequence = CharField(source="child.sequence")
+    molecular_mass = IntegerField(source="child.molecular_mass")
+    name = CharField(source="child.name")
+    uniprot_accession_number = SerializerMethodField()
     antigen_elisa_wells = PrimaryKeyRelatedField(many=True, read_only=True)
+
+    def get_uniprot_accession_number(self, antigen: Antigen) -> Optional[str]:
+        """Retrieve the uniprot accession number if the child antigen is from uniprot.
+
+        Args:
+            antigen (Antigen): The parent object instance.
+
+        Returns:
+            Optional[str]: The uniprot accession number if available.
+        """
+        return (
+            antigen.child.uniprot_accession_number
+            if isinstance(antigen.child, UniProtAntigen)
+            else None
+        )
 
     class Meta:  # noqa: D106
         model = Antigen
@@ -117,7 +143,9 @@ class ElisaPlateSerializer(ModelSerializer):
     contained within it.
     """
 
-    plate_elisa_wells = PrimaryKeyRelatedField(many=True, read_only=True)
+    plate_elisa_wells = SlugRelatedField(
+        many=True, read_only=True, slug_field="location"
+    )
 
     class Meta:  # noqa: D106
         model = ElisaPlate
@@ -137,6 +165,7 @@ class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
 
     functional = ReadOnlyField()
+    plate_location = ReadOnlyField()
 
     class Meta:  # noqa: D106
         model = ElisaWell
@@ -146,8 +175,24 @@ class ElisaWellSerializer(ModelSerializer):
 class ElisaWellViewSet(ModelViewSet):
     """A view set displaying all recorded elisa wells."""
 
-    queryset = ElisaWell.objects.all()
+    queryset = ElisaWell.objects.annotate(
+        plate_location=Concat(
+            Substr("plate", 1, 8),
+            Value("-"),
+            Substr("plate", 9, 4),
+            Value("-"),
+            Substr("plate", 13, 4),
+            Value("-"),
+            Substr("plate", 17, 4),
+            Value("-"),
+            Substr("plate", 21, 12),
+            Value(":"),
+            "location",
+            output_field=DbCharField(),
+        )
+    ).all()
     serializer_class = ElisaWellSerializer
+    lookup_field = "plate_location"
 
     perform_create = perform_create_allow_creator_change_delete
 
