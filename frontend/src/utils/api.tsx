@@ -24,7 +24,7 @@ export async function postAPI<Type>(uriFrag: string, post: object): Promise<Type
     )
 }
 
-export async function putAPI<Type>(uriFrag: string, obj: Type): Promise<Type> {
+export async function putAPI<P, R>(uriFrag: string, obj: P): Promise<R> {
     return fetch(
         `http://127.0.0.1:8000/api/${uriFrag}/`,
         {

@@ -18,6 +18,8 @@ export type ElisaWell = {
 
 export type ElisaWellKey = Pick<ElisaWell, "plate" | "location">
 
+export type ElisaWellPost = Pick<ElisaWell, "plate" | "location" | "antigen" | "nanobody" | "optical_density">
+
 export function locationToCoords(location: number): [number, number] {
     return [Math.floor((location.valueOf() - 1) / 12), (location.valueOf() - 1) % 12]
 }
