@@ -82,7 +82,7 @@ export const selectPostedElisaPlates = (state: RootState) => filterUUID(state.el
 
 export const getElisaPlates = () => {
     return async (dispatch: DispatchType, getState: () => RootState) => {
-        if (getState().elisaPlates.allFetched === AllFetched.False) return;
+        if (getState().elisaPlates.allFetched !== AllFetched.False) return;
         dispatch(actions.getAllPending());
         getAPI<ElisaPlate[]>(`elisa_plate`).then(
             (elisaPlates) => dispatch(actions.getAllSuccess(elisaPlates)),
