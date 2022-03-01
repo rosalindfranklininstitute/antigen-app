@@ -16,6 +16,8 @@ export type ElisaWell = {
     functional: boolean
 }
 
+export type ElisaWellKey = Pick<ElisaWell, "plate" | "location">
+
 export function locationToCoords(location: number): [number, number] {
     return [Math.floor((location.valueOf() - 1) / 12), (location.valueOf() - 1) % 12]
 }
@@ -25,12 +27,12 @@ export function locationToGrid(location: number) {
     return [String.fromCharCode(65 + row).concat((col + 1).toString())]
 }
 
-export function ElisaWellInfo(params: { uuid: string }) {
+export function ElisaWellInfo(params: ElisaWellKey) {
     const dispatch = useDispatch();
-    const elisaWell = useSelector(selectElisaWell(params.uuid));
+    const elisaWell = useSelector(selectElisaWell(params));
 
     useEffect(() => {
-        dispatch(getElisaWell(params.uuid));
+        dispatch(getElisaWell(params));
     }, [dispatch, params]);
 
     if (!elisaWell) return null;
