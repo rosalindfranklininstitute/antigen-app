@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI, putAPI } from "../utils/api";
 import { addUniqueUUID, AllFetched } from "../utils/state_management";
-import { ElisaWell, ElisaWellKey } from "./utils";
+import { ElisaWell, ElisaWellKey, ElisaWellPost } from "./utils";
 
 type ElisaWellState = {
     elisaWells: ElisaWell[]
@@ -109,28 +109,20 @@ export const getElisaWell = ({ plate, location }: ElisaWellKey) => {
     }
 }
 
-export const postElisaWell = (location: number, opticalDensity: number, plate: string, antigen: string, nanobody: string) => {
+export const postElisaWell = (elisaWell: ElisaWellPost) => {
     return async (dispatch: DispatchType) => {
         dispatch(actions.postPending());
-        postAPI<ElisaWell>(`elisa_well`,
-            {
-                'location': location,
-                'optical_density': opticalDensity,
-                'plate': plate,
-                'antigen': antigen,
-                'nanbody': nanobody
-            }
-        ).then(
+        postAPI<ElisaWell>(`elisa_well`, elisaWell).then(
             (elisaWell) => dispatch(actions.postSuccess(elisaWell)),
             (reason) => dispatch(actions.postFail(reason)),
         )
     }
 }
 
-export const putElisaWell = (elisaWell: ElisaWell) => {
+export const putElisaWell = (elisaWell: ElisaWellPost) => {
     return async (dispatch: DispatchType, getState: () => void) => {
         dispatch(actions.postPending());
-        putAPI<ElisaWell>(`elisa_well/${elisaWell.plate}:${elisaWell.location}`, elisaWell).then(
+        putAPI<ElisaWellPost, ElisaWell>(`elisa_well/${elisaWell.plate}:${elisaWell.location}`, elisaWell).then(
             (elisaWell) => dispatch(actions.postSuccess(elisaWell)),
             (reason) => dispatch(actions.postFail(reason)),
         )
