@@ -32,7 +32,7 @@ function App() {
           <Route path="/nanobody/:uuid" element={<NanobodyView />} />
           <Route path="/nanobody/add/" element={<AddNanobodyView />} />
           <Route path="/elisa_well/" element={<ElisaWellsView />} />
-          <Route path="/elisa_well/:uuid" element={<ElisaWellView />} />
+          <Route path="/elisa_well/:plate::location/" element={<ElisaWellView />} />
           <Route path="/elisa_plate/" element={<ElisaPlatesView />} />
           <Route path="/elisa_plate/:uuid" element={<ElisaPlateView />} />
         </Routes>
