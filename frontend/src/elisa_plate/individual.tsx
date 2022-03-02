@@ -1,5 +1,13 @@
-import { Card, CardContent, Stack, Typography } from "@mui/material";
-import { useEffect } from "react";
+import { TabContext, TabList, TabPanel } from "@mui/lab";
+import {
+  Card,
+  CardContent,
+  Divider,
+  Stack,
+  Typography,
+  Tab,
+} from "@mui/material";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
@@ -16,6 +24,7 @@ export default function ElisaPlateView() {
   const dispatch = useDispatch();
   const elisaPlate = useSelector(selectElisaPlate(uuid));
   const loading = useSelector(selectLoadingElisaPlate);
+  const [tab, setTab] = useState<string>("map");
 
   useEffect(() => {
     dispatch(getElisaPlate(uuid));
@@ -35,10 +44,20 @@ export default function ElisaPlateView() {
   return (
     <Card>
       <CardContent>
-        <Stack>
+        <Stack gap={2} divider={<Divider />}>
           <Typography variant="h4">{elisaPlate.uuid}</Typography>
-          <ElisaPlateInfo uuid={elisaPlate.uuid} />
-          <ElisaWellMapElement plate={elisaPlate.uuid} />
+          <TabContext value={tab}>
+            <TabList onChange={(evt, tab) => setTab(tab)}>
+              <Tab label="Map" value="map" />
+              <Tab label="Table" value="table" />
+            </TabList>
+            <TabPanel value="map" tabIndex={0}>
+              <ElisaWellMapElement plate={elisaPlate.uuid} />
+            </TabPanel>
+            <TabPanel value="table">
+              <ElisaPlateInfo uuid={elisaPlate.uuid} />
+            </TabPanel>
+          </TabContext>
         </Stack>
       </CardContent>
     </Card>
