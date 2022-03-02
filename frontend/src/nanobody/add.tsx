@@ -13,20 +13,29 @@ import SendIcon from "@mui/icons-material/Send";
 import { NanobodyInfo } from "./utils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  postNanobody,
-  selectLoadingNanobody,
-  selectPostedNanobodies,
-} from "./slice";
+import { postNanobody, selectNanobodies } from "./slice";
+import { DispatchType } from "../store";
+import { useState } from "react";
+import { filterUUID } from "../utils/state_management";
 
 export default function AddNanobodyView() {
-  const dispatch = useDispatch();
-  const nanobodies = useSelector(selectPostedNanobodies);
-  const loading = useSelector(selectLoadingNanobody);
+  const dispatch = useDispatch<DispatchType>();
+  const nanobodies = useSelector(selectNanobodies);
+  const [posted, setPosted] = useState<Array<string>>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const submit = async () => {
-    dispatch(postNanobody());
+    setLoading(true);
+    dispatch(postNanobody()).then(
+      (uuid) => {
+        setPosted(posted.concat(uuid));
+        setLoading(false);
+      },
+      (_) => setLoading(false)
+    );
   };
+
+  const postedNanobodies = filterUUID(nanobodies, posted);
 
   return (
     <Card>
@@ -43,7 +52,7 @@ export default function AddNanobodyView() {
               Submit
             </LoadingButton>
           </Stack>
-          {nanobodies.map((nanobody, idx) => (
+          {postedNanobodies.map((nanobody, idx) => (
             <div>
               <Divider />
               <Accordion>

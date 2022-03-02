@@ -2,18 +2,12 @@ import { Nanobody } from "./utils";
 import { getAPI, postAPI } from "../utils/api";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
-import {
-  addUniqueUUID,
-  AllFetched,
-  filterUUID,
-} from "../utils/state_management";
+import { addUniqueUUID, AllFetched } from "../utils/state_management";
 
 type NanobodyState = {
   nanobodies: Nanobody[];
   allFetched: AllFetched;
   fetchPending: string[];
-  posted: string[];
-  postPending: boolean;
   error: string | null;
 };
 
@@ -21,8 +15,6 @@ const initialNanobodyState: NanobodyState = {
   nanobodies: [],
   allFetched: AllFetched.False,
   fetchPending: [],
-  posted: [],
-  postPending: false,
   error: null,
 };
 
@@ -67,17 +59,13 @@ export const nanobodySlice = createSlice({
     }),
     postPending: (state) => ({
       ...state,
-      postPending: true,
     }),
     postSuccess: (state, action: PayloadAction<Nanobody>) => ({
       ...state,
       nanobodies: addUniqueUUID(state.nanobodies, [action.payload]),
-      posted: state.posted.concat(action.payload.uuid),
-      postPending: false,
     }),
     postFail: (state, action: PayloadAction<string>) => ({
       ...state,
-      postPending: false,
       error: action.payload,
     }),
   },
@@ -93,8 +81,6 @@ export const selectNanobody = (uuid: string) => (state: RootState) =>
 export const selectLoadingNanobody = (state: RootState) =>
   state.nanobodies.allFetched === AllFetched.Pending ||
   Boolean(state.nanobodies.fetchPending.length);
-export const selectPostedNanobodies = (state: RootState) =>
-  filterUUID(state.nanobodies.nanobodies, state.nanobodies.posted);
 
 export const getNanobodies = () => {
   return async (dispatch: DispatchType, getState: () => RootState) => {
@@ -127,12 +113,16 @@ export const getNanobody = (uuid: string) => {
   };
 };
 
-export const postNanobody = () => {
-  return async (dispatch: DispatchType) => {
-    dispatch(actions.postPending());
-    postAPI<Nanobody>(`nanobody`, {}).then(
-      (nanobody) => dispatch(actions.postSuccess(nanobody)),
-      (reason) => dispatch(actions.postFail(reason))
-    );
-  };
+export const postNanobody = () => async (dispatch: DispatchType) => {
+  dispatch(actions.postPending());
+  return postAPI<Nanobody>(`nanobody`, {}).then(
+    (nanobody) => {
+      dispatch(actions.postSuccess(nanobody));
+      return nanobody.uuid;
+    },
+    (reason) => {
+      dispatch(actions.postFail(reason));
+      return Promise.reject(reason);
+    }
+  );
 };
