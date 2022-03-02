@@ -1,11 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
-import {
-  addUniqueUUID,
-  AllFetched,
-  filterUUID,
-} from "../utils/state_management";
+import { addUniqueUUID, AllFetched } from "../utils/state_management";
 import { ElisaPlate } from "./utils";
 
 type ElisaPlateState = {
@@ -26,7 +22,7 @@ const initialElisaPlateState: ElisaPlateState = {
   error: null,
 };
 
-export const elisaPlateSlice = createSlice({
+const elisaPlateSlice = createSlice({
   name: "elisaPlates",
   initialState: initialElisaPlateState,
   reducers: {
@@ -93,8 +89,6 @@ export const selectElisaPlate = (uuid: string) => (state: RootState) =>
 export const selectLoadingElisaPlate = (state: RootState) =>
   state.elisaPlates.allFetched === AllFetched.Pending ||
   Boolean(state.elisaPlates.fetchPending.length);
-export const selectPostedElisaPlates = (state: RootState) =>
-  filterUUID(state.elisaPlates.elisaPlates, state.elisaPlates.posted);
 
 export const getElisaPlates = () => {
   return async (dispatch: DispatchType, getState: () => RootState) => {

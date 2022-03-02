@@ -18,7 +18,7 @@ const initialNanobodyState: NanobodyState = {
   error: null,
 };
 
-export const nanobodySlice = createSlice({
+const nanobodySlice = createSlice({
   name: "nanobody",
   initialState: initialNanobodyState,
   reducers: {

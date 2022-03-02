@@ -22,7 +22,7 @@ const initialElisaWellState: ElisaWellState = {
   error: null,
 };
 
-export const elisaWellSlice = createSlice({
+const elisaWellSlice = createSlice({
   name: "elisaWells",
   initialState: initialElisaWellState,
   reducers: {
@@ -99,15 +99,6 @@ export const selectElisaWell =
 export const selectLoadingElisaWell = (state: RootState) =>
   state.elisaWells.allFetched === AllFetched.Pending ||
   Boolean(state.elisaWells.fetchPending.length);
-export const selectPostedElisaWells = (state: RootState) =>
-  state.elisaWells.posted
-    .map(({ plate, location }) =>
-      state.elisaWells.elisaWells.find(
-        (elisaWell) =>
-          elisaWell.plate === plate && elisaWell.location === location
-      )
-    )
-    .filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);
 
 export const getElisaWells = () => {
   return async (dispatch: DispatchType, getState: () => RootState) => {
