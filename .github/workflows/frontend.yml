@@ -19,27 +19,27 @@ jobs:
         working-directory: frontend
 
     steps:
-    - name: Checkout Source
-      uses: actions/checkout@v2
-      with:
-        # require history to get back to last tag for version number of branches
-        fetch-depth: 0
+      - name: Checkout Source
+        uses: actions/checkout@v2
+        with:
+          # require history to get back to last tag for version number of branches
+          fetch-depth: 0
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-    - name: Install
-      run: npm ci
+      - name: Install
+        run: npm ci
 
-    - name: Build
-      run: npm run build --if-present
+      - name: Build
+        run: npm run build --if-present
 
-    - name: Unit Tests
-      run: npm test
+      - name: Unit Tests
+        run: npm test
 
-    - name: Prettier
-      run: npx prettier --check .
+      - name: Prettier
+        run: npx prettier --check .
