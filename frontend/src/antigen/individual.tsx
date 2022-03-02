@@ -6,28 +6,30 @@ import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import { getAntigen, selectAntigen, selectLoadingAntigen } from "./slice";
 import { AntigenInfo } from "./utils";
 
-
 export default function AntigenView() {
-    const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
-    const dispatch = useDispatch();
-    const antigen = useSelector(selectAntigen(uuid));
-    const loading = useSelector(selectLoadingAntigen);
+  const { uuid } = useParams<{ uuid: string }>() as { uuid: string };
+  const dispatch = useDispatch();
+  const antigen = useSelector(selectAntigen(uuid));
+  const loading = useSelector(selectLoadingAntigen);
 
-    useEffect(() => {
-        dispatch(getAntigen(uuid));
-    }, [dispatch, uuid]);
+  useEffect(() => {
+    dispatch(getAntigen(uuid));
+  }, [dispatch, uuid]);
 
-    if (loading) return <LoadingPaper text="Retrieving antigen from database." />
-    if (!antigen) return <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
-
+  if (loading) return <LoadingPaper text="Retrieving antigen from database." />;
+  if (!antigen)
     return (
-        <Card>
-            <CardContent>
-                <Stack>
-                    <Typography variant="h4">{antigen.name}</Typography>
-                    <AntigenInfo uuid={uuid} />
-                </Stack>
-            </CardContent>
-        </Card>
+      <FailedRetrievalPaper text={`Could not retrieve entry for ${uuid}`} />
     );
-};
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack>
+          <Typography variant="h4">{antigen.name}</Typography>
+          <AntigenInfo uuid={uuid} />
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
