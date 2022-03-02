@@ -5,13 +5,13 @@ import { elisaWellReducer } from "./elisa_well/slice";
 import { nanobodyReducer } from "./nanobody/slice";
 
 export const store = configureStore({
-    reducer: {
-        nanobodies: nanobodyReducer,
-        antigens: antigenReducer,
-        elisaWells: elisaWellReducer,
-        elisaPlates: elisaPlateReducer,
-    },
-})
+  reducer: {
+    nanobodies: nanobodyReducer,
+    antigens: antigenReducer,
+    elisaWells: elisaWellReducer,
+    elisaPlates: elisaPlateReducer,
+  },
+});
 
 export type RootState = ReturnType<typeof store.getState>;
 
