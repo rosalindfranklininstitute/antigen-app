@@ -25,7 +25,7 @@ export type ElisaPlate = {
   creation_time: Date;
 };
 
-export function ElisaPlateWellTable(params: { wellKeys: ElisaWellKey[] }) {
+function ElisaPlateWellTable(params: { wellKeys: ElisaWellKey[] }) {
   const dispatch = useDispatch();
   const elisaWells = useSelector((state: RootState) =>
     params.wellKeys.map((wellKey) => selectElisaWell(wellKey)(state))

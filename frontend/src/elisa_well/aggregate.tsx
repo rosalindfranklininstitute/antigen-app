@@ -14,7 +14,7 @@ import {
   selectLoadingElisaWell,
 } from "./slice";
 
-export type ElisaWellPlateLoc = ElisaWell & { plate_location: string };
+type ElisaWellPlateLoc = ElisaWell & { plate_location: string };
 
 export default function ElisaWellsView() {
   const dispatch = useDispatch();

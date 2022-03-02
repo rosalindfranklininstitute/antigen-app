@@ -11,7 +11,7 @@ import { useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import LinkIcon from "@mui/icons-material/Link";
 
-export const LinkUUID = (params: { rootURI: string; UUID: string }) => {
+const LinkUUID = (params: { rootURI: string; UUID: string }) => {
   return (
     <Link component={RouterLink} to={`${params.rootURI}${params.UUID}`}>
       {params.UUID}
@@ -24,7 +24,7 @@ export const LinkUUIDCellRenderer = (rootURI: string) => {
   );
 };
 
-export const IconLinkUUID = (params: { rootURI: string; UUID: string }) => {
+const IconLinkUUID = (params: { rootURI: string; UUID: string }) => {
   return (
     <IconButton component={RouterLink} to={`${params.rootURI}${params.UUID}`}>
       <LinkIcon />

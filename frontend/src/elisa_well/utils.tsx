@@ -30,7 +30,7 @@ export type ElisaWellPost = Pick<
   "plate" | "location" | "antigen" | "nanobody" | "optical_density"
 >;
 
-export function locationToCoords(location: number): [number, number] {
+function locationToCoords(location: number): [number, number] {
   return [
     Math.floor((location.valueOf() - 1) / 12),
     (location.valueOf() - 1) % 12,

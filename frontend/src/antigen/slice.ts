@@ -28,7 +28,7 @@ const initialAntigenState: AntigenState = {
   error: null,
 };
 
-export const antigenSlice = createSlice({
+const antigenSlice = createSlice({
   name: "anitgen",
   initialState: initialAntigenState,
   reducers: {
