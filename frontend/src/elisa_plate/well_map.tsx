@@ -33,6 +33,7 @@ import {
 } from "../nanobody/slice";
 import DoneIcon from "@mui/icons-material/Done";
 import CancelIcon from "@mui/icons-material/Cancel";
+import { selectElisaPlate } from "./slice";
 
 type ElisaWellState = ElisaWellKey & Partial<ElisaWellPost>;
 
@@ -212,6 +213,7 @@ function ElisaWellInfoPopover(params: {
 
 function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
   const dispatch = useDispatch();
+  const elisaPlate = useSelector(selectElisaPlate(params.wellKey.plate));
   const elisaWell = useSelector(
     params.wellKey ? selectElisaWell(params.wellKey) : () => undefined
   );
@@ -226,8 +228,13 @@ function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
   const [editAnchorEl, setEditAnchorEl] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (params.wellKey) dispatch(getElisaWell(params.wellKey));
-  }, [dispatch, params]);
+    if (
+      elisaPlate?.plate_elisa_wells.find(
+        (location) => location === params.wellKey.location
+      )
+    )
+      dispatch(getElisaWell(params.wellKey));
+  }, [dispatch, params, elisaPlate]);
 
   useEffect(() => {
     if (elisaWell) {
