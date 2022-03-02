@@ -126,14 +126,19 @@ export const getElisaPlate = (uuid: string) => {
   };
 };
 
-export const postElisaPlate = (threshold: number) => {
-  return async (dispatch: DispatchType) => {
+export const postElisaPlate =
+  (threshold: number) => (dispatch: DispatchType) => {
     dispatch(actions.postPending());
-    postAPI<ElisaPlate>(`elisa_plate`, {
+    return postAPI<ElisaPlate>(`elisa_plate`, {
       threshold: threshold,
     }).then(
-      (elisaPlate) => dispatch(actions.postSuccess(elisaPlate)),
-      (reason) => dispatch(actions.postFail(reason))
+      (elisaPlate) => {
+        dispatch(actions.postSuccess(elisaPlate));
+        return elisaPlate.uuid;
+      },
+      (reason: string) => {
+        dispatch(actions.postFail(reason));
+        return reason;
+      }
     );
   };
-};

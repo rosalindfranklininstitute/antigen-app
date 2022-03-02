@@ -16,6 +16,7 @@ import ElisaWellsView from "../elisa_well/aggregate";
 import ElisaWellView from "../elisa_well/individual";
 import ElisaPlatesView from "../elisa_plate/aggregate";
 import ElisaPlateView from "../elisa_plate/individual";
+import AddElisaPlateView from "../elisa_plate/add";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           />
           <Route path="/elisa_plate/" element={<ElisaPlatesView />} />
           <Route path="/elisa_plate/:uuid" element={<ElisaPlateView />} />
+          <Route path="/elisa_plate/add/" element={<AddElisaPlateView />} />
         </Routes>
       </Container>
     </BrowserRouter>
