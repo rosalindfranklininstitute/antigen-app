@@ -40,3 +40,6 @@ jobs:
 
     - name: Unit Tests
       run: npm test
+
+    - name: Prettier
+      run: npx prettier --check .
