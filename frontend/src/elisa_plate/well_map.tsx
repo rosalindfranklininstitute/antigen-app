@@ -9,6 +9,7 @@ import {
   Card,
   Autocomplete,
   TextField,
+  Divider,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,7 +25,7 @@ import {
   putElisaWell,
   selectElisaWell,
 } from "../elisa_well/slice";
-import { ElisaWellKey, ElisaWellPost } from "../elisa_well/utils";
+import { ElisaWell, ElisaWellKey, ElisaWellPost } from "../elisa_well/utils";
 import {
   getNanobodies,
   getNanobody,
@@ -34,6 +35,10 @@ import {
 import DoneIcon from "@mui/icons-material/Done";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { selectElisaPlate } from "./slice";
+import { RootState } from "../store";
+import { ElisaPlate } from "./utils";
+import { Antigen } from "../antigen/utils";
+import { Nanobody } from "../nanobody/utils";
 
 type ElisaWellState = ElisaWellKey & Partial<ElisaWellPost>;
 
@@ -289,29 +294,92 @@ function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
   );
 }
 
+function ElisaPlateMapLegend(params: { plate: string }) {
+  const elisaPlate = useSelector(selectElisaPlate(params.plate)) as ElisaPlate;
+  const elisaWells = useSelector((state: RootState) =>
+    elisaPlate?.plate_elisa_wells.map((location) =>
+      selectElisaWell({ plate: params.plate, location })(state)
+    )
+  ).filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);
+  const antigens = useSelector((state: RootState) =>
+    elisaWells.map((elisaWell) => selectAntigen(elisaWell.antigen)(state))
+  )
+    .filter((antigen): antigen is Antigen => !!antigen)
+    .filter((antigen, index, antigens) => antigens.indexOf(antigen) === index);
+  const nanobodies = useSelector((state: RootState) =>
+    elisaWells.map((elisaWell) => selectNanobody(elisaWell.nanobody)(state))
+  )
+    .filter((nanobody): nanobody is Nanobody => !!nanobody)
+    .filter((antigen, index, antigens) => antigens.indexOf(antigen) === index);
+
+  const LegendEntry = (params: { uuid: string; label: string }) => (
+    <Stack direction="row" spacing={1}>
+      <Paper
+        sx={{
+          background: `${uuidToColor(params.uuid)}`,
+          display: "table-row",
+          aspectRatio: "1",
+        }}
+      />
+      <Typography>{params.label}</Typography>
+    </Stack>
+  );
+
+  return (
+    <Grid container columns={2} columnSpacing={2}>
+      <Grid item xs={1}>
+        <Stack gap={2} divider={<Divider />}>
+          <Typography>Antigens</Typography>
+          <Stack spacing={2}>
+            {antigens.map((antigen) => (
+              <LegendEntry uuid={antigen.uuid} label={antigen.name} />
+            ))}
+          </Stack>
+        </Stack>
+      </Grid>
+      <Grid item xs={1}>
+        <Stack gap={2} divider={<Divider />}>
+          <Typography>Nanobodies</Typography>
+          <Stack spacing={2}>
+            {nanobodies.map((nanobody) => (
+              <LegendEntry uuid={nanobody.uuid} label={nanobody.name} />
+            ))}
+          </Stack>
+        </Stack>
+      </Grid>
+    </Grid>
+  );
+}
+
 export function ElisaWellMapElement(params: { plate: string }) {
   return (
-    <Grid container spacing={2} columns={13}>
-      <Grid item xs={1} key={0} />
-      {Array.from({ length: 12 }, (_, col) => (
-        <Grid item xs={1} key={col + 1}>
-          <Typography>{col + 1}</Typography>
-        </Grid>
-      ))}
-      {Array.from({ length: 8 }, (_, row) => {
-        return [
-          <Grid item xs={1} key={(row + 1) * 13}>
-            <Typography>{String.fromCharCode(row + 65)}</Typography>
-          </Grid>,
-          Array.from({ length: 12 }, (_, col) => (
-            <Grid item xs={1}>
-              <ElisaWellElement
-                wellKey={{ plate: params.plate, location: row * 12 + col + 1 }}
-              />
-            </Grid>
-          )),
-        ];
-      })}
-    </Grid>
+    <Stack gap={2} divider={<Divider />}>
+      <Grid container spacing={2} columns={13}>
+        <Grid item xs={1} key={0} />
+        {Array.from({ length: 12 }, (_, col) => (
+          <Grid item xs={1} key={col + 1}>
+            <Typography>{col + 1}</Typography>
+          </Grid>
+        ))}
+        {Array.from({ length: 8 }, (_, row) => {
+          return [
+            <Grid item xs={1} key={(row + 1) * 13}>
+              <Typography>{String.fromCharCode(row + 65)}</Typography>
+            </Grid>,
+            Array.from({ length: 12 }, (_, col) => (
+              <Grid item xs={1}>
+                <ElisaWellElement
+                  wellKey={{
+                    plate: params.plate,
+                    location: row * 12 + col + 1,
+                  }}
+                />
+              </Grid>
+            )),
+          ];
+        })}
+      </Grid>
+      <ElisaPlateMapLegend plate={params.plate} />
+    </Stack>
   );
 }
