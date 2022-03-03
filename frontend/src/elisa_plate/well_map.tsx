@@ -10,6 +10,7 @@ import {
   Autocomplete,
   TextField,
   Divider,
+  Badge,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -269,28 +270,34 @@ function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
     ) : null;
 
   return (
-    <Paper
-      sx={{
-        background: `linear-gradient(90deg, ${antigenColor} 50%, ${nanobodyColor} 50%)`,
-        borderRadius: "50%",
-        overflow: "hidden",
-      }}
+    <Badge
+      badgeContent={elisaWell?.functional ? "" : null}
+      color="success"
+      overlap="circular"
     >
-      <Button
+      <Paper
         sx={{
-          width: "100%",
-          padding: "0 0 100% 0",
+          background: `linear-gradient(90deg, ${antigenColor} 50%, ${nanobodyColor} 50%)`,
+          borderRadius: "50%",
+          overflow: "hidden",
         }}
-        onMouseEnter={(evt) => setInfoAnchorEl(evt.currentTarget)}
-        onMouseLeave={() => setInfoAnchorEl(null)}
-        onClick={(evt) => {
-          setInfoAnchorEl(null);
-          setEditAnchorEl(evt.currentTarget);
-        }}
-      />
-      <InfoPopover />
-      <EditPopover />
-    </Paper>
+      >
+        <Button
+          sx={{
+            width: "100%",
+            padding: "0 0 100% 0",
+          }}
+          onMouseEnter={(evt) => setInfoAnchorEl(evt.currentTarget)}
+          onMouseLeave={() => setInfoAnchorEl(null)}
+          onClick={(evt) => {
+            setInfoAnchorEl(null);
+            setEditAnchorEl(evt.currentTarget);
+          }}
+        />
+        <InfoPopover />
+        <EditPopover />
+      </Paper>
+    </Badge>
   );
 }
 
