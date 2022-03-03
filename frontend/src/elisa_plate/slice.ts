@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { DispatchType, RootState } from "../store";
-import { getAPI, postAPI } from "../utils/api";
+import { getAPI, postAPI, putAPI } from "../utils/api";
 import { addUniqueUUID, AllFetched } from "../utils/state_management";
 import { ElisaPlate } from "./utils";
 
@@ -136,3 +136,15 @@ export const postElisaPlate =
       }
     );
   };
+
+export const putElisaPlate = (uuid: string, threshold: number) => {
+  return async (dispatch: DispatchType, getState: () => void) => {
+    dispatch(actions.postPending());
+    putAPI<{ threshold: number }, ElisaPlate>(`elisa_plate/${uuid}`, {
+      threshold,
+    }).then(
+      (elisaPlate) => dispatch(actions.postSuccess(elisaPlate)),
+      (reason) => actions.postFail(reason)
+    );
+  };
+};

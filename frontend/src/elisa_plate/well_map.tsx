@@ -11,6 +11,7 @@ import {
   TextField,
   Divider,
   Badge,
+  Slider,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,7 +36,7 @@ import {
 } from "../nanobody/slice";
 import DoneIcon from "@mui/icons-material/Done";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { selectElisaPlate } from "./slice";
+import { putElisaPlate, selectElisaPlate } from "./slice";
 import { RootState } from "../store";
 import { ElisaPlate } from "./utils";
 import { Antigen } from "../antigen/utils";
@@ -54,6 +55,7 @@ function ElisaWellEditPopover(params: {
   setAnchorEl: (anchorEl: HTMLElement | null) => void;
 }) {
   const dispatch = useDispatch();
+  const elisaPlate = useSelector(selectElisaPlate(params.wellKey.plate));
   const initElisaWell = useSelector(selectElisaWell(params.wellKey));
   const [elisaWell, setElisaWell] = useState<ElisaWellState>(
     initElisaWell ? initElisaWell : params.wellKey
@@ -62,10 +64,15 @@ function ElisaWellEditPopover(params: {
   const nanobodies = useSelector(selectNanobodies);
 
   useEffect(() => {
-    dispatch(getElisaWell(params.wellKey));
+    if (
+      elisaPlate?.plate_elisa_wells.find(
+        (location) => location === params.wellKey.location
+      )
+    )
+      dispatch(getElisaWell(params.wellKey));
     dispatch(getAntigens());
     dispatch(getNanobodies());
-  }, [dispatch, params]);
+  }, [dispatch, params, elisaPlate]);
 
   const updateElisaWell = () => {
     if (Object.values(elisaWell).every((val) => !!val)) {
@@ -175,6 +182,7 @@ function ElisaWellInfoPopover(params: {
   setAnchorEl: (anchorEl: HTMLAnchorElement | null) => void;
 }) {
   const dispatch = useDispatch();
+  const elisaPlate = useSelector(selectElisaPlate(params.wellKey.plate));
   const elisaWell = useSelector(selectElisaWell(params.wellKey));
   const antigen = useSelector(
     elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined
@@ -184,7 +192,12 @@ function ElisaWellInfoPopover(params: {
   );
 
   useEffect(() => {
-    dispatch(getElisaWell(params.wellKey));
+    if (
+      elisaPlate?.plate_elisa_wells.find(
+        (location) => location === params.wellKey.location
+      )
+    )
+      dispatch(getElisaWell(params.wellKey));
   });
 
   useEffect(() => {
@@ -358,6 +371,40 @@ function ElisaPlateMapLegend(params: { plate: string }) {
   );
 }
 
+function ElisaPlateThresholdSlider(params: { plate: string }) {
+  const dispatch = useDispatch();
+  const elisaPlate = useSelector(selectElisaPlate(params.plate));
+
+  const updateElisaPlateThreshold = (threshold: number) => {
+    console.log(`New Threshold: ${threshold}`);
+    dispatch(putElisaPlate(params.plate, threshold));
+  };
+
+  return (
+    <Stack direction="row" spacing={2} alignItems="center">
+      <TextField
+        label="Threshold"
+        type="number"
+        defaultValue={elisaPlate?.threshold}
+        onChange={(evt) => {
+          updateElisaPlateThreshold(Number(evt.target.value));
+        }}
+      />
+      <Slider
+        defaultValue={elisaPlate?.threshold}
+        valueLabelDisplay="auto"
+        min={0}
+        max={2}
+        step={0.01}
+        value={elisaPlate?.threshold}
+        onChange={(evt, threshold) =>
+          updateElisaPlateThreshold(Number(threshold))
+        }
+      />
+    </Stack>
+  );
+}
+
 export function ElisaWellMapElement(params: { plate: string }) {
   return (
     <Stack gap={2} divider={<Divider />}>
@@ -386,6 +433,7 @@ export function ElisaWellMapElement(params: { plate: string }) {
           ];
         })}
       </Grid>
+      <ElisaPlateThresholdSlider plate={params.plate} />
       <ElisaPlateMapLegend plate={params.plate} />
     </Stack>
   );
