@@ -374,8 +374,11 @@ function ElisaPlateMapLegend(params: { plate: string }) {
 function ElisaPlateThresholdSlider(params: { plate: string }) {
   const dispatch = useDispatch();
   const elisaPlate = useSelector(selectElisaPlate(params.plate));
+  const [threshold, setThreshold] = useState<number>(
+    elisaPlate ? elisaPlate.threshold : 0
+  );
 
-  const updateElisaPlateThreshold = (threshold: number) => {
+  const updateElisaPlateThreshold = () => {
     console.log(`New Threshold: ${threshold}`);
     dispatch(putElisaPlate(params.plate, threshold));
   };
@@ -385,21 +388,20 @@ function ElisaPlateThresholdSlider(params: { plate: string }) {
       <TextField
         label="Threshold"
         type="number"
-        defaultValue={elisaPlate?.threshold}
+        value={threshold}
         onChange={(evt) => {
-          updateElisaPlateThreshold(Number(evt.target.value));
+          setThreshold(Number(evt.target.value));
         }}
+        onBlur={(evt) => updateElisaPlateThreshold()}
       />
       <Slider
-        defaultValue={elisaPlate?.threshold}
         valueLabelDisplay="auto"
         min={0}
         max={2}
         step={0.01}
-        value={elisaPlate?.threshold}
-        onChange={(evt, threshold) =>
-          updateElisaPlateThreshold(Number(threshold))
-        }
+        value={threshold}
+        onChange={(evt, threshold) => setThreshold(Number(threshold))}
+        onChangeCommitted={() => updateElisaPlateThreshold()}
       />
     </Stack>
   );
