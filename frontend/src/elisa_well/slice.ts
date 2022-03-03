@@ -111,17 +111,21 @@ export const getElisaWells = () => {
   };
 };
 
-export const getElisaWell = ({ plate, location }: ElisaWellKey) => {
+export const getElisaWell = (
+  { plate, location }: ElisaWellKey,
+  force: boolean = false
+) => {
   return async (dispatch: DispatchType, getState: () => RootState) => {
     if (
-      getState().elisaWells.elisaWells.find(
+      !force &&
+      (getState().elisaWells.elisaWells.find(
         (elisaWell) =>
           elisaWell.plate === plate && elisaWell.location === location
       ) ||
-      getState().elisaWells.fetchPending.find(
-        (elisaWell) =>
-          elisaWell.plate === plate && elisaWell.location === location
-      )
+        getState().elisaWells.fetchPending.find(
+          (elisaWell) =>
+            elisaWell.plate === plate && elisaWell.location === location
+        ))
     )
       return;
     dispatch(actions.getPending({ plate, location }));

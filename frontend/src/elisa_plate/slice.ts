@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { getElisaWell } from "../elisa_well/slice";
 import { DispatchType, RootState } from "../store";
 import { getAPI, postAPI, putAPI } from "../utils/api";
 import { addUniqueUUID, AllFetched } from "../utils/state_management";
@@ -143,7 +144,12 @@ export const putElisaPlate = (uuid: string, threshold: number) => {
     putAPI<{ threshold: number }, ElisaPlate>(`elisa_plate/${uuid}`, {
       threshold,
     }).then(
-      (elisaPlate) => dispatch(actions.postSuccess(elisaPlate)),
+      (elisaPlate) => {
+        dispatch(actions.postSuccess(elisaPlate));
+        elisaPlate.plate_elisa_wells.map((location) =>
+          dispatch(getElisaWell({ plate: elisaPlate.uuid, location }, true))
+        );
+      },
       (reason) => actions.postFail(reason)
     );
   };
