@@ -75,7 +75,7 @@ function ElisaWellEditPopover(params: {
   }, [dispatch, params, elisaPlate]);
 
   const updateElisaWell = () => {
-    if (Object.values(elisaWell).every((val) => !!val)) {
+    if (Object.values(elisaWell).every((val) => val !== undefined)) {
       if (initElisaWell) {
         dispatch(putElisaWell(elisaWell as ElisaWellPost));
       } else {
