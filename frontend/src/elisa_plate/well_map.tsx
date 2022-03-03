@@ -392,7 +392,7 @@ function ElisaPlateThresholdSlider(params: { plate: string }) {
         onChange={(evt) => {
           setThreshold(Number(evt.target.value));
         }}
-        onBlur={(evt) => updateElisaPlateThreshold()}
+        onBlur={() => updateElisaPlateThreshold()}
       />
       <Slider
         valueLabelDisplay="auto"
@@ -400,7 +400,7 @@ function ElisaPlateThresholdSlider(params: { plate: string }) {
         max={2}
         step={0.01}
         value={threshold}
-        onChange={(evt, threshold) => setThreshold(Number(threshold))}
+        onChange={(_, threshold) => setThreshold(Number(threshold))}
         onChangeCommitted={() => updateElisaPlateThreshold()}
       />
     </Stack>
