@@ -378,10 +378,8 @@ function ElisaPlateThresholdSlider(params: { plate: string }) {
     elisaPlate ? elisaPlate.threshold : 0
   );
 
-  const updateElisaPlateThreshold = () => {
-    console.log(`New Threshold: ${threshold}`);
+  const updateElisaPlateThreshold = () =>
     dispatch(putElisaPlate(params.plate, threshold));
-  };
 
   return (
     <Stack direction="row" spacing={2} alignItems="center">
