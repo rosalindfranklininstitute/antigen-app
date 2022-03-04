@@ -31,7 +31,10 @@ export async function postAPI<Post, Response>(
   );
 }
 
-export async function putAPI<P, R>(uriFrag: string, obj: P): Promise<R> {
+export async function putAPI<Put, Response>(
+  uriFrag: string,
+  put: Put
+): Promise<Response> {
   return fetch(`http://127.0.0.1:8000/api/${uriFrag}/`, {
     method: "PUT",
     mode: "cors",
@@ -40,7 +43,7 @@ export async function putAPI<P, R>(uriFrag: string, obj: P): Promise<R> {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(obj),
+    body: JSON.stringify(put),
   }).then(async (response) => {
     if (!response.ok) {
       return Promise.reject(response);
