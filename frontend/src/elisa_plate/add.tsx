@@ -10,7 +10,7 @@ export default function AddElisaPlateView() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(postElisaPlate(0.0)).then((uuid) =>
+    dispatch(postElisaPlate({ threshold: 0.0 })).then((uuid) =>
       navigate(`/elisa_plate/${uuid}/`)
     );
   }, [dispatch, navigate]);

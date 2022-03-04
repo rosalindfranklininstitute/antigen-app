@@ -4,17 +4,17 @@ export async function getAPI<Type>(uriFrag: string): Promise<Type> {
   return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?format=json`).then(
     async (response) => {
       if (!response.ok) {
-        return Promise.reject(response.statusText);
+        return Promise.reject(response);
       }
       return await response.json();
     }
   );
 }
 
-export async function postAPI<Type>(
+export async function postAPI<Post, Response>(
   uriFrag: string,
-  post: object
-): Promise<Type> {
+  post: Post
+): Promise<Response> {
   return fetch(`http://127.0.0.1:8000/api/${uriFrag}/`, {
     method: "POST",
     mode: "cors",
@@ -24,12 +24,11 @@ export async function postAPI<Type>(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(post),
-  }).then(async (response) => {
-    if (!response.ok) {
-      return Promise.reject(response.statusText);
-    }
-    return await response.json();
-  });
+  }).then(async (response) =>
+    response.ok
+      ? response.json().then((object) => object)
+      : Promise.reject(response)
+  );
 }
 
 export async function putAPI<P, R>(uriFrag: string, obj: P): Promise<R> {
@@ -44,7 +43,7 @@ export async function putAPI<P, R>(uriFrag: string, obj: P): Promise<R> {
     body: JSON.stringify(obj),
   }).then(async (response) => {
     if (!response.ok) {
-      return Promise.reject(response.statusText);
+      return Promise.reject(response);
     }
     return await response.json();
   });

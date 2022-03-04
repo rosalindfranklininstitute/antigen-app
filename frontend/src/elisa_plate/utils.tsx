@@ -25,6 +25,8 @@ export type ElisaPlate = {
   creation_time: Date;
 };
 
+export type ElisaPlatePost = Pick<ElisaPlate, "threshold">;
+
 function ElisaPlateWellTable(params: { wellKeys: ElisaWellKey[] }) {
   const dispatch = useDispatch();
   const elisaWells = useSelector((state: RootState) =>

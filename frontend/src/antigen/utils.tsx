@@ -10,6 +10,7 @@ import {
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
+import { DispatchType } from "../store";
 import { getAntigen, selectAntigen } from "./slice";
 
 export type UniProtAntigen = {
@@ -20,12 +21,22 @@ export type UniProtAntigen = {
   name: string;
 };
 
+export type UniProtAntigenPost = Pick<
+  UniProtAntigen,
+  "uniprot_accession_number"
+>;
+
 export type LocalAntigen = {
   antigen: string;
   sequence: string;
   molecular_mass: number;
   name: string;
 };
+
+export type LocalAntigenPost = Pick<
+  LocalAntigen,
+  "sequence" | "molecular_mass"
+>;
 
 export type Antigen = {
   uuid: string;
@@ -38,7 +49,7 @@ export type Antigen = {
 };
 
 export function AntigenInfo(params: { uuid: string }) {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<DispatchType>();
   const antigen = useSelector(selectAntigen(params.uuid));
 
   useEffect(() => {

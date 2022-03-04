@@ -1,12 +1,18 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { DispatchType, RootState } from "../store";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { RootState } from "../store";
 import { getAPI, postAPI } from "../utils/api";
 import {
   addUniqueUUID,
   AllFetched,
   filterUUID,
 } from "../utils/state_management";
-import { Antigen, LocalAntigen, UniProtAntigen } from "./utils";
+import {
+  Antigen,
+  LocalAntigen,
+  UniProtAntigen,
+  UniProtAntigenPost,
+  LocalAntigenPost,
+} from "./utils";
 
 type AntigenState = {
   antigens: Antigen[];
@@ -15,7 +21,6 @@ type AntigenState = {
   postedUniProt: string[];
   postedLocal: string[];
   postPending: boolean;
-  error: string | null;
 };
 
 const initialAntigenState: AntigenState = {
@@ -25,73 +30,105 @@ const initialAntigenState: AntigenState = {
   postedUniProt: [],
   postedLocal: [],
   postPending: false,
-  error: null,
 };
+
+export const getAntigens = createAsyncThunk<
+  Antigen[],
+  void,
+  { state: RootState }
+>("antigens/getAntigens", async () => await getAPI<Antigen[]>("antigen"), {
+  condition: (_, { getState }) =>
+    getState().antigens.allFetched === AllFetched.False,
+});
+
+export const getAntigen = createAsyncThunk<
+  Antigen,
+  string,
+  { state: RootState }
+>(
+  "antigens/getAntigen",
+  async (uuid: string) => await getAPI<Antigen>(`antigen/${uuid}`),
+  {
+    condition: (uuid, { getState }) =>
+      !(
+        getState().antigens.antigens.filter((antigen) => antigen.uuid === uuid)
+          .length > 0 ||
+        getState().antigens.fetchPending.filter((antigen) => antigen === uuid)
+          .length > 0
+      ),
+  }
+);
+
+export const postUniProtAntigen = createAsyncThunk<Antigen, UniProtAntigenPost>(
+  "antigens/addUniProt",
+  (post) =>
+    postAPI<UniProtAntigenPost, UniProtAntigen>("uniprot_antigen", post).then(
+      (uniProtAntigen) => getAPI<Antigen>(`antigen/${uniProtAntigen.antigen}`)
+    )
+);
+
+export const postLocalAntigen = createAsyncThunk<Antigen, LocalAntigenPost>(
+  "antigens/addLocal",
+  (post) =>
+    postAPI<LocalAntigenPost, LocalAntigen>("local_antigen", post).then(
+      (localAntigen) => getAPI<Antigen>(`antigen/${localAntigen.antigen}`)
+    )
+);
 
 const antigenSlice = createSlice({
   name: "anitgen",
   initialState: initialAntigenState,
-  reducers: {
-    getAllPending: (state) => ({
-      ...state,
-      allFetched: AllFetched.Pending,
-    }),
-    getAllSuccess: (state, action: PayloadAction<Antigen[]>) => ({
-      ...state,
-      allFetched: AllFetched.True,
-      antigens: addUniqueUUID(state.antigens, action.payload),
-    }),
-    getAllFail: (state, action: PayloadAction<string>) => ({
-      ...state,
-      allFetched: AllFetched.False,
-      error: action.payload,
-    }),
-    getPending: (state, action: PayloadAction<string>) => ({
-      ...state,
-      fetchPending: state.fetchPending.concat(action.payload),
-    }),
-    getSuccess: (state, action: PayloadAction<Antigen>) => ({
-      ...state,
-      fetchPending: state.fetchPending.filter(
+  reducers: {},
+  extraReducers: (builder) => {
+    builder.addCase(getAntigens.pending, (state) => {
+      state.allFetched = AllFetched.Pending;
+    });
+    builder.addCase(getAntigens.fulfilled, (state, action) => {
+      state.antigens = addUniqueUUID(state.antigens, action.payload);
+      state.allFetched = AllFetched.True;
+    });
+    builder.addCase(getAntigens.rejected, (state) => {
+      state.allFetched = AllFetched.False;
+    });
+    builder.addCase(getAntigen.pending, (state, action) => {
+      state.fetchPending = state.fetchPending.concat(action.meta.arg);
+    });
+    builder.addCase(getAntigen.fulfilled, (state, action) => {
+      state.antigens = addUniqueUUID(state.antigens, [action.payload]);
+      state.fetchPending = state.fetchPending.filter(
         (uuid) => uuid !== action.payload.uuid
-      ),
-      antigens: addUniqueUUID(state.antigens, [action.payload]),
-    }),
-    getFail: (
-      state,
-      action: PayloadAction<{ uuid: string; error: string }>
-    ) => ({
-      ...state,
-      fetchPending: state.fetchPending.filter(
-        (uuid) => uuid !== action.payload.uuid
-      ),
-      error: action.payload.error,
-    }),
-    postPending: (state) => ({
-      ...state,
-      postPending: true,
-    }),
-    postUniProtSuccess: (state, action: PayloadAction<Antigen>) => ({
-      ...state,
-      antigens: addUniqueUUID(state.antigens, [action.payload]),
-      postedUniProt: state.postedUniProt.concat(action.payload.uuid),
-      postPending: false,
-    }),
-    postLocalSuccess: (state, action: PayloadAction<Antigen>) => ({
-      ...state,
-      antigens: addUniqueUUID(state.antigens, [action.payload]),
-      postedLocal: state.postedLocal.concat(action.payload.uuid),
-      postPending: false,
-    }),
-    postFail: (state, action: PayloadAction<string>) => ({
-      ...state,
-      postPending: false,
-      error: action.payload,
-    }),
+      );
+    });
+    builder.addCase(getAntigen.rejected, (state, action) => {
+      state.fetchPending = state.fetchPending.filter(
+        (uuid) => uuid !== action.payload
+      );
+    });
+    builder.addCase(postUniProtAntigen.pending, (state) => {
+      state.postPending = true;
+    });
+    builder.addCase(postUniProtAntigen.fulfilled, (state, action) => {
+      state.antigens = addUniqueUUID(state.antigens, [action.payload]);
+      state.postedUniProt = state.postedUniProt.concat(action.payload.uuid);
+      state.postPending = false;
+    });
+    builder.addCase(postUniProtAntigen.rejected, (state, action) => {
+      state.postPending = false;
+    });
+    builder.addCase(postLocalAntigen.pending, (state) => {
+      state.postPending = true;
+    });
+    builder.addCase(postLocalAntigen.fulfilled, (state, action) => {
+      state.antigens = addUniqueUUID(state.antigens, [action.payload]);
+      state.postedLocal = state.postedLocal.concat(action.payload.uuid);
+      state.postPending = false;
+    });
+    builder.addCase(postLocalAntigen.rejected, (state, action) => {
+      state.postPending = false;
+    });
   },
 });
 
-const actions = antigenSlice.actions;
 export const antigenReducer = antigenSlice.reducer;
 
 export const selectAntigens = (state: RootState) => state.antigens.antigens;
@@ -104,64 +141,3 @@ export const selectPostedUniProtAntigens = (state: RootState) =>
   filterUUID(state.antigens.antigens, state.antigens.postedUniProt);
 export const selectPostedLocalAntignes = (state: RootState) =>
   filterUUID(state.antigens.antigens, state.antigens.postedLocal);
-
-export const getAntigens = () => {
-  return async (dispatch: DispatchType, getState: () => RootState) => {
-    if (getState().antigens.allFetched !== AllFetched.False) return;
-    dispatch(actions.getAllPending());
-    getAPI<Antigen[]>(`antigen`).then(
-      (antigens) => dispatch(actions.getAllSuccess(antigens)),
-      (reason) => dispatch(actions.getAllFail(reason))
-    );
-  };
-};
-
-export const getAntigen = (uuid: string) => {
-  return async (dispatch: DispatchType, getState: () => RootState) => {
-    if (
-      getState().antigens.antigens.find((antigen) => antigen.uuid === uuid) ||
-      getState().antigens.fetchPending.find((antigen) => antigen === uuid)
-    )
-      return;
-    dispatch(actions.getPending(uuid));
-    getAPI<Antigen>(`antigen/${uuid}`).then(
-      (antigen) => dispatch(actions.getSuccess(antigen)),
-      (reason) => dispatch(actions.getFail({ uuid: uuid, error: reason }))
-    );
-  };
-};
-
-export const postUniProtAntigen = (uniprotAccessionNumber: string) => {
-  return async (dispatch: DispatchType) => {
-    dispatch(actions.postPending());
-    postAPI<UniProtAntigen>(`uniprot_antigen`, {
-      uniprot_accession_number: uniprotAccessionNumber,
-    }).then(
-      async (uniProtAntigen) => {
-        getAPI<Antigen>(`antigen/${uniProtAntigen.antigen}`).then(
-          (antigen) => dispatch(actions.postUniProtSuccess(antigen)),
-          (reason: string) => dispatch(actions.postFail(reason))
-        );
-      },
-      (reason) => dispatch(actions.postFail(reason))
-    );
-  };
-};
-
-export const postLocalAntigen = (sequence: string, molecularMass: number) => {
-  return async (dispatch: DispatchType) => {
-    dispatch(actions.postPending());
-    postAPI<LocalAntigen>(`local_antigen`, {
-      sequence: sequence,
-      molecular_mass: molecularMass,
-    }).then(
-      async (localAntigen) => {
-        getAPI<Antigen>(`antigen/${localAntigen.antigen}`).then(
-          (antigen) => dispatch(actions.postLocalSuccess(antigen)),
-          (reason) => dispatch(actions.postFail(reason))
-        );
-      },
-      (reason) => dispatch(actions.postFail(reason))
-    );
-  };
-};

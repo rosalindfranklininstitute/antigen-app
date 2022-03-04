@@ -26,8 +26,8 @@ export default function AddUniProtAntigenView() {
   const loading = useSelector(selectLoadingAntigen);
   const [accessionNumber, setAccessionNumber] = useState<string>("");
 
-  const submit = async () => {
-    dispatch(postUniProtAntigen(accessionNumber));
+  const submit = () => {
+    dispatch(postUniProtAntigen({ uniprot_accession_number: accessionNumber }));
   };
 
   return (

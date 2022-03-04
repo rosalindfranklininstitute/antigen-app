@@ -1,9 +1,9 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { getElisaWell } from "../elisa_well/slice";
-import { DispatchType, RootState } from "../store";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ElisaWell } from "../elisa_well/utils";
+import { RootState } from "../store";
 import { getAPI, postAPI, putAPI } from "../utils/api";
 import { addUniqueUUID, AllFetched } from "../utils/state_management";
-import { ElisaPlate } from "./utils";
+import { ElisaPlate, ElisaPlatePost } from "./utils";
 
 type ElisaPlateState = {
   elisaPlates: ElisaPlate[];
@@ -23,45 +23,65 @@ const initialElisaPlateState: ElisaPlateState = {
   error: null,
 };
 
+export const getElisaPlates = createAsyncThunk<
+  Array<ElisaPlate>,
+  void,
+  { state: RootState }
+>(
+  "elisaPlates/getElisaPlates",
+  async () => await getAPI<Array<ElisaPlate>>("elisa_plate"),
+  {
+    condition: (_, { getState }) =>
+      getState().elisaPlates.allFetched === AllFetched.False,
+  }
+);
+
+export const getElisaPlate = createAsyncThunk<
+  ElisaPlate,
+  string,
+  { state: RootState }
+>(
+  "elisaPlates/getElisaPlate",
+  async (uuid: string) => await getAPI<ElisaPlate>(`elisa_plate/${uuid}`),
+  {
+    condition: (uuid, { getState }) =>
+      getState().elisaPlates.elisaPlates.filter(
+        (elisaPlates) => elisaPlates.uuid === uuid
+      ).length === 0 &&
+      getState().elisaPlates.fetchPending.filter(
+        (elisaPlates) => elisaPlates === uuid
+      ).length === 0,
+  }
+);
+
+export const postElisaPlate = createAsyncThunk<ElisaPlate, ElisaPlatePost>(
+  "elisaPlates/postElisaPlate",
+  async (post) => await postAPI<ElisaPlatePost, ElisaPlate>("elisa_plate", post)
+);
+
+export const putElisaPlate = createAsyncThunk<
+  { elisaPlate: ElisaPlate; elisaWells: Array<ElisaWell> },
+  ElisaPlatePost & { uuid: string }
+>(
+  "elisaPlates",
+  async (post) =>
+    await putAPI<ElisaPlatePost, ElisaPlate>(
+      `elisa_plate/${post.uuid}`,
+      post
+    ).then(async (elisaPlate) => ({
+      elisaPlate,
+      elisaWells: await Promise.all(
+        elisaPlate.plate_elisa_wells.map((location) =>
+          getAPI<ElisaWell>(`elisa_well/${elisaPlate.uuid}:${location}`)
+        )
+      ),
+    }))
+);
+
 const elisaPlateSlice = createSlice({
   name: "elisaPlates",
   initialState: initialElisaPlateState,
   reducers: {
-    getAllPending: (state) => ({
-      ...state,
-      allFetched: AllFetched.Pending,
-    }),
-    getAllSuccess: (state, action: PayloadAction<ElisaPlate[]>) => ({
-      ...state,
-      allFetched: AllFetched.True,
-      elisaPlates: addUniqueUUID(state.elisaPlates, action.payload),
-    }),
-    getAllFail: (state, action: PayloadAction<string>) => ({
-      ...state,
-      allFetched: AllFetched.False,
-      error: action.payload,
-    }),
-    getPending: (state, action: PayloadAction<string>) => ({
-      ...state,
-      fetchPending: state.fetchPending.concat(action.payload),
-    }),
-    getSuccess: (state, action: PayloadAction<ElisaPlate>) => ({
-      ...state,
-      fetchPending: state.fetchPending.filter(
-        (uuid) => uuid !== action.payload.uuid
-      ),
-      elisaPlates: state.elisaPlates.concat(action.payload),
-    }),
-    getFail: (
-      state,
-      action: PayloadAction<{ uuid: string; error: string }>
-    ) => ({
-      ...state,
-      fetchPending: state.fetchPending.filter(
-        (uuid) => uuid !== action.payload.uuid
-      ),
-      error: action.payload.error,
-    }),
     postPending: (state) => ({
       ...state,
       postPending: true,
@@ -78,9 +98,58 @@ const elisaPlateSlice = createSlice({
       error: action.payload,
     }),
   },
+  extraReducers: (builder) => {
+    builder.addCase(getElisaPlates.pending, (state) => {
+      state.allFetched = AllFetched.Pending;
+    });
+    builder.addCase(getElisaPlates.fulfilled, (state, action) => {
+      state.elisaPlates = addUniqueUUID(state.elisaPlates, action.payload);
+      state.allFetched = AllFetched.True;
+    });
+    builder.addCase(getElisaPlates.rejected, (state) => {
+      state.allFetched = AllFetched.False;
+    });
+    builder.addCase(getElisaPlate.pending, (state, action) => {
+      state.fetchPending = state.fetchPending.concat(action.meta.arg);
+    });
+    builder.addCase(getElisaPlate.fulfilled, (state, action) => {
+      state.elisaPlates = addUniqueUUID(state.elisaPlates, [action.payload]);
+      state.fetchPending = state.fetchPending.filter(
+        (uuid) => uuid !== action.payload.uuid
+      );
+    });
+    builder.addCase(getElisaPlate.rejected, (state, action) => {
+      state.fetchPending = state.fetchPending.filter(
+        (uuid) => uuid !== action.payload
+      );
+    });
+    builder.addCase(postElisaPlate.pending, (state) => {
+      state.postPending = true;
+    });
+    builder.addCase(postElisaPlate.fulfilled, (state, action) => {
+      state.elisaPlates = addUniqueUUID(state.elisaPlates, [action.payload]);
+      state.posted = state.posted.concat(action.payload.uuid);
+      state.postPending = false;
+    });
+    builder.addCase(postElisaPlate.rejected, (state) => {
+      state.postPending = false;
+    });
+    builder.addCase(putElisaPlate.pending, (state) => {
+      state.postPending = true;
+    });
+    builder.addCase(putElisaPlate.fulfilled, (state, action) => {
+      state.elisaPlates = addUniqueUUID(state.elisaPlates, [
+        action.payload.elisaPlate,
+      ]);
+      state.posted = state.posted.concat(action.payload.elisaPlate.uuid);
+      state.postPending = false;
+    });
+    builder.addCase(putElisaPlate.rejected, (state) => {
+      state.postPending = false;
+    });
+  },
 });
 
-const actions = elisaPlateSlice.actions;
 export const elisaPlateReducer = elisaPlateSlice.reducer;
 
 export const selectElisaPlates = (state: RootState) =>
@@ -90,67 +159,3 @@ export const selectElisaPlate = (uuid: string) => (state: RootState) =>
 export const selectLoadingElisaPlate = (state: RootState) =>
   state.elisaPlates.allFetched === AllFetched.Pending ||
   Boolean(state.elisaPlates.fetchPending.length);
-
-export const getElisaPlates = () => {
-  return async (dispatch: DispatchType, getState: () => RootState) => {
-    if (getState().elisaPlates.allFetched !== AllFetched.False) return;
-    dispatch(actions.getAllPending());
-    getAPI<ElisaPlate[]>(`elisa_plate`).then(
-      (elisaPlates) => dispatch(actions.getAllSuccess(elisaPlates)),
-      (reason) => dispatch(actions.getAllFail(reason))
-    );
-  };
-};
-
-export const getElisaPlate = (uuid: string) => {
-  return async (dispatch: DispatchType, getState: () => RootState) => {
-    if (
-      getState().elisaPlates.elisaPlates.find(
-        (elisaPlate) => elisaPlate.uuid === uuid
-      ) ||
-      getState().elisaPlates.fetchPending.find(
-        (elisaPlate) => elisaPlate === uuid
-      )
-    )
-      return;
-    dispatch(actions.getPending(uuid));
-    getAPI<ElisaPlate>(`elisa_plate/${uuid}`).then(
-      (elisaPlate) => dispatch(actions.getSuccess(elisaPlate)),
-      (reason) => dispatch(actions.getFail({ uuid: uuid, error: reason }))
-    );
-  };
-};
-
-export const postElisaPlate =
-  (threshold: number) => (dispatch: DispatchType) => {
-    dispatch(actions.postPending());
-    return postAPI<ElisaPlate>(`elisa_plate`, {
-      threshold: threshold,
-    }).then(
-      (elisaPlate) => {
-        dispatch(actions.postSuccess(elisaPlate));
-        return elisaPlate.uuid;
-      },
-      (reason: string) => {
-        dispatch(actions.postFail(reason));
-        return reason;
-      }
-    );
-  };
-
-export const putElisaPlate = (uuid: string, threshold: number) => {
-  return async (dispatch: DispatchType, getState: () => void) => {
-    dispatch(actions.postPending());
-    putAPI<{ threshold: number }, ElisaPlate>(`elisa_plate/${uuid}`, {
-      threshold,
-    }).then(
-      (elisaPlate) => {
-        dispatch(actions.postSuccess(elisaPlate));
-        elisaPlate.plate_elisa_wells.map((location) =>
-          dispatch(getElisaWell({ plate: elisaPlate.uuid, location }, true))
-        );
-      },
-      (reason) => actions.postFail(reason)
-    );
-  };
-};

@@ -25,7 +25,7 @@ export default function AddNanobodyView() {
   const loading = useSelector(selectLoadingNanobody);
 
   const submit = async () => {
-    dispatch(postNanobody());
+    dispatch(postNanobody({}));
   };
 
   return (

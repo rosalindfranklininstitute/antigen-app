@@ -19,6 +19,8 @@ export type Nanobody = {
   creation_time: Date;
 };
 
+export type NanobodyPost = {};
+
 export function NanobodyInfo(params: { uuid: string }) {
   const dispatch = useDispatch();
   const nanobody = useSelector(selectNanobody(params.uuid));

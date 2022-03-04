@@ -29,7 +29,7 @@ export default function AddLocalAntigenView() {
   const [molecularMass, setMolecularMass] = useState<number>(0);
 
   const submit = async () => {
-    dispatch(postLocalAntigen(sequence, molecularMass));
+    dispatch(postLocalAntigen({ sequence, molecular_mass: molecularMass }));
   };
 
   return (
