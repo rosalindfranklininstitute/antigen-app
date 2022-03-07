@@ -19,7 +19,7 @@ export function ElisaWellMapElement(params: { plate: string }) {
               <Typography>{String.fromCharCode(row + 65)}</Typography>
             </Grid>,
             Array.from({ length: 12 }, (_, col) => (
-              <Grid item xs={1}>
+              <Grid item xs={1} key={(row + 1) * 13 + col}>
                 <ElisaWellElement
                   wellKey={{
                     plate: params.plate,

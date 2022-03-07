@@ -48,8 +48,8 @@ export function ElisaPlateMapLegend(params: { plate: string }) {
         <Stack gap={2} divider={<Divider />}>
           <Typography>Antigens</Typography>
           <Stack spacing={2}>
-            {antigens.map((antigen) => (
-              <LegendEntry uuid={antigen.uuid} label={antigen.name} />
+            {antigens.map((antigen, idx) => (
+              <LegendEntry uuid={antigen.uuid} label={antigen.name} key={idx} />
             ))}
           </Stack>
         </Stack>
@@ -58,8 +58,12 @@ export function ElisaPlateMapLegend(params: { plate: string }) {
         <Stack gap={2} divider={<Divider />}>
           <Typography>Nanobodies</Typography>
           <Stack spacing={2}>
-            {nanobodies.map((nanobody) => (
-              <LegendEntry uuid={nanobody.uuid} label={nanobody.name} />
+            {nanobodies.map((nanobody, idx) => (
+              <LegendEntry
+                uuid={nanobody.uuid}
+                label={nanobody.name}
+                key={idx}
+              />
             ))}
           </Stack>
         </Stack>
