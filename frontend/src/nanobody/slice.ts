@@ -1,5 +1,5 @@
 import { Nanobody, NanobodyPost } from "./utils";
-import { getAPI, postAPI } from "../utils/api";
+import { APIRejection, getAPI, postAPI } from "../utils/api";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import {
@@ -14,7 +14,6 @@ type NanobodyState = {
   fetchPending: string[];
   posted: string[];
   postPending: boolean;
-  error: string | null;
 };
 
 const initialNanobodyState: NanobodyState = {
@@ -23,16 +22,18 @@ const initialNanobodyState: NanobodyState = {
   fetchPending: [],
   posted: [],
   postPending: false,
-  error: null,
 };
 
 export const getNanobodies = createAsyncThunk<
   Array<Nanobody>,
   void,
-  { state: RootState }
+  { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "nanobodies/getNanobodies",
-  async () => await getAPI<Array<Nanobody>>("nanobody"),
+  (_, { rejectWithValue }) =>
+    getAPI<Array<Nanobody>>("nanobody").catch((apiRejection) =>
+      rejectWithValue({ apiRejection })
+    ),
   {
     condition: (_, { getState }) =>
       getState().nanobodies.allFetched === AllFetched.False,
@@ -42,10 +43,16 @@ export const getNanobodies = createAsyncThunk<
 export const getNanobody = createAsyncThunk<
   Nanobody,
   string,
-  { state: RootState }
+  {
+    state: RootState;
+    rejectValue: { uuid: string; apiRejection: APIRejection };
+  }
 >(
   "nanobodies/getNanobody",
-  async (uuid: string) => await getAPI<Nanobody>(`nanobody/${uuid}`),
+  (uuid: string, { rejectWithValue }) =>
+    getAPI<Nanobody>(`nanobody/${uuid}`).catch((apiRejection) =>
+      rejectWithValue({ uuid, apiRejection })
+    ),
   {
     condition: (uuid, { getState }) =>
       getState().nanobodies.nanobodies.filter(
@@ -57,9 +64,14 @@ export const getNanobody = createAsyncThunk<
   }
 );
 
-export const postNanobody = createAsyncThunk<Nanobody, NanobodyPost>(
-  "nanobodies/postNanobody",
-  async (post) => await postAPI<NanobodyPost, Nanobody>("nanobody", post)
+export const postNanobody = createAsyncThunk<
+  Nanobody,
+  NanobodyPost,
+  { rejectValue: { apiRejection: APIRejection } }
+>("nanobodies/postNanobody", (post, { rejectWithValue }) =>
+  postAPI<NanobodyPost, Nanobody>("nanobody", post).catch((apiRejection) =>
+    rejectWithValue({ apiRejection })
+  )
 );
 
 const nanobodySlice = createSlice({
@@ -88,7 +100,7 @@ const nanobodySlice = createSlice({
     });
     builder.addCase(getNanobody.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (uuid) => uuid !== action.payload
+        (uuid) => uuid !== action.payload?.uuid
       );
     });
     builder.addCase(postNanobody.pending, (state) => {

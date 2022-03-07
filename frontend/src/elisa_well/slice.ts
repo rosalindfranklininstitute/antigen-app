@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { putElisaPlate } from "../elisa_plate/slice";
 import { RootState } from "../store";
-import { getAPI, postAPI, putAPI } from "../utils/api";
+import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
 import { addUniqueUUID, AllFetched } from "../utils/state_management";
 import { ElisaWell, ElisaWellKey, ElisaWellPost } from "./utils";
 
@@ -11,7 +11,6 @@ type ElisaWellState = {
   fetchPending: ElisaWellKey[];
   posted: ElisaWellKey[];
   postPending: boolean;
-  error: string | null;
 };
 
 const initialElisaWellState: ElisaWellState = {
@@ -20,16 +19,18 @@ const initialElisaWellState: ElisaWellState = {
   fetchPending: [],
   posted: [],
   postPending: false,
-  error: null,
 };
 
 export const getElisaWells = createAsyncThunk<
   Array<ElisaWell>,
   void,
-  { state: RootState }
+  { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "elisaWells/getElisaWells",
-  async () => await getAPI<Array<ElisaWell>>("elisa_well"),
+  (_, { rejectWithValue }) =>
+    getAPI<Array<ElisaWell>>("elisa_well").catch((apiRejection) =>
+      rejectWithValue({ apiRejection: apiRejection })
+    ),
   {
     condition: (_, { getState }) =>
       getState().elisaWells.allFetched === AllFetched.False,
@@ -39,11 +40,13 @@ export const getElisaWells = createAsyncThunk<
 export const getElisaWell = createAsyncThunk<
   ElisaWell,
   ElisaWellKey & { force?: boolean },
-  { state: RootState }
+  { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "elisaWells/getElisaWell",
-  async ({ plate, location }) =>
-    await getAPI<ElisaWell>(`elisa_well/${plate}:${location}`),
+  ({ plate, location }, { rejectWithValue }) =>
+    getAPI<ElisaWell>(`elisa_well/${plate}:${location}`).catch((apiRejection) =>
+      rejectWithValue({ apiRejection: apiRejection })
+    ),
   {
     condition: ({ plate, location, force }, { getState }) =>
       force ||
@@ -57,18 +60,25 @@ export const getElisaWell = createAsyncThunk<
   }
 );
 
-export const postElisaWell = createAsyncThunk<ElisaWell, ElisaWellPost>(
-  "elisaWells/postElisaWell",
-  async (post) => await postAPI<ElisaWellPost, ElisaWell>("elisa_well", post)
+export const postElisaWell = createAsyncThunk<
+  ElisaWell,
+  ElisaWellPost,
+  { rejectValue: { apiRejection: APIRejection } }
+>("elisaWells/postElisaWell", (post, { rejectWithValue }) =>
+  postAPI<ElisaWellPost, ElisaWell>("elisa_well", post).catch((apiRejection) =>
+    rejectWithValue({ apiRejection: apiRejection })
+  )
 );
 
-export const putElisaWell = createAsyncThunk<ElisaWell, ElisaWellPost>(
-  "elisaWells/putElisaWell",
-  async (post) =>
-    await putAPI<ElisaWellPost, ElisaWell>(
-      `elisa_well/${post.plate}:${post.location}`,
-      post
-    )
+export const putElisaWell = createAsyncThunk<
+  ElisaWell,
+  ElisaWellPost,
+  { rejectValue: { apiRejection: APIRejection } }
+>("elisaWells/putElisaWell", (post, { rejectWithValue }) =>
+  putAPI<ElisaWellPost, ElisaWell>(
+    `elisa_well/${post.plate}:${post.location}`,
+    post
+  ).catch((apiRejection) => rejectWithValue({ apiRejection }))
 );
 
 const elisaWellSlice = createSlice({

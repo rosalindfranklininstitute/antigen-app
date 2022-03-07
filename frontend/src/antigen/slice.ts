@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import { getAPI, postAPI } from "../utils/api";
+import { getAPI, postAPI, APIRejection } from "../utils/api";
 import {
   addUniqueUUID,
   AllFetched,
@@ -35,19 +35,32 @@ const initialAntigenState: AntigenState = {
 export const getAntigens = createAsyncThunk<
   Antigen[],
   void,
-  { state: RootState }
->("antigens/getAntigens", async () => await getAPI<Antigen[]>("antigen"), {
-  condition: (_, { getState }) =>
-    getState().antigens.allFetched === AllFetched.False,
-});
+  { state: RootState; rejectValue: { apiRejection: APIRejection } }
+>(
+  "antigens/getAntigens",
+  (_, { rejectWithValue }) =>
+    getAPI<Antigen[]>("antigen").catch((apiRejection) =>
+      rejectWithValue({ apiRejection: apiRejection })
+    ),
+  {
+    condition: (_, { getState }) =>
+      getState().antigens.allFetched === AllFetched.False,
+  }
+);
 
 export const getAntigen = createAsyncThunk<
   Antigen,
   string,
-  { state: RootState }
+  {
+    state: RootState;
+    rejectValue: { uuid: string; apiRejection: APIRejection };
+  }
 >(
   "antigens/getAntigen",
-  async (uuid: string) => await getAPI<Antigen>(`antigen/${uuid}`),
+  async (uuid: string, { rejectWithValue }) =>
+    getAPI<Antigen>(`antigen/${uuid}`).catch((apiRejection) =>
+      rejectWithValue({ uuid, apiRejection })
+    ),
   {
     condition: (uuid, { getState }) =>
       !(
@@ -59,20 +72,32 @@ export const getAntigen = createAsyncThunk<
   }
 );
 
-export const postUniProtAntigen = createAsyncThunk<Antigen, UniProtAntigenPost>(
-  "antigens/addUniProt",
-  (post) =>
-    postAPI<UniProtAntigenPost, UniProtAntigen>("uniprot_antigen", post).then(
-      (uniProtAntigen) => getAPI<Antigen>(`antigen/${uniProtAntigen.antigen}`)
-    )
+export const postUniProtAntigen = createAsyncThunk<
+  Antigen,
+  UniProtAntigenPost,
+  { rejectValue: { apiRejection: APIRejection } }
+>("antigens/addUniProt", (post, { rejectWithValue }) =>
+  postAPI<UniProtAntigenPost, UniProtAntigen>("uniprot_antigen", post).then(
+    (uniProtAntigen) =>
+      getAPI<Antigen>(`antigen/${uniProtAntigen.antigen}`).catch(
+        (apiRejection) => rejectWithValue({ apiRejection })
+      ),
+    (apiRejection) => rejectWithValue({ apiRejection })
+  )
 );
 
-export const postLocalAntigen = createAsyncThunk<Antigen, LocalAntigenPost>(
-  "antigens/addLocal",
-  (post) =>
-    postAPI<LocalAntigenPost, LocalAntigen>("local_antigen", post).then(
-      (localAntigen) => getAPI<Antigen>(`antigen/${localAntigen.antigen}`)
-    )
+export const postLocalAntigen = createAsyncThunk<
+  Antigen,
+  LocalAntigenPost,
+  { rejectValue: { apiRejection: APIRejection } }
+>("antigens/addLocal", (post, { rejectWithValue }) =>
+  postAPI<LocalAntigenPost, LocalAntigen>("local_antigen", post).then(
+    (localAntigen) =>
+      getAPI<Antigen>(`antigen/${localAntigen.antigen}`).catch((apiRejection) =>
+        rejectWithValue({ apiRejection })
+      ),
+    (apiRejection) => rejectWithValue({ apiRejection })
+  )
 );
 
 const antigenSlice = createSlice({
@@ -101,7 +126,7 @@ const antigenSlice = createSlice({
     });
     builder.addCase(getAntigen.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (uuid) => uuid !== action.payload
+        (uuid) => uuid !== action.payload?.uuid
       );
     });
     builder.addCase(postUniProtAntigen.pending, (state) => {

@@ -1,13 +1,24 @@
 import { LinearProgress, Paper, Typography } from "@mui/material";
+import { NotificationType } from "./notifications";
+
+export type APIRejection = Pick<Response, "status" | "statusText"> & {
+  payload: { detail: string };
+};
+
+export const GetAPIRejection = async (
+  response: Response
+): Promise<APIRejection> => ({
+  status: response.status,
+  statusText: response.statusText,
+  payload: await response.json(),
+});
 
 export async function getAPI<Type>(uriFrag: string): Promise<Type> {
   return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?format=json`).then(
-    async (response) => {
-      if (!response.ok) {
-        return Promise.reject(response);
-      }
-      return await response.json();
-    }
+    async (response) =>
+      response.ok
+        ? await response.json()
+        : Promise.reject(await GetAPIRejection(response))
   );
 }
 
@@ -26,8 +37,8 @@ export async function postAPI<Post, Response>(
     body: JSON.stringify(post),
   }).then(async (response) =>
     response.ok
-      ? response.json().then((object) => object)
-      : Promise.reject(response)
+      ? await response.json()
+      : Promise.reject(await GetAPIRejection(response))
   );
 }
 
@@ -44,12 +55,11 @@ export async function putAPI<Put, Response>(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(put),
-  }).then(async (response) => {
-    if (!response.ok) {
-      return Promise.reject(response);
-    }
-    return await response.json();
-  });
+  }).then(async (response) =>
+    response.ok
+      ? await response.json()
+      : Promise.reject(await GetAPIRejection(response))
+  );
 }
 
 export const LoadingPaper = (params: { text: string }) => {
@@ -68,3 +78,13 @@ export const FailedRetrievalPaper = (params: { text: string }) => {
     </Paper>
   );
 };
+
+export const SnackifyAPIRejection = (
+  response: APIRejection
+): NotificationType => [
+  `${response.status}: ${response.statusText}\n${response.payload.detail}`,
+  {
+    variant: "error",
+    style: { whiteSpace: "pre-line" },
+  },
+];
