@@ -17,7 +17,7 @@ import {
   selectLoadingElisaPlate,
 } from "./slice";
 import { ElisaPlateInfo } from "./utils";
-import { ElisaWellMapElement } from "./well_map";
+import { ElisaWellMapElement } from "./well_map/well_map";
 
 export default function ElisaPlateView() {
   let { uuid } = useParams<{ uuid: string }>() as { uuid: string };
