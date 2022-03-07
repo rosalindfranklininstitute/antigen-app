@@ -42,8 +42,8 @@ export function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
     }
   }, [dispatch, elisaWell]);
 
-  const antigenColor = antigen ? uuidToColor(antigen.uuid) : "white";
-  const nanobodyColor = nanobody ? uuidToColor(nanobody.uuid) : "white";
+  const antigenColor = uuidToColor(antigen ? antigen.uuid : undefined);
+  const nanobodyColor = uuidToColor(nanobody ? nanobody.uuid : undefined);
 
   const InfoPopover = () =>
     params.wellKey ? (
