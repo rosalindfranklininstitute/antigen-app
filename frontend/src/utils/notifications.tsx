@@ -1,6 +1,11 @@
 import { createSlice, Draft, PayloadAction } from "@reduxjs/toolkit";
-import { OptionsObject, SnackbarMessage, useSnackbar } from "notistack";
-import { useEffect, useState } from "react";
+import {
+  OptionsObject,
+  SnackbarMessage,
+  SnackbarProvider,
+  useSnackbar,
+} from "notistack";
+import { ReactNode, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   getAntigen,
@@ -85,4 +90,27 @@ export const useSnackbarNotifier = () => {
       setDisplayed(displayed + 1);
     });
   }, [notifications, displayed, enqueueSnackbar]);
+};
+
+export const SnackbarNotifier = (props: { children: ReactNode }) => {
+  const Notifier = (props: { children: ReactNode }) => {
+    const notifications = useSelector(selectNotifications);
+    const { enqueueSnackbar } = useSnackbar();
+    const [displayed, setDisplayed] = useState<number>(0);
+
+    useEffect(() => {
+      notifications.slice(displayed).forEach((notification) => {
+        enqueueSnackbar(...notification);
+        setDisplayed(displayed + 1);
+      });
+    }, [notifications, displayed, enqueueSnackbar]);
+
+    return <>{props.children}</>;
+  };
+
+  return (
+    <SnackbarProvider>
+      <Notifier>{props.children}</Notifier>
+    </SnackbarProvider>
+  );
 };

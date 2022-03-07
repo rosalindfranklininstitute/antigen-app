@@ -17,11 +17,8 @@ import ElisaWellView from "../elisa_well/individual";
 import ElisaPlatesView from "../elisa_plate/aggregate";
 import ElisaPlateView from "../elisa_plate/individual";
 import AddElisaPlateView from "../elisa_plate/add";
-import { useSnackbarNotifier } from "../utils/notifications";
 
 function App() {
-  useSnackbarNotifier();
-
   return (
     <BrowserRouter>
       <Header logo={logo} title="Antigen App" />
