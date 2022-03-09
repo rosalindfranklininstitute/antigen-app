@@ -2,14 +2,20 @@ from django.contrib.admin import site
 from guardian.admin import GuardedModelAdmin
 
 from antigenapi.models import (
-    Antigen,
     ElisaPlate,
     ElisaWell,
     LocalAntigen,
     Nanobody,
+    Project,
     Sequence,
     UniProtAntigen,
 )
+
+
+class ProjectAdmin(GuardedModelAdmin):
+    """A guarded model admin view for project objects."""
+
+    pass
 
 
 class AntigenAdmin(GuardedModelAdmin):
@@ -54,7 +60,7 @@ class SequenceAdmin(GuardedModelAdmin):
     pass
 
 
-site.register(Antigen, AntigenAdmin)
+site.register(Project, ProjectAdmin)
 site.register(LocalAntigen, LocalAntigenAdmin)
 site.register(UniProtAntigen, UniProtAntigenAdmin)
 site.register(Nanobody, NanobodyAdmin)

@@ -20,10 +20,28 @@ from antigenapi.models import (
     ElisaWell,
     LocalAntigen,
     Nanobody,
+    Project,
     Sequence,
     UniProtAntigen,
 )
 from antigenapi.utils.permission import perform_create_allow_creator_change_delete
+
+
+class ProjectSerializer(ModelSerializer):
+    """A serializer for project data which serializes all internal fields."""
+
+    class Meta:  # noqa: D106
+        model = Project
+        fields = "__all__"
+
+
+class ProjectViewSet(ModelViewSet):
+    """a view set displaying all recorded projects."""
+
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+    perform_create = perform_create_allow_creator_change_delete
 
 
 class LocalAntigenSerializer(ModelSerializer):
@@ -80,7 +98,7 @@ class AntigenSerializer(ModelSerializer):
     molecular_mass = IntegerField(source="child.molecular_mass")
     name = CharField(source="child.name")
     uniprot_accession_number = SerializerMethodField()
-    antigen_elisa_wells = PrimaryKeyRelatedField(many=True, read_only=True)
+    elisawell_set = PrimaryKeyRelatedField(many=True, read_only=True)
 
     def get_uniprot_accession_number(self, antigen: Antigen) -> Optional[str]:
         """Retrieve the uniprot accession number if the child antigen is from uniprot.
@@ -119,7 +137,7 @@ class NanobodySerializer(ModelSerializer):
     """
 
     name = ReadOnlyField()
-    nanobody_elisa_wells = PrimaryKeyRelatedField(many=True, read_only=True)
+    elisawell_set = PrimaryKeyRelatedField(many=True, read_only=True)
     sequences = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:  # noqa: D106
@@ -143,9 +161,7 @@ class ElisaPlateSerializer(ModelSerializer):
     contained within it.
     """
 
-    plate_elisa_wells = SlugRelatedField(
-        many=True, read_only=True, slug_field="location"
-    )
+    elisawell_set = SlugRelatedField(many=True, read_only=True, slug_field="location")
 
     class Meta:  # noqa: D106
         model = ElisaPlate
