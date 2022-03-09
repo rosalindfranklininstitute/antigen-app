@@ -80,7 +80,7 @@ export const putElisaPlate = createAsyncThunk<
     async (elisaPlate) => ({
       elisaPlate,
       elisaWells: await Promise.all(
-        elisaPlate.plate_elisa_wells.map((location) =>
+        elisaPlate.elisawell_set.map((location) =>
           getAPI<ElisaWell>(`elisa_well/${elisaPlate.uuid}:${location}`)
         )
       ),

@@ -14,8 +14,9 @@ import { getNanobody, selectNanobody } from "./slice";
 
 export type Nanobody = {
   uuid: string;
+  project: string;
   name: string;
-  nanobody_elisa_wells: string[];
+  elisawell_set: string[];
   creation_time: Date;
 };
 
@@ -42,7 +43,7 @@ export function NanobodyInfo(params: { uuid: string }) {
             <TableCell>Elisa Appearances:</TableCell>
             <TableCell>
               <Stack>
-                {nanobody.nanobody_elisa_wells.map((well, idx) => (
+                {nanobody.elisawell_set.map((well, idx) => (
                   <Link component={RouterLink} to={`/elisa_well/${well}`}>
                     {well}
                   </Link>

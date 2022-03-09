@@ -32,7 +32,7 @@ export default function ElisaPlatesView() {
       flex: 1,
     },
     {
-      field: "plate_elisa_wells",
+      field: "elisawell_set",
       headerName: "Associated Wells",
       renderCell: WellCellRenderer,
       flex: 1,

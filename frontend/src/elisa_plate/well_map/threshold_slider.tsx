@@ -10,8 +10,9 @@ export function ElisaPlateThresholdSlider(params: { plate: string }) {
     elisaPlate ? elisaPlate.threshold : 0
   );
 
-  const updateElisaPlateThreshold = () =>
-    dispatch(putElisaPlate({ uuid: params.plate, threshold }));
+  const updateElisaPlateThreshold = () => {
+    if (elisaPlate) dispatch(putElisaPlate({ ...elisaPlate, threshold }));
+  };
 
   return (
     <Stack direction="row" spacing={2} alignItems="center">
