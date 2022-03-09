@@ -7,11 +7,13 @@ from antigenapi.views import (
     ElisaWellViewSet,
     LocalAntigenViewSet,
     NanobodyViewSet,
+    ProjectViewSet,
     SequenceViewSet,
     UniProtAntigenViewSet,
 )
 
 router = DefaultRouter()
+router.register("project", ProjectViewSet)
 router.register("antigen", AntigenViewSet)
 router.register("local_antigen", LocalAntigenViewSet)
 router.register("uniprot_antigen", UniProtAntigenViewSet)

@@ -8,8 +8,8 @@ from django.db.models import (
     CASCADE,
     ForeignKey,
     IntegerChoices,
+    Max,
     Model,
-    OneToOneField,
     UniqueConstraint,
 )
 from django.db.models.fields import (
@@ -26,7 +26,44 @@ from django.utils.timezone import now
 from antigenapi.utils.uniprot import get_protein
 
 
-class Antigen(Model):
+class Project(Model):
+    """A unique project."""
+
+    uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
+    title = CharField(max_length=256, unique=True)
+    short_title = CharField(max_length=64, unique=True)
+    description = TextField()
+
+
+class ProjectModelMixin(Model):
+    """A mixin which adds a project and a dependant auto-incrementing number."""
+
+    project: Project = ForeignKey(Project, on_delete=CASCADE)
+    number: int = PositiveSmallIntegerField(editable=False)
+
+    class Meta:  # noqa: D106
+        unique_together = ("project", "number")
+        abstract = True
+
+    def save(
+        self,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: Optional[str] = None,
+        update_fields: Optional[Iterable[str]] = None,
+    ) -> None:
+        """Extended save method which auto-increments 'number' per project."""
+        if self._state.adding:
+            project_objects = type(self).objects.filter(project=self.project)
+            self.number = (
+                project_objects.aggregate(Max("number"))["number__max"] + 1
+                if project_objects
+                else 1
+            )
+        return super().save(force_insert, force_update, using, update_fields)
+
+
+class Antigen(ProjectModelMixin, Model):
     """A unique antigen identifier, for use by Local & UniProt antigens."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -40,34 +77,17 @@ class Antigen(Model):
             Optional[Union[LocalAntigen, UniProtAntigen]]: The child LocalAntigen or
                 UniProtAntigen instance if available.
         """
-        return getattr(self, "local_antigen", None) or getattr(
-            self, "uniprot_antigen", None
+        return getattr(self, "localantigen", None) or getattr(
+            self, "uniprotantigen", None
         )
-
-    @classmethod
-    def get_new(cls) -> UUID:
-        """Create a new antigen instance and return the unique identifier.
-
-        Returns:
-            UUID: The unique identifier of the antigen instance.
-        """
-        return cls.objects.create().uuid
 
 
 AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZ]*$")
 
 
-class LocalAntigen(Model):
+class LocalAntigen(Antigen, Model):
     """A locally defined antigen with recorded sequence and molecular mass."""
 
-    antigen: Antigen = OneToOneField(
-        Antigen,
-        primary_key=True,
-        editable=False,
-        related_name="local_antigen",
-        on_delete=CASCADE,
-        default=Antigen.get_new,
-    )
     sequence: str = TextField(validators=[AminoCodeLetters])
     molecular_mass: int = IntegerField()
 
@@ -80,18 +100,15 @@ class LocalAntigen(Model):
         """
         return str(self.antigen.uuid)[:8]
 
+    class Meta:
+        """Empty Meta to negate the unique_together constraint of ProjectModelMixin."""
 
-class UniProtAntigen(Model):
+        ...
+
+
+class UniProtAntigen(Antigen, Model):
     """An antigen defined by reference to the UniProt database."""
 
-    antigen = OneToOneField(
-        Antigen,
-        primary_key=True,
-        editable=False,
-        related_name="uniprot_antigen",
-        on_delete=CASCADE,
-        default=Antigen.get_new,
-    )
     uniprot_accession_number: str = CharField(max_length=32, unique=True)
     sequence: str = TextField(validators=[AminoCodeLetters], editable=False)
     molecular_mass: int = IntegerField(editable=False)
@@ -111,8 +128,13 @@ class UniProtAntigen(Model):
         self.name = protein_data["protein"]["recommendedName"]["fullName"]
         return super().save(force_insert, force_update, using, update_fields)
 
+    class Meta:
+        """Empty Meta to negate the unique_together constraint of ProjectModelMixin."""
 
-class Nanobody(Model):
+        ...
+
+
+class Nanobody(ProjectModelMixin, Model):
     """A unique nanobody."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -131,7 +153,7 @@ class Nanobody(Model):
         return str(self.uuid)[:8]
 
 
-class ElisaPlate(Model):
+class ElisaPlate(ProjectModelMixin, Model):
     """A unique elisa experimental plate."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -157,16 +179,10 @@ class ElisaWell(Model):
     """
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
-    plate: ElisaPlate = ForeignKey(
-        ElisaPlate, related_name="plate_elisa_wells", on_delete=CASCADE
-    )
+    plate: ElisaPlate = ForeignKey(ElisaPlate, on_delete=CASCADE)
     location = PositiveSmallIntegerField(choices=PlateLocations.choices)
-    antigen: Antigen = ForeignKey(
-        Antigen, related_name="antigen_elisa_wells", on_delete=CASCADE
-    )
-    nanobody: Nanobody = ForeignKey(
-        Nanobody, related_name="nanobody_elisa_wells", on_delete=CASCADE
-    )
+    antigen: Antigen = ForeignKey(Antigen, on_delete=CASCADE)
+    nanobody: Nanobody = ForeignKey(Nanobody, on_delete=CASCADE)
     optical_density: float = FloatField(null=True)
 
     class Meta:  # noqa: D106
