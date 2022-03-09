@@ -14,7 +14,7 @@ import { uuidToColor } from "./utils";
 export function ElisaPlateMapLegend(params: { plate: string }) {
   const elisaPlate = useSelector(selectElisaPlate(params.plate)) as ElisaPlate;
   const elisaWells = useSelector((state: RootState) =>
-    elisaPlate?.plate_elisa_wells.map((location) =>
+    elisaPlate?.elisawell_set.map((location) =>
       selectElisaWell({ plate: params.plate, location })(state)
     )
   ).filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);

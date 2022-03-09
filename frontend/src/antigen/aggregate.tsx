@@ -43,7 +43,7 @@ export default function AntigensView() {
       flex: 1,
     },
     {
-      field: "antigen_elisa_wells",
+      field: "elisawell_set",
       headerName: "Associated Wells",
       renderCell: WellCellRenderer,
       flex: 1,

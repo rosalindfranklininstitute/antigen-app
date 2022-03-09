@@ -40,11 +40,12 @@ export type LocalAntigenPost = Pick<
 
 export type Antigen = {
   uuid: string;
+  project: string;
   sequence: string;
   molecular_mass: number;
   name: string;
   uniprot_accession_number: string;
-  antigen_elisa_wells: Array<string>;
+  elisawell_set: Array<string>;
   creation_time: Date;
 };
 
@@ -81,7 +82,7 @@ export function AntigenInfo(params: { uuid: string }) {
             <TableCell>Elisa Appearances:</TableCell>
             <TableCell>
               <Stack>
-                {antigen.antigen_elisa_wells.map((well, idx) => (
+                {antigen.elisawell_set.map((well, idx) => (
                   <Link component={RouterLink} to={`/elisa_well/${well}`}>
                     {well}
                   </Link>

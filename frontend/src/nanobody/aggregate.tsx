@@ -32,7 +32,7 @@ export default function NanobodiesView() {
       flex: 1,
     },
     {
-      field: "nanobody_elisa_wells",
+      field: "elisawell_set",
       headerName: "Associated Wells",
       renderCell: WellCellRenderer,
       flex: 1,

@@ -20,8 +20,9 @@ import { getElisaPlate, selectElisaPlate } from "./slice";
 
 export type ElisaPlate = {
   uuid: string;
+  project: string;
   threshold: number;
-  plate_elisa_wells: number[];
+  elisawell_set: number[];
   creation_time: Date;
 };
 
@@ -113,7 +114,7 @@ export function ElisaPlateInfo(params: { uuid: string }) {
             <TableCell>Wells:</TableCell>
             <TableCell>
               <ElisaPlateWellTable
-                wellKeys={elisaPlate?.plate_elisa_wells.map((location) => ({
+                wellKeys={elisaPlate?.elisawell_set.map((location) => ({
                   plate: elisaPlate.uuid,
                   location,
                 }))}

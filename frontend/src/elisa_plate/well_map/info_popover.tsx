@@ -24,7 +24,7 @@ export function ElisaWellInfoPopover(params: {
 
   useEffect(() => {
     if (
-      elisaPlate?.plate_elisa_wells.find(
+      elisaPlate?.elisawell_set.find(
         (location) => location === params.wellKey.location
       )
     )
