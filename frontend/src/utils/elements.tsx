@@ -5,9 +5,11 @@ import {
   Menu,
   MenuItem,
   MenuList,
+  TableCell,
+  TableRow,
 } from "@mui/material";
 import { GridRenderCellParams, GridColDef } from "@mui/x-data-grid";
-import { useState } from "react";
+import { ReactNode, ReactText, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import LinkIcon from "@mui/icons-material/Link";
 
@@ -71,3 +73,10 @@ export const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
     </div>
   );
 };
+
+export const TableRowPair = (params: { name: string; value: ReactNode }) => (
+  <TableRow>
+    <TableCell>{params.name}:</TableCell>
+    <TableCell>{params.value}</TableCell>
+  </TableRow>
+);
