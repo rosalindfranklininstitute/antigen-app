@@ -10,6 +10,7 @@ from django.db.models import (
     IntegerChoices,
     Max,
     Model,
+    QuerySet,
     UniqueConstraint,
 )
 from django.db.models.fields import (
@@ -45,6 +46,9 @@ class ProjectModelMixin(Model):
         unique_together = ("project", "number")
         abstract = True
 
+    class ProjectMeta:  # noqa: D106
+        project_queryset: Optional[QuerySet["ProjectModelMixin"]] = None
+
     def save(
         self,
         force_insert: bool = False,
@@ -54,7 +58,9 @@ class ProjectModelMixin(Model):
     ) -> None:
         """Extended save method which auto-increments 'number' per project."""
         if self._state.adding:
-            project_objects = type(self).objects.filter(project=self.project)
+            project_objects = (
+                type(self).ProjectMeta.project_queryset or type(self).objects
+            ).filter(project=self.project)
             self.number = (
                 project_objects.aggregate(Max("number"))["number__max"] + 1
                 if project_objects
@@ -98,12 +104,17 @@ class LocalAntigen(Antigen, Model):
         Returns:
             str: A human readable antigen name.
         """
-        return str(self.antigen.uuid)[:8]
+        return str(self.uuid)[:8]
 
     class Meta:
         """Empty Meta to negate the unique_together constraint of ProjectModelMixin."""
 
         ...
+
+    class ProjectMeta:
+        """Use antigens as the project_queryset so local & uniprot share numbers."""
+
+        project_queryset = Antigen.objects.all()
 
 
 class UniProtAntigen(Antigen, Model):
@@ -132,6 +143,11 @@ class UniProtAntigen(Antigen, Model):
         """Empty Meta to negate the unique_together constraint of ProjectModelMixin."""
 
         ...
+
+    class ProjectMeta:
+        """Use antigens as the project_queryset so local & uniprot share numbers."""
+
+        project_queryset = Antigen.objects.all()
 
 
 class Nanobody(ProjectModelMixin, Model):
