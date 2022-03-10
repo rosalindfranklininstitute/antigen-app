@@ -1,8 +1,8 @@
 from typing import Optional
 
 from django.db.models import CharField as DbCharField
-from django.db.models import Value
-from django.db.models.functions import Concat, Substr
+from django.db.models import F, Value
+from django.db.models.functions import Concat
 from rest_framework.serializers import (
     CharField,
     IntegerField,
@@ -44,6 +44,11 @@ class ProjectViewSet(ModelViewSet):
     perform_create = perform_create_allow_creator_change_delete
 
 
+PROJECT_ITEM_KEY = Concat(
+    "project__short_title", Value(":"), "number", output_field=DbCharField()
+)
+
+
 class LocalAntigenSerializer(ModelSerializer):
     """A serializer for local antigen data.
 
@@ -51,18 +56,19 @@ class LocalAntigenSerializer(ModelSerializer):
     computed field; name.
     """
 
+    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = ReadOnlyField()
 
     class Meta:  # noqa: D106
         model = LocalAntigen
-        fields = "__all__"
-        read_only_fields = ["antigen"]
+        exclude = ["uuid"]
 
 
 class LocalAntigenViewSet(ModelViewSet):
     """A view set displaying all recorded local antigens."""
 
-    queryset = LocalAntigen.objects.all()
+    queryset = LocalAntigen.objects.annotate(key=PROJECT_ITEM_KEY).all()
     serializer_class = LocalAntigenSerializer
 
     perform_create = perform_create_allow_creator_change_delete
@@ -71,16 +77,18 @@ class LocalAntigenViewSet(ModelViewSet):
 class UniProtAntigenSerialzer(ModelSerializer):
     """A serializer for UniProt antigen data which serializes all internal fields."""
 
+    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
+
     class Meta:  # noqa: D106
         model = UniProtAntigen
-        fields = "__all__"
-        read_only_fields = ["antigen"]
+        exclude = ["uuid"]
 
 
 class UniProtAntigenViewSet(ModelViewSet):
     """A view set displaying all recorded UniProt antigens."""
 
-    queryset = UniProtAntigen.objects.all()
+    queryset = UniProtAntigen.objects.annotate(key=PROJECT_ITEM_KEY).all()
     serializer_class = UniProtAntigenSerialzer
 
     perform_create = perform_create_allow_creator_change_delete
@@ -94,9 +102,11 @@ class AntigenSerializer(ModelSerializer):
     which reference it.
     """
 
+    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
+    name = CharField(source="child.name")
     sequence = CharField(source="child.sequence")
     molecular_mass = IntegerField(source="child.molecular_mass")
-    name = CharField(source="child.name")
     uniprot_accession_number = SerializerMethodField()
     elisawell_set = PrimaryKeyRelatedField(many=True, read_only=True)
 
@@ -117,13 +127,13 @@ class AntigenSerializer(ModelSerializer):
 
     class Meta:  # noqa: D106
         model = Antigen
-        fields = "__all__"
+        exclude = ["uuid"]
 
 
 class AntigenViewSet(ReadOnlyModelViewSet):
     """A view set displaying all recorded antigens."""
 
-    queryset = Antigen.objects.all()
+    queryset = Antigen.objects.annotate(key=PROJECT_ITEM_KEY).all()
     serializer_class = AntigenSerializer
 
     perform_create = perform_create_allow_creator_change_delete
@@ -136,19 +146,21 @@ class NanobodySerializer(ModelSerializer):
     which contain this nanobody, and protein sequences of this nanobody.
     """
 
+    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = ReadOnlyField()
     elisawell_set = PrimaryKeyRelatedField(many=True, read_only=True)
     sequences = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:  # noqa: D106
         model = Nanobody
-        fields = "__all__"
+        exclude = ["uuid"]
 
 
 class NanobodyViewSet(ModelViewSet):
     """A view set displaying all recorded nanobodies."""
 
-    queryset = Nanobody.objects.all()
+    queryset = Nanobody.objects.annotate(key=PROJECT_ITEM_KEY).all()
     serializer_class = NanobodySerializer
 
     perform_create = perform_create_allow_creator_change_delete
@@ -161,18 +173,21 @@ class ElisaPlateSerializer(ModelSerializer):
     contained within it.
     """
 
+    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     elisawell_set = SlugRelatedField(many=True, read_only=True, slug_field="location")
 
     class Meta:  # noqa: D106
         model = ElisaPlate
-        fields = "__all__"
+        exclude = ["uuid"]
 
 
 class ElisaPlateViewSet(ModelViewSet):
     """A view set displaying all recorded elisa plates."""
 
-    queryset = ElisaPlate.objects.all()
+    queryset = ElisaPlate.objects.annotate(key=PROJECT_ITEM_KEY).all()
     serializer_class = ElisaPlateSerializer
+    lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
 
@@ -180,35 +195,33 @@ class ElisaPlateViewSet(ModelViewSet):
 class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
 
+    key = ReadOnlyField()
+    project = ReadOnlyField()
+    plate_number = ReadOnlyField()
     functional = ReadOnlyField()
-    plate_location = ReadOnlyField()
 
     class Meta:  # noqa: D106
         model = ElisaWell
-        fields = "__all__"
+        exclude = ["uuid"]
 
 
 class ElisaWellViewSet(ModelViewSet):
     """A view set displaying all recorded elisa wells."""
 
     queryset = ElisaWell.objects.annotate(
-        plate_location=Concat(
-            Substr("plate", 1, 8),
-            Value("-"),
-            Substr("plate", 9, 4),
-            Value("-"),
-            Substr("plate", 13, 4),
-            Value("-"),
-            Substr("plate", 17, 4),
-            Value("-"),
-            Substr("plate", 21, 12),
+        key=Concat(
+            "plate__project__short_title",
+            Value(":"),
+            "plate__number",
             Value(":"),
             "location",
             output_field=DbCharField(),
-        )
+        ),
+        project=F("plate__project__short_title"),
+        plate_number=F("plate__number"),
     ).all()
     serializer_class = ElisaWellSerializer
-    lookup_field = "plate_location"
+    lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
 
