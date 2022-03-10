@@ -6,12 +6,15 @@ from uuid import UUID, uuid4
 from django.core.validators import RegexValidator
 from django.db.models import (
     CASCADE,
+    F,
     ForeignKey,
     IntegerChoices,
+    Manager,
     Max,
     Model,
     QuerySet,
     UniqueConstraint,
+    Value,
 )
 from django.db.models.fields import (
     CharField,
@@ -22,6 +25,7 @@ from django.db.models.fields import (
     TextField,
     UUIDField,
 )
+from django.db.models.functions import Concat
 from django.utils.timezone import now
 
 from antigenapi.utils.uniprot import get_protein
@@ -67,6 +71,27 @@ class ProjectModelMixin(Model):
                 else 1
             )
         return super().save(force_insert, force_update, using, update_fields)
+
+    class ProjectManager(Manager):
+        """A manager providing a queryset annotated with project based keys."""
+
+        def get_queryset(self) -> QuerySet["ProjectModelMixin"]:
+            """Annotate queryset with key."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    key=Concat(
+                        "project__short_title",
+                        Value(":"),
+                        "number",
+                        output_field=CharField(),
+                    )
+                )
+            )
+
+    raw_objects = Manager()
+    objects = ProjectManager()
 
 
 class Antigen(ProjectModelMixin, Model):
@@ -114,7 +139,7 @@ class LocalAntigen(Antigen, Model):
     class ProjectMeta:
         """Use antigens as the project_queryset so local & uniprot share numbers."""
 
-        project_queryset = Antigen.objects.all()
+        project_queryset = Antigen.raw_objects.all()
 
 
 class UniProtAntigen(Antigen, Model):
@@ -147,7 +172,7 @@ class UniProtAntigen(Antigen, Model):
     class ProjectMeta:
         """Use antigens as the project_queryset so local & uniprot share numbers."""
 
-        project_queryset = Antigen.objects.all()
+        project_queryset = Antigen.raw_objects.all()
 
 
 class Nanobody(ProjectModelMixin, Model):
@@ -205,6 +230,27 @@ class ElisaWell(Model):
         constraints = [
             UniqueConstraint(fields=["plate", "location"], name="unique_well")
         ]
+
+    class ElisaWellManager(Manager):  # noqa: D106
+        def get_queryset(self) -> QuerySet["ElisaWell"]:
+            """Annotate queryset with key, project & plate_number."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(
+                    key=Concat(
+                        "plate__project__short_title",
+                        Value(":"),
+                        "plate__number",
+                        Value(":"),
+                        "location",
+                        output_field=CharField(),
+                    ),
+                    project=F("plate__project__short_title"),
+                )
+            )
+
+    objects = ElisaWellManager()
 
     @property
     def functional(self) -> bool:
