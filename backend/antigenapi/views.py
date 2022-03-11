@@ -29,11 +29,11 @@ class ProjectSerializer(ModelSerializer):
 
     class Meta:  # noqa: D106
         model = Project
-        fields = "__all__"
+        fields = ["short_title", "title", "description"]
 
 
 class ProjectViewSet(ModelViewSet):
-    """a view set displaying all recorded projects."""
+    """A view set displaying all recorded projects."""
 
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
@@ -49,12 +49,11 @@ class LocalAntigenSerializer(ModelSerializer):
     """
 
     key = ReadOnlyField()
-    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = ReadOnlyField()
 
     class Meta:  # noqa: D106
         model = LocalAntigen
-        exclude = ["uuid"]
+        fields = ["key", "name", "sequence", "molecular_mass", "creation_time"]
 
 
 class LocalAntigenViewSet(ModelViewSet):
@@ -70,11 +69,17 @@ class UniProtAntigenSerialzer(ModelSerializer):
     """A serializer for UniProt antigen data which serializes all internal fields."""
 
     key = ReadOnlyField()
-    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
 
     class Meta:  # noqa: D106
         model = UniProtAntigen
-        exclude = ["uuid"]
+        fields = [
+            "key",
+            "name",
+            "sequence",
+            "molecular_mass",
+            "uniprot_accession_number",
+            "creation_time",
+        ]
 
 
 class UniProtAntigenViewSet(ModelViewSet):
@@ -95,7 +100,6 @@ class AntigenSerializer(ModelSerializer):
     """
 
     key = ReadOnlyField()
-    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = CharField(source="child.name")
     sequence = CharField(source="child.sequence")
     molecular_mass = IntegerField(source="child.molecular_mass")
@@ -119,7 +123,15 @@ class AntigenSerializer(ModelSerializer):
 
     class Meta:  # noqa: D106
         model = Antigen
-        exclude = ["uuid"]
+        fields = [
+            "key",
+            "name",
+            "sequence",
+            "molecular_mass",
+            "uniprot_accession_number",
+            "elisawell_set",
+            "creation_time",
+        ]
 
 
 class AntigenViewSet(ReadOnlyModelViewSet):
@@ -139,14 +151,13 @@ class NanobodySerializer(ModelSerializer):
     """
 
     key = ReadOnlyField()
-    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = ReadOnlyField()
     elisawell_set = SlugRelatedField(slug_field="key", many=True, read_only=True)
-    sequences = PrimaryKeyRelatedField(many=True, read_only=True)
+    sequence_set = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:  # noqa: D106
         model = Nanobody
-        exclude = ["uuid"]
+        fields = ["key", "name", "elisawell_set", "sequence_set", "creation_time"]
 
 
 class NanobodyViewSet(ModelViewSet):
@@ -166,12 +177,11 @@ class ElisaPlateSerializer(ModelSerializer):
     """
 
     key = ReadOnlyField()
-    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     elisawell_set = SlugRelatedField(slug_field="key", many=True, read_only=True)
 
     class Meta:  # noqa: D106
         model = ElisaPlate
-        exclude = ["uuid"]
+        fields = ["key", "threshold", "elisawell_set", "creation_time"]
 
 
 class ElisaPlateViewSet(ModelViewSet):
@@ -188,13 +198,13 @@ class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
 
     key = ReadOnlyField()
-    project = ReadOnlyField()
-    plate = SlugRelatedField(slug_field="key", queryset=ElisaPlate.objects.all())
     functional = ReadOnlyField()
+    antigen = SlugRelatedField(slug_field="key_", queryset=Antigen.objects.all())
+    nanobody = SlugRelatedField(slug_field="key_", queryset=Nanobody.objects.all())
 
     class Meta:  # noqa: D106
         model = ElisaWell
-        exclude = ["uuid"]
+        fields = ["key", "antigen", "nanobody", "optical_density", "functional"]
 
 
 class ElisaWellViewSet(ModelViewSet):
@@ -210,9 +220,11 @@ class ElisaWellViewSet(ModelViewSet):
 class SequenceSerializer(ModelSerializer):
     """A sequence serializer which serializes all interla fields."""
 
+    nanobody = SlugRelatedField(slug_field="key_", queryset=Nanobody.objects.all())
+
     class Meta:  # noqa: D106
         model = Sequence
-        fields = "__all__"
+        fields = ["uuid", "nanobody", "cdr1", "cdr2", "cdr3", "creation_time"]
 
 
 class SequenceViewSet(ModelViewSet):
