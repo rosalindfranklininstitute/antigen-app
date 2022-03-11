@@ -46,6 +46,14 @@ class ProjectModelMixin(Model):
     project: Project = ForeignKey(Project, on_delete=CASCADE)
     number: int = PositiveSmallIntegerField(editable=False)
 
+    @property
+    def key_(self) -> str:
+        """A property alternatie to the annotated key."""
+        return f"{self.project.short_title}:{self.number}"
+
+    def __str__(self) -> str:  # noqa: D105
+        return self.key_
+
     class Meta:  # noqa: D106
         unique_together = ("project", "number")
         abstract = True
@@ -111,6 +119,9 @@ class Antigen(ProjectModelMixin, Model):
         return getattr(self, "localantigen", None) or getattr(
             self, "uniprotantigen", None
         )
+
+    def __str__(self) -> str:  # noqa: D105
+        return f"{self.child.name} [{self.key_}]" if self.child else self.key_
 
 
 AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZ]*$")
@@ -193,6 +204,9 @@ class Nanobody(ProjectModelMixin, Model):
         """
         return str(self.uuid)[:8]
 
+    def __str__(self) -> str:  # noqa: D105
+        return f"{self.name} [{self.key_}]"
+
 
 class ElisaPlate(ProjectModelMixin, Model):
     """A unique elisa experimental plate."""
@@ -253,6 +267,11 @@ class ElisaWell(Model):
     objects = ElisaWellManager()
 
     @property
+    def key_(self) -> str:
+        """A property alternatie to the annotated key."""
+        return f"{self.plate.project}:{self.plate.number}:{self.location}"
+
+    @property
     def functional(self) -> bool:
         """The functionality of a nanobody, determined by thresholding optical density.
 
@@ -261,15 +280,27 @@ class ElisaWell(Model):
         """
         return self.optical_density >= self.plate.threshold
 
+    def __str__(self) -> str:  # noqa: D105
+        return self.key_
+
 
 class Sequence(Model):
     """A nanobody sequence."""
 
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
-    nanobody: Nanobody = ForeignKey(
-        Nanobody, on_delete=CASCADE, related_name="sequences"
-    )
+    nanobody: Nanobody = ForeignKey(Nanobody, on_delete=CASCADE)
     cdr1: str = TextField(validators=[AminoCodeLetters])
     cdr2: str = TextField(validators=[AminoCodeLetters])
     cdr3: str = TextField(validators=[AminoCodeLetters])
     creation_time: datetime = DateTimeField(editable=False, default=datetime.now)
+
+    class SequenceManager(Manager):  # noqa: D106
+        def get_queryset(self) -> QuerySet["Sequence"]:
+            """Annotate queryset with project."""
+            return (
+                super()
+                .get_queryset()
+                .annotate(project=F("nanobody__project__short_title"))
+            )
+
+    objects = SequenceManager()
