@@ -44,6 +44,12 @@ class ProjectModelRelatedField(Generic[PM], RelatedField):
         """
         return {"project": value.project.short_title, "number": value.number}
 
+    def to_internal_value(self, data):
+        """Override which retrieves the object which matches the project & number."""
+        return self.queryset.filter(
+            project__short_title=data["project"], number=data["number"]
+        ).get()
+
     def get_choices(self, cutoff=None):
         """Override to fix serialization bug.
 
