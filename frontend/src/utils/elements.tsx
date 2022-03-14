@@ -9,47 +9,53 @@ import {
   TableRow,
 } from "@mui/material";
 import { GridRenderCellParams, GridColDef } from "@mui/x-data-grid";
-import { ReactNode, ReactText, useState } from "react";
+import { ReactNode, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import LinkIcon from "@mui/icons-material/Link";
+import { ElisaWellRef } from "../elisa_well/utils";
 
-const LinkUUID = (params: { rootURI: string; UUID: string }) => {
+const LinkURI = (params: { rootURI: string; elementURI: string }) => {
   return (
-    <Link component={RouterLink} to={`${params.rootURI}${params.UUID}`}>
-      {params.UUID}
+    <Link component={RouterLink} to={`${params.rootURI}/${params.elementURI}`}>
+      {params.elementURI}
     </Link>
   );
 };
-export const LinkUUIDCellRenderer = (rootURI: string) => {
+export const LinkURICellRenderer = (rootURI: string) => {
   return (params: GridRenderCellParams<string>) => (
-    <LinkUUID rootURI={rootURI} UUID={params.value} />
+    <LinkURI rootURI={rootURI} elementURI={params.value} />
   );
 };
 
-const IconLinkUUID = (params: { rootURI: string; UUID: string }) => {
+const IconLinkURI = (params: { rootURI: string; elementURI: string }) => {
   return (
-    <IconButton component={RouterLink} to={`${params.rootURI}${params.UUID}`}>
+    <IconButton
+      component={RouterLink}
+      to={`${params.rootURI}${params.elementURI}`}
+    >
       <LinkIcon />
     </IconButton>
   );
 };
 
-export const IconLinkUUIDCellRenderer = (rootURI: string) => {
+export const IconLinkCellRenderer = (rootURI: string) => {
   return (params: GridRenderCellParams<string>) => (
-    <IconLinkUUID rootURI={rootURI} UUID={params.value} />
+    <IconLinkURI rootURI={rootURI} elementURI={params.value} />
   );
 };
 
-export const IconLinkUUIDGridColDef = (rootURI: string): GridColDef => {
+export const IconLinkURIGridColDef = (rootURI: string): GridColDef => {
   return {
-    field: "uuid",
+    field: "uri",
     headerName: "Link",
-    renderCell: IconLinkUUIDCellRenderer(rootURI),
+    renderCell: IconLinkCellRenderer(rootURI),
     width: 50,
   };
 };
 
-export const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
+export const WellCellRenderer = (
+  params: GridRenderCellParams<Array<ElisaWellRef>>
+) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   return (
@@ -63,9 +69,14 @@ export const WellCellRenderer = (params: GridRenderCellParams<string[]>) => {
         onClose={() => setAnchorEl(null)}
       >
         <MenuList dense>
-          {params.value.map((well, idx) => (
-            <MenuItem component={RouterLink} to={`/elisa_well/${well}`}>
-              {well}
+          {params.value.map((elisaWellRef, idx) => (
+            <MenuItem
+              component={RouterLink}
+              to={`/elisa_well/${elisaWellRef.project}:${elisaWellRef.plate}:${elisaWellRef.location}`}
+              key={idx}
+            >
+              {elisaWellRef.project}:{elisaWellRef.plate}:
+              {elisaWellRef.location}
             </MenuItem>
           ))}
         </MenuList>

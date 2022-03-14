@@ -2,13 +2,14 @@ import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { useEffect } from "react";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
+import { IconLinkURIGridColDef, WellCellRenderer } from "../utils/elements";
 import { getAntigens, selectAntigens, selectLoadingAntigen } from "./slice";
 import { useDispatch, useSelector } from "react-redux";
+import { addProjectItemUri } from "../project/utils";
 
 export default function AntigensView() {
   const dispatch = useDispatch();
-  const antigens = useSelector(selectAntigens);
+  const antigens = addProjectItemUri(useSelector(selectAntigens));
   const loading = useSelector(selectLoadingAntigen);
 
   useEffect(() => {
@@ -21,7 +22,9 @@ export default function AntigensView() {
     return <FailedRetrievalPaper text="Could not retrieve antigen list." />;
 
   const columns: GridColDef[] = [
-    IconLinkUUIDGridColDef("/antigen/"),
+    IconLinkURIGridColDef("/antigen/"),
+    { field: "project", headerName: "Project", flex: 1 },
+    { field: "number", headerName: "Antigen Number", flex: 1 },
     {
       field: "name",
       headerName: "Antigen Name",
@@ -62,11 +65,13 @@ export default function AntigensView() {
           autoHeight
           rows={antigens}
           columns={columns}
-          getRowId={(row) => row.uuid}
+          getRowId={(row) => `${row.project}:${row.number}`}
           components={{ Toolbar: GridToolbar }}
           initialState={{
             columns: {
               columnVisibilityModel: {
+                project: false,
+                number: false,
                 sequence: false,
                 uniprot_accession_number: false,
               },

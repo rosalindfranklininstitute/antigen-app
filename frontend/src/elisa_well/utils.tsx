@@ -1,5 +1,6 @@
 import {
   Link,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -9,26 +10,42 @@ import {
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { AntigenInfo } from "../antigen/utils";
-import { NanobodyInfo } from "../nanobody/utils";
+import { AntigenInfo, AntigenRef } from "../antigen/utils";
+import { NanobodyInfo, NanobodyRef } from "../nanobody/utils";
+import { projectItemURI, ProjectRef } from "../project/utils";
 import { getElisaWell, selectElisaWell } from "./slice";
 
 export type ElisaWell = {
-  uuid: string;
-  plate: string;
+  project: ProjectRef;
+  plate: number;
   location: number;
-  antigen: string;
-  nanobody: string;
+  antigen: AntigenRef;
+  nanobody: NanobodyRef;
   optical_density: number;
   functional: boolean;
 };
 
-export type ElisaWellKey = Pick<ElisaWell, "plate" | "location">;
+export type ElisaWellRef = Pick<ElisaWell, "project" | "plate" | "location">;
 
-export type ElisaWellPost = Pick<
-  ElisaWell,
-  "plate" | "location" | "antigen" | "nanobody" | "optical_density"
->;
+export type ElisaWellPost = ElisaWellRef &
+  Pick<ElisaWell, "antigen" | "nanobody" | "optical_density">;
+
+export function deserializeElisaWellRef(elisaWellRef: string): ElisaWellRef {
+  const [project, plate_str, location_str] = elisaWellRef.split(":") as [
+    string,
+    string,
+    string
+  ];
+  return {
+    project,
+    plate: parseInt(plate_str),
+    location: parseInt(location_str),
+  };
+}
+
+export function serializeElisaWellRef(elisaWellRef: ElisaWellRef): string {
+  return `${elisaWellRef.project}:${elisaWellRef.plate}:${elisaWellRef.location}`;
+}
 
 function locationToCoords(location: number): [number, number] {
   return [
@@ -42,12 +59,12 @@ export function locationToGrid(location: number) {
   return [String.fromCharCode(65 + row).concat((col + 1).toString())];
 }
 
-export function ElisaWellInfo(params: ElisaWellKey) {
+export function ElisaWellInfo(params: { elisaWellRef: ElisaWellRef }) {
   const dispatch = useDispatch();
-  const elisaWell = useSelector(selectElisaWell(params));
+  const elisaWell = useSelector(selectElisaWell(params.elisaWellRef));
 
   useEffect(() => {
-    dispatch(getElisaWell(params));
+    dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
   }, [dispatch, params]);
 
   if (!elisaWell) return null;
@@ -56,17 +73,19 @@ export function ElisaWellInfo(params: ElisaWellKey) {
       <Table>
         <TableBody>
           <TableRow>
-            <TableCell>UUID:</TableCell>
-            <TableCell>{elisaWell.uuid}</TableCell>
-          </TableRow>
-          <TableRow>
             <TableCell>Plate:</TableCell>
             <TableCell>
               <Link
                 component={RouterLink}
-                to={`/elisa_plate/${elisaWell.plate}`}
+                to={`/elisa_plate/${projectItemURI({
+                  project: elisaWell.project,
+                  number: elisaWell.plate,
+                })}`}
               >
-                {elisaWell.plate}
+                {projectItemURI({
+                  project: elisaWell.project,
+                  number: elisaWell.plate,
+                })}
               </Link>
             </TableCell>
           </TableRow>
@@ -77,13 +96,13 @@ export function ElisaWellInfo(params: ElisaWellKey) {
           <TableRow>
             <TableCell>Antigen:</TableCell>
             <TableCell>
-              <AntigenInfo uuid={elisaWell.antigen} />
+              <AntigenInfo antigen={elisaWell.antigen} />
             </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>Nanobody:</TableCell>
             <TableCell>
-              <NanobodyInfo uuid={elisaWell.nanobody} />
+              <NanobodyInfo nanobodyRef={elisaWell.nanobody} />
             </TableCell>
           </TableRow>
           <TableRow>
@@ -99,3 +118,17 @@ export function ElisaWellInfo(params: ElisaWellKey) {
     </TableContainer>
   );
 }
+
+export const ElisaWellRefStack = (elisaWellRefs: Array<ElisaWellRef>) => (
+  <Stack>
+    {elisaWellRefs.map((elisaWellRef, idx) => (
+      <Link
+        component={RouterLink}
+        to={`/elisa_well/${serializeElisaWellRef(elisaWellRef)}`}
+        key={idx}
+      >
+        {serializeElisaWellRef(elisaWellRef)}
+      </Link>
+    ))}
+  </Stack>
+);

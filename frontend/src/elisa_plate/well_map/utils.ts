@@ -1,5 +1,7 @@
-export function uuidToColor(uuid: string | undefined) {
-  return uuid
-    ? `hsl(${Number("0x".concat(uuid.substring(0, 2)))}, 50%, 50%)`
+import { sha1 } from "object-hash";
+
+export function objToColor(obj: object | undefined) {
+  return obj !== undefined
+    ? `hsl(${Number("0x".concat(sha1(obj).substring(0, 2)))}, 50%, 50%)`
     : "white";
 }

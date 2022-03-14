@@ -1,9 +1,10 @@
 import { Typography, Grid, Stack, Divider } from "@mui/material";
+import { ElisaPlateRef } from "../utils";
 import { ElisaPlateMapLegend } from "./legend";
 import { ElisaPlateThresholdSlider } from "./threshold_slider";
 import { ElisaWellElement } from "./well";
 
-export function ElisaWellMapElement(params: { plate: string }) {
+export function ElisaWellMapElement(params: { elisaPlateRef: ElisaPlateRef }) {
   return (
     <Stack gap={2} divider={<Divider />}>
       <Grid container spacing={2} columns={13}>
@@ -21,8 +22,9 @@ export function ElisaWellMapElement(params: { plate: string }) {
             Array.from({ length: 12 }, (_, col) => (
               <Grid item xs={1} key={(row + 1) * 13 + col}>
                 <ElisaWellElement
-                  wellKey={{
-                    plate: params.plate,
+                  elisaWellRef={{
+                    project: params.elisaPlateRef.project,
+                    plate: params.elisaPlateRef.number,
                     location: row * 12 + col + 1,
                   }}
                 />
@@ -31,8 +33,8 @@ export function ElisaWellMapElement(params: { plate: string }) {
           ];
         })}
       </Grid>
-      <ElisaPlateThresholdSlider plate={params.plate} />
-      <ElisaPlateMapLegend plate={params.plate} />
+      <ElisaPlateThresholdSlider elisaPlateRef={params.elisaPlateRef} />
+      <ElisaPlateMapLegend elisaWellRef={params.elisaPlateRef} />
     </Stack>
   );
 }

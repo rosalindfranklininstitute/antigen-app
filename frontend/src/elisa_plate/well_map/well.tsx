@@ -3,18 +3,24 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAntigen, selectAntigen } from "../../antigen/slice";
 import { getElisaWell, selectElisaWell } from "../../elisa_well/slice";
-import { ElisaWellKey } from "../../elisa_well/utils";
+import { ElisaWellRef } from "../../elisa_well/utils";
 import { getNanobody, selectNanobody } from "../../nanobody/slice";
+import { partialEq } from "../../utils/state_management";
 import { selectElisaPlate } from "../slice";
 import { ElisaWellEditPopover } from "./edit_popover";
 import { ElisaWellInfoPopover } from "./info_popover";
-import { uuidToColor } from "./utils";
+import { objToColor } from "./utils";
 
-export function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
+export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
   const dispatch = useDispatch();
-  const elisaPlate = useSelector(selectElisaPlate(params.wellKey.plate));
+  const elisaPlate = useSelector(
+    selectElisaPlate({
+      project: params.elisaWellRef.project,
+      number: params.elisaWellRef.plate,
+    })
+  );
   const elisaWell = useSelector(
-    params.wellKey ? selectElisaWell(params.wellKey) : () => undefined
+    params.elisaWellRef ? selectElisaWell(params.elisaWellRef) : () => undefined
   );
   const antigen = useSelector(
     elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined
@@ -28,11 +34,11 @@ export function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
 
   useEffect(() => {
     if (
-      elisaPlate?.elisawell_set.find(
-        (location) => location === params.wellKey.location
+      elisaPlate?.elisawell_set.find((well) =>
+        partialEq(well, params.elisaWellRef)
       )
     )
-      dispatch(getElisaWell(params.wellKey));
+      dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
   }, [dispatch, params, elisaPlate]);
 
   useEffect(() => {
@@ -42,21 +48,21 @@ export function ElisaWellElement(params: { wellKey: ElisaWellKey }) {
     }
   }, [dispatch, elisaWell]);
 
-  const antigenColor = uuidToColor(antigen ? antigen.uuid : undefined);
-  const nanobodyColor = uuidToColor(nanobody ? nanobody.uuid : undefined);
+  const antigenColor = objToColor(antigen);
+  const nanobodyColor = objToColor(nanobody);
 
   const InfoPopover = () =>
-    params.wellKey ? (
+    params.elisaWellRef ? (
       <ElisaWellInfoPopover
-        wellKey={params.wellKey}
+        elisaWellRef={params.elisaWellRef}
         anchorEl={infoAnchorEl}
         setAnchorEl={setInfoAnchorEl}
       />
     ) : null;
   const EditPopover = () =>
-    params.wellKey ? (
+    params.elisaWellRef ? (
       <ElisaWellEditPopover
-        wellKey={params.wellKey}
+        elisaWellRef={params.elisaWellRef}
         anchorEl={editAnchorEl}
         setAnchorEl={setEditAnchorEl}
       />

@@ -1,33 +1,30 @@
-import {
-  TableCell,
-  TableContainer,
-  TableRow,
-  Table,
-  TableBody,
-  Stack,
-  Link,
-} from "@mui/material";
+import { TableContainer, Table, TableBody } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link as RouterLink } from "react-router-dom";
+import { ElisaWellRef, ElisaWellRefStack } from "../elisa_well/utils";
+import { ProjectRef } from "../project/utils";
+import { TableRowPair } from "../utils/elements";
 import { getNanobody, selectNanobody } from "./slice";
 
 export type Nanobody = {
-  uuid: string;
-  project: string;
+  project: ProjectRef;
+  number: number;
   name: string;
-  elisawell_set: string[];
+  elisawell_set: Array<ElisaWellRef>;
+  sequences: Array<string>;
   creation_time: Date;
 };
 
-export type NanobodyPost = {};
+export type NanobodyPost = Pick<Nanobody, "project">;
 
-export function NanobodyInfo(params: { uuid: string }) {
+export type NanobodyRef = Pick<Nanobody, "project" | "number">;
+
+export function NanobodyInfo(params: { nanobodyRef: NanobodyRef }) {
   const dispatch = useDispatch();
-  const nanobody = useSelector(selectNanobody(params.uuid));
+  const nanobody = useSelector(selectNanobody(params.nanobodyRef));
 
   useEffect(() => {
-    dispatch(getNanobody(params.uuid));
+    dispatch(getNanobody(params.nanobodyRef));
   }, [dispatch, params]);
 
   if (!nanobody) return null;
@@ -35,26 +32,14 @@ export function NanobodyInfo(params: { uuid: string }) {
     <TableContainer>
       <Table>
         <TableBody>
-          <TableRow>
-            <TableCell>UUID:</TableCell>
-            <TableCell>{nanobody.uuid}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Elisa Appearances:</TableCell>
-            <TableCell>
-              <Stack>
-                {nanobody.elisawell_set.map((well, idx) => (
-                  <Link component={RouterLink} to={`/elisa_well/${well}`}>
-                    {well}
-                  </Link>
-                ))}
-              </Stack>
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Creation Time:</TableCell>
-            <TableCell>{nanobody.creation_time}</TableCell>
-          </TableRow>
+          <TableRowPair name="Project" value={nanobody.name} />
+          <TableRowPair name="Number" value={nanobody.number} />
+          <TableRowPair name="Name" value={nanobody.name} />
+          <TableRowPair
+            name="Elisa Appearances"
+            value={ElisaWellRefStack(nanobody.elisawell_set)}
+          />
+          <TableRowPair name="Creation Time" value={nanobody.creation_time} />
         </TableBody>
       </Table>
     </TableContainer>

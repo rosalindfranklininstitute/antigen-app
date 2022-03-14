@@ -6,12 +6,20 @@ import {
   putElisaWell,
   selectElisaWell,
 } from "../../elisa_well/slice";
-import { ElisaWellKey, ElisaWellPost } from "../../elisa_well/utils";
+import { ElisaWellRef, ElisaWellPost } from "../../elisa_well/utils";
 import { selectElisaPlate } from "../slice";
 import DoneIcon from "@mui/icons-material/Done";
 import CancelIcon from "@mui/icons-material/Cancel";
-import { getAntigens, selectAntigens } from "../../antigen/slice";
-import { getNanobodies, selectNanobodies } from "../../nanobody/slice";
+import {
+  getAntigens,
+  selectAntigen,
+  selectAntigens,
+} from "../../antigen/slice";
+import {
+  getNanobodies,
+  selectNanobodies,
+  selectNanobody,
+} from "../../nanobody/slice";
 import {
   Autocomplete,
   Button,
@@ -21,30 +29,43 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
+import { partialEq } from "../../utils/state_management";
+import { RootState } from "../../store";
 
-type ElisaWellState = ElisaWellKey & Partial<ElisaWellPost>;
+type ElisaWellState = ElisaWellRef & Partial<ElisaWellPost>;
 
 export function ElisaWellEditPopover(params: {
-  wellKey: ElisaWellKey;
+  elisaWellRef: ElisaWellRef;
   anchorEl: HTMLElement | null;
   setAnchorEl: (anchorEl: HTMLElement | null) => void;
 }) {
   const dispatch = useDispatch();
-  const elisaPlate = useSelector(selectElisaPlate(params.wellKey.plate));
-  const initElisaWell = useSelector(selectElisaWell(params.wellKey));
+  const elisaPlate = useSelector(
+    selectElisaPlate({
+      project: params.elisaWellRef.project,
+      number: params.elisaWellRef.plate,
+    })
+  );
+  const initElisaWell = useSelector(selectElisaWell(params.elisaWellRef));
+  const initAntigen = useSelector((state: RootState) =>
+    initElisaWell ? selectAntigen(initElisaWell?.antigen)(state) : undefined
+  );
+  const initNanobody = useSelector((state: RootState) =>
+    initElisaWell ? selectNanobody(initElisaWell?.nanobody)(state) : undefined
+  );
   const [elisaWell, setElisaWell] = useState<ElisaWellState>(
-    initElisaWell ? initElisaWell : params.wellKey
+    initElisaWell ? initElisaWell : params.elisaWellRef
   );
   const antigens = useSelector(selectAntigens);
   const nanobodies = useSelector(selectNanobodies);
 
   useEffect(() => {
     if (
-      elisaPlate?.elisawell_set.find(
-        (location) => location === params.wellKey.location
+      elisaPlate?.elisawell_set.find((well) =>
+        partialEq(well, params.elisaWellRef)
       )
     )
-      dispatch(getElisaWell(params.wellKey));
+      dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
     dispatch(getAntigens());
     dispatch(getNanobodies());
   }, [dispatch, params, elisaPlate]);
@@ -52,9 +73,9 @@ export function ElisaWellEditPopover(params: {
   const updateElisaWell = () => {
     if (Object.values(elisaWell).every((val) => val !== undefined)) {
       if (initElisaWell) {
-        dispatch(putElisaWell(elisaWell as ElisaWellPost));
+        dispatch(putElisaWell(elisaWell as ElisaWellRef & ElisaWellPost));
       } else {
-        dispatch(postElisaWell(elisaWell as ElisaWellPost));
+        dispatch(postElisaWell(elisaWell as ElisaWellRef & ElisaWellPost));
       }
     }
   };
@@ -81,14 +102,13 @@ export function ElisaWellEditPopover(params: {
                 <TextField {...params} label="Antigen" sx={{ width: "32ch" }} />
               )}
               options={antigens}
+              groupBy={(antigen) => antigen.project}
               getOptionLabel={(antigen) => antigen.name}
-              defaultValue={antigens.find(
-                (antigen) => antigen.uuid === elisaWell?.antigen
-              )}
+              defaultValue={initAntigen}
               onChange={(_, antigen) => {
                 setElisaWell({
                   ...elisaWell,
-                  antigen: antigen ? antigen.uuid : elisaWell.antigen,
+                  antigen: antigen ? antigen : elisaWell.antigen,
                 });
               }}
             />
@@ -101,14 +121,13 @@ export function ElisaWellEditPopover(params: {
                 />
               )}
               options={nanobodies}
+              groupBy={(nanobody) => nanobody.project}
               getOptionLabel={(nanobody) => nanobody.name}
-              defaultValue={nanobodies.find(
-                (nanobody) => nanobody.uuid === elisaWell?.nanobody
-              )}
+              defaultValue={initNanobody}
               onChange={(_, nanobody) => {
                 setElisaWell({
                   ...elisaWell,
-                  nanobody: nanobody ? nanobody.uuid : elisaWell.nanobody,
+                  nanobody: nanobody ? nanobody : elisaWell.nanobody,
                 });
               }}
             />
