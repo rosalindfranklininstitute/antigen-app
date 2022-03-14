@@ -48,12 +48,19 @@ class LocalAntigenSerializer(ModelSerializer):
     computed field; name.
     """
 
-    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = ReadOnlyField()
 
     class Meta:  # noqa: D106
         model = LocalAntigen
-        fields = ["key", "name", "sequence", "molecular_mass", "creation_time"]
+        fields = [
+            "project",
+            "number",
+            "name",
+            "sequence",
+            "molecular_mass",
+            "creation_time",
+        ]
 
 
 class LocalAntigenViewSet(ModelViewSet):
@@ -68,12 +75,13 @@ class LocalAntigenViewSet(ModelViewSet):
 class UniProtAntigenSerialzer(ModelSerializer):
     """A serializer for UniProt antigen data which serializes all internal fields."""
 
-    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
 
     class Meta:  # noqa: D106
         model = UniProtAntigen
         fields = [
-            "key",
+            "project",
+            "number",
             "name",
             "sequence",
             "molecular_mass",
@@ -99,7 +107,7 @@ class AntigenSerializer(ModelSerializer):
     which reference it.
     """
 
-    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = CharField(source="child.name")
     sequence = CharField(source="child.sequence")
     molecular_mass = IntegerField(source="child.molecular_mass")
@@ -124,7 +132,8 @@ class AntigenSerializer(ModelSerializer):
     class Meta:  # noqa: D106
         model = Antigen
         fields = [
-            "key",
+            "project",
+            "number",
             "name",
             "sequence",
             "molecular_mass",
@@ -150,14 +159,21 @@ class NanobodySerializer(ModelSerializer):
     which contain this nanobody, and protein sequences of this nanobody.
     """
 
-    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = ReadOnlyField()
     elisawell_set = SlugRelatedField(slug_field="key", many=True, read_only=True)
     sequence_set = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:  # noqa: D106
         model = Nanobody
-        fields = ["key", "name", "elisawell_set", "sequence_set", "creation_time"]
+        fields = [
+            "project",
+            "number",
+            "name",
+            "elisawell_set",
+            "sequence_set",
+            "creation_time",
+        ]
 
 
 class NanobodyViewSet(ModelViewSet):
@@ -176,12 +192,12 @@ class ElisaPlateSerializer(ModelSerializer):
     contained within it.
     """
 
-    key = ReadOnlyField()
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     elisawell_set = SlugRelatedField(slug_field="key", many=True, read_only=True)
 
     class Meta:  # noqa: D106
         model = ElisaPlate
-        fields = ["key", "threshold", "elisawell_set", "creation_time"]
+        fields = ["project", "number", "threshold", "elisawell_set", "creation_time"]
 
 
 class ElisaPlateViewSet(ModelViewSet):
@@ -197,14 +213,27 @@ class ElisaPlateViewSet(ModelViewSet):
 class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
 
-    key = ReadOnlyField()
+    project = SlugRelatedField(
+        slug_field="short_title",
+        queryset=Project.objects.all(),
+        source="plate.project",
+    )
+    plate = SlugRelatedField(slug_field="number", queryset=ElisaPlate.objects.all())
     functional = ReadOnlyField()
     antigen = SlugRelatedField(slug_field="key_", queryset=Antigen.objects.all())
     nanobody = SlugRelatedField(slug_field="key_", queryset=Nanobody.objects.all())
 
     class Meta:  # noqa: D106
         model = ElisaWell
-        fields = ["key", "antigen", "nanobody", "optical_density", "functional"]
+        fields = [
+            "project",
+            "plate",
+            "location",
+            "antigen",
+            "nanobody",
+            "optical_density",
+            "functional",
+        ]
 
 
 class ElisaWellViewSet(ModelViewSet):
