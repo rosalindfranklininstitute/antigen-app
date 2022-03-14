@@ -1,60 +1,52 @@
-import {
-  TableCell,
-  TableContainer,
-  TableRow,
-  Table,
-  TableBody,
-  Stack,
-  Link,
-} from "@mui/material";
+import { TableContainer, Table, TableBody } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link as RouterLink } from "react-router-dom";
+import { ElisaWellRef, ElisaWellRefStack } from "../elisa_well/utils";
+import { ProjectRef } from "../project/utils";
 import { DispatchType } from "../store";
+import { TableRowPair } from "../utils/elements";
 import { getAntigen, selectAntigen } from "./slice";
 
 export type UniProtAntigen = {
-  antigen: string;
-  uniprot_accession_number: string;
+  project: ProjectRef;
+  number: number;
+  name: string;
   sequence: string;
   molecular_mass: number;
-  name: string;
+  uniprot_accession_number: string;
+  creation_time: Date;
 };
 
 export type UniProtAntigenPost = Pick<
   UniProtAntigen,
-  "uniprot_accession_number"
+  "project" | "uniprot_accession_number"
 >;
-
 export type LocalAntigen = {
-  antigen: string;
+  project: ProjectRef;
+  number: number;
+  name: string;
   sequence: string;
   molecular_mass: number;
-  name: string;
+  creation_time: Date;
 };
 
 export type LocalAntigenPost = Pick<
   LocalAntigen,
-  "sequence" | "molecular_mass"
+  "project" | "sequence" | "molecular_mass"
 >;
 
-export type Antigen = {
-  uuid: string;
-  project: string;
-  sequence: string;
-  molecular_mass: number;
-  name: string;
-  uniprot_accession_number: string;
-  elisawell_set: Array<string>;
-  creation_time: Date;
+export type Antigen = (UniProtAntigen | LocalAntigen) & {
+  elisawell_set: Array<ElisaWellRef>;
 };
 
-export function AntigenInfo(params: { uuid: string }) {
+export type AntigenRef = Pick<Antigen, "project" | "number">;
+
+export function AntigenInfo(params: { antigen: AntigenRef }) {
   const dispatch = useDispatch<DispatchType>();
-  const antigen = useSelector(selectAntigen(params.uuid));
+  const antigen = useSelector(selectAntigen(params.antigen));
 
   useEffect(() => {
-    dispatch(getAntigen(params.uuid));
+    dispatch(getAntigen(params.antigen));
   }, [dispatch, params]);
 
   if (!antigen) return null;
@@ -62,38 +54,22 @@ export function AntigenInfo(params: { uuid: string }) {
     <TableContainer>
       <Table>
         <TableBody>
-          <TableRow>
-            <TableCell>UUID:</TableCell>
-            <TableCell>{antigen.uuid}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Sequence:</TableCell>
-            <TableCell>{antigen.sequence}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Molecular Mass:</TableCell>
-            <TableCell>{antigen.molecular_mass}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Uniprot Accession Number:</TableCell>
-            <TableCell>{antigen.uniprot_accession_number}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Elisa Appearances:</TableCell>
-            <TableCell>
-              <Stack>
-                {antigen.elisawell_set.map((well, idx) => (
-                  <Link component={RouterLink} to={`/elisa_well/${well}`}>
-                    {well}
-                  </Link>
-                ))}
-              </Stack>
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Creation Time:</TableCell>
-            <TableCell>{antigen.creation_time}</TableCell>
-          </TableRow>
+          <TableRowPair name="Project" value={antigen.project} />
+          <TableRowPair name="Number" value={antigen.number} />
+          <TableRowPair name="Name" value={antigen.name} />
+          <TableRowPair name="Sequence" value={antigen.sequence} />
+          <TableRowPair name="Molecular Mass" value={antigen.molecular_mass} />
+          {"uniprot_accession_number" in antigen && (
+            <TableRowPair
+              name="Uniprot Accession Number"
+              value={antigen.uniprot_accession_number}
+            />
+          )}
+          <TableRowPair
+            name="Elisa Appearances"
+            value={ElisaWellRefStack(antigen.elisawell_set)}
+          />
+          <TableRowPair name="Creation Time" value={antigen.creation_time} />
         </TableBody>
       </Table>
     </TableContainer>

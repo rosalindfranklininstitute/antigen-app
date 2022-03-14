@@ -1,21 +1,23 @@
 import { Divider, Grid, Paper, Stack, Typography } from "@mui/material";
 import { useSelector } from "react-redux";
 import { selectAntigen } from "../../antigen/slice";
-import { Antigen } from "../../antigen/utils";
+import { Antigen, AntigenRef } from "../../antigen/utils";
 import { selectElisaWell } from "../../elisa_well/slice";
 import { ElisaWell } from "../../elisa_well/utils";
 import { selectNanobody } from "../../nanobody/slice";
-import { Nanobody } from "../../nanobody/utils";
+import { Nanobody, NanobodyRef } from "../../nanobody/utils";
 import { RootState } from "../../store";
 import { selectElisaPlate } from "../slice";
-import { ElisaPlate } from "../utils";
-import { uuidToColor } from "./utils";
+import { ElisaPlate, ElisaPlateRef } from "../utils";
+import { objToColor } from "./utils";
 
-export function ElisaPlateMapLegend(params: { plate: string }) {
-  const elisaPlate = useSelector(selectElisaPlate(params.plate)) as ElisaPlate;
+export function ElisaPlateMapLegend(params: { elisaWellRef: ElisaPlateRef }) {
+  const elisaPlate = useSelector(
+    selectElisaPlate(params.elisaWellRef)
+  ) as ElisaPlate;
   const elisaWells = useSelector((state: RootState) =>
-    elisaPlate?.elisawell_set.map((location) =>
-      selectElisaWell({ plate: params.plate, location })(state)
+    elisaPlate?.elisawell_set.map((elisaWellRef) =>
+      selectElisaWell(elisaWellRef)(state)
     )
   ).filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);
   const antigens = useSelector((state: RootState) =>
@@ -29,11 +31,14 @@ export function ElisaPlateMapLegend(params: { plate: string }) {
     .filter((nanobody): nanobody is Nanobody => !!nanobody)
     .filter((antigen, index, antigens) => antigens.indexOf(antigen) === index);
 
-  const LegendEntry = (params: { uuid: string; label: string }) => (
+  const LegendEntry = (params: {
+    elisaWellRef: AntigenRef | NanobodyRef;
+    label: string;
+  }) => (
     <Stack direction="row" spacing={1}>
       <Paper
         sx={{
-          background: `${uuidToColor(params.uuid)}`,
+          background: `${objToColor(params.elisaWellRef)}`,
           display: "table-row",
           aspectRatio: "1",
         }}
@@ -49,7 +54,11 @@ export function ElisaPlateMapLegend(params: { plate: string }) {
           <Typography>Antigens</Typography>
           <Stack spacing={2}>
             {antigens.map((antigen, idx) => (
-              <LegendEntry uuid={antigen.uuid} label={antigen.name} key={idx} />
+              <LegendEntry
+                elisaWellRef={antigen}
+                label={antigen.name}
+                key={idx}
+              />
             ))}
           </Stack>
         </Stack>
@@ -60,7 +69,7 @@ export function ElisaPlateMapLegend(params: { plate: string }) {
           <Stack spacing={2}>
             {nanobodies.map((nanobody, idx) => (
               <LegendEntry
-                uuid={nanobody.uuid}
+                elisaWellRef={nanobody}
                 label={nanobody.name}
                 key={idx}
               />

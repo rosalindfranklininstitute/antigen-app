@@ -1,15 +1,21 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { ElisaWell } from "../elisa_well/utils";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { ElisaWell, serializeElisaWellRef } from "../elisa_well/utils";
+import { projectItemURI } from "../project/utils";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
-import { addUniqueUUID, AllFetched } from "../utils/state_management";
-import { ElisaPlate, ElisaPlatePost } from "./utils";
+import {
+  addUniqueByKeys,
+  AllFetched,
+  filterPartial,
+  partialEq,
+} from "../utils/state_management";
+import { ElisaPlate, ElisaPlatePost, ElisaPlateRef } from "./utils";
 
 type ElisaPlateState = {
   elisaPlates: ElisaPlate[];
   allFetched: AllFetched;
-  fetchPending: string[];
-  posted: string[];
+  fetchPending: ElisaPlateRef[];
+  posted: ElisaPlateRef[];
   postPending: boolean;
 };
 
@@ -39,25 +45,25 @@ export const getElisaPlates = createAsyncThunk<
 
 export const getElisaPlate = createAsyncThunk<
   ElisaPlate,
-  string,
+  ElisaPlateRef,
   {
     state: RootState;
-    rejectValue: { uuid: string; apiRejection: APIRejection };
+    rejectValue: { elisaPlateRef: ElisaPlateRef; apiRejection: APIRejection };
   }
 >(
   "elisaPlates/getElisaPlate",
-  (uuid: string, { rejectWithValue }) =>
-    getAPI<ElisaPlate>(`elisa_plate/${uuid}`).catch((apiRejection) =>
-      rejectWithValue({ uuid, apiRejection })
+  (elisaPlateRef, { rejectWithValue }) =>
+    getAPI<ElisaPlate>(
+      `elisa_plate/${elisaPlateRef.project}:${elisaPlateRef.number}`
+    ).catch((apiRejection) =>
+      rejectWithValue({ elisaPlateRef: elisaPlateRef, apiRejection })
     ),
   {
-    condition: (uuid, { getState }) =>
-      getState().elisaPlates.elisaPlates.filter(
-        (elisaPlates) => elisaPlates.uuid === uuid
-      ).length === 0 &&
-      getState().elisaPlates.fetchPending.filter(
-        (elisaPlates) => elisaPlates === uuid
-      ).length === 0,
+    condition: (elisaPlateRef, { getState }) =>
+      filterPartial(getState().elisaPlates.elisaPlates, elisaPlateRef)
+        .length === 0 &&
+      filterPartial(getState().elisaPlates.fetchPending, elisaPlateRef)
+        .length === 0,
   }
 );
 
@@ -73,15 +79,18 @@ export const postElisaPlate = createAsyncThunk<
 
 export const putElisaPlate = createAsyncThunk<
   { elisaPlate: ElisaPlate; elisaWells: Array<ElisaWell> },
-  ElisaPlatePost & { uuid: string },
+  { elisaPlateRef: ElisaPlateRef; elisaPlatePost: ElisaPlatePost },
   { rejectValue: { apiRejection: APIRejection } }
 >("elisaPlates", (post, { rejectWithValue }) =>
-  putAPI<ElisaPlatePost, ElisaPlate>(`elisa_plate/${post.uuid}`, post).then(
+  putAPI<ElisaPlatePost, ElisaPlate>(
+    `elisa_plate/${projectItemURI(post.elisaPlateRef)}`,
+    { ...post.elisaPlateRef, ...post.elisaPlatePost }
+  ).then(
     async (elisaPlate) => ({
       elisaPlate,
       elisaWells: await Promise.all(
-        elisaPlate.elisawell_set.map((location) =>
-          getAPI<ElisaWell>(`elisa_well/${elisaPlate.uuid}:${location}`)
+        elisaPlate.elisawell_set.map((elisaWellRef) =>
+          getAPI<ElisaWell>(`elisa_well/${serializeElisaWellRef(elisaWellRef)}`)
         )
       ),
     }),
@@ -92,28 +101,16 @@ export const putElisaPlate = createAsyncThunk<
 const elisaPlateSlice = createSlice({
   name: "elisaPlates",
   initialState: initialElisaPlateState,
-  reducers: {
-    postPending: (state) => ({
-      ...state,
-      postPending: true,
-    }),
-    postSuccess: (state, action: PayloadAction<ElisaPlate>) => ({
-      ...state,
-      postPending: false,
-      elisaPlates: addUniqueUUID(state.elisaPlates, [action.payload]),
-      posted: state.posted.concat(action.payload.uuid),
-    }),
-    postFail: (state, action: PayloadAction<string>) => ({
-      ...state,
-      postPending: false,
-    }),
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(getElisaPlates.pending, (state) => {
       state.allFetched = AllFetched.Pending;
     });
     builder.addCase(getElisaPlates.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueUUID(state.elisaPlates, action.payload);
+      state.elisaPlates = addUniqueByKeys(state.elisaPlates, action.payload, [
+        "project",
+        "number",
+      ]);
       state.allFetched = AllFetched.True;
     });
     builder.addCase(getElisaPlates.rejected, (state) => {
@@ -123,22 +120,30 @@ const elisaPlateSlice = createSlice({
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getElisaPlate.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueUUID(state.elisaPlates, [action.payload]);
+      state.elisaPlates = addUniqueByKeys(
+        state.elisaPlates,
+        [action.payload],
+        ["project", "number"]
+      );
       state.fetchPending = state.fetchPending.filter(
-        (uuid) => uuid !== action.payload.uuid
+        (pending) => !partialEq(pending, action.meta.arg)
       );
     });
     builder.addCase(getElisaPlate.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (uuid) => uuid !== action.payload?.uuid
+        (pending) => !partialEq(pending, action.meta.arg)
       );
     });
     builder.addCase(postElisaPlate.pending, (state) => {
       state.postPending = true;
     });
     builder.addCase(postElisaPlate.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueUUID(state.elisaPlates, [action.payload]);
-      state.posted = state.posted.concat(action.payload.uuid);
+      state.elisaPlates = addUniqueByKeys(
+        state.elisaPlates,
+        [action.payload],
+        ["project", "number"]
+      );
+      state.posted = state.posted.concat(action.payload);
       state.postPending = false;
     });
     builder.addCase(postElisaPlate.rejected, (state) => {
@@ -148,10 +153,12 @@ const elisaPlateSlice = createSlice({
       state.postPending = true;
     });
     builder.addCase(putElisaPlate.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueUUID(state.elisaPlates, [
-        action.payload.elisaPlate,
-      ]);
-      state.posted = state.posted.concat(action.payload.elisaPlate.uuid);
+      state.elisaPlates = addUniqueByKeys(
+        state.elisaPlates,
+        [action.payload.elisaPlate],
+        ["project", "number"]
+      );
+      state.posted = state.posted.concat(action.payload.elisaPlate);
       state.postPending = false;
     });
     builder.addCase(putElisaPlate.rejected, (state) => {
@@ -164,8 +171,11 @@ export const elisaPlateReducer = elisaPlateSlice.reducer;
 
 export const selectElisaPlates = (state: RootState) =>
   state.elisaPlates.elisaPlates;
-export const selectElisaPlate = (uuid: string) => (state: RootState) =>
-  state.elisaPlates.elisaPlates.find((elisaPlate) => elisaPlate.uuid === uuid);
+export const selectElisaPlate =
+  (elisaPlateRef: ElisaPlateRef) => (state: RootState) =>
+    state.elisaPlates.elisaPlates.find((elisaPlate) =>
+      partialEq(elisaPlate, elisaPlateRef)
+    );
 export const selectLoadingElisaPlate = (state: RootState) =>
   state.elisaPlates.allFetched === AllFetched.Pending ||
   Boolean(state.elisaPlates.fetchPending.length);

@@ -18,14 +18,16 @@ import {
   selectLoadingNanobody,
   selectPostedNanobodies,
 } from "./slice";
+import { selectCurrentProject } from "../project/slice";
 
 export default function AddNanobodyView() {
   const dispatch = useDispatch();
   const nanobodies = useSelector(selectPostedNanobodies);
   const loading = useSelector(selectLoadingNanobody);
+  const currentProject = useSelector(selectCurrentProject);
 
   const submit = async () => {
-    dispatch(postNanobody({}));
+    if (currentProject) dispatch(postNanobody({ project: currentProject }));
   };
 
   return (
@@ -51,7 +53,7 @@ export default function AddNanobodyView() {
                   {nanobody.name}
                 </AccordionSummary>
                 <AccordionDetails>
-                  <NanobodyInfo uuid={nanobody.uuid} />
+                  <NanobodyInfo nanobodyRef={nanobody} />
                 </AccordionDetails>
               </Accordion>
             </div>

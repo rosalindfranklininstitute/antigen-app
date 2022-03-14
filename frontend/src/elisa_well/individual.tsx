@@ -6,17 +6,20 @@ import { getAntigen, selectAntigen } from "../antigen/slice";
 import { getNanobody, selectNanobody } from "../nanobody/slice";
 import { FailedRetrievalPaper, LoadingPaper } from "../utils/api";
 import { getElisaWell, selectElisaWell, selectLoadingElisaWell } from "./slice";
-import { ElisaWellInfo, ElisaWellKey } from "./utils";
+import { ElisaWellInfo, ElisaWellRef } from "./utils";
 
-type StrElisaWellKey = { [K in keyof ElisaWellKey]: string };
+type StrElisaWellKey = { [K in keyof ElisaWellRef]: string };
 
 export default function ElisaWellView() {
-  const { plate, location: str_location } =
-    useParams<StrElisaWellKey>() as StrElisaWellKey;
+  const {
+    project,
+    plate: str_plate,
+    location: str_location,
+  } = useParams<StrElisaWellKey>() as StrElisaWellKey;
+  const plate = parseInt(str_plate);
   const location = parseInt(str_location);
-  console.log(`Plate: ${plate} Location: ${location}`);
   const dispatch = useDispatch();
-  const elisaWell = useSelector(selectElisaWell({ plate, location }));
+  const elisaWell = useSelector(selectElisaWell({ project, plate, location }));
   const antigen = useSelector(
     elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined
   );
@@ -26,8 +29,8 @@ export default function ElisaWellView() {
   const loading = useSelector(selectLoadingElisaWell);
 
   useEffect(() => {
-    dispatch(getElisaWell({ plate, location }));
-  }, [dispatch, plate, location]);
+    dispatch(getElisaWell({ elisaWellRef: { project, plate, location } }));
+  }, [dispatch, project, plate, location]);
   useEffect(() => {
     if (elisaWell) {
       dispatch(getAntigen(elisaWell.antigen));
@@ -51,10 +54,7 @@ export default function ElisaWellView() {
           <Typography variant="h4">
             {antigen ? antigen.name : null} + {nanobody ? nanobody.name : null}
           </Typography>
-          <ElisaWellInfo
-            plate={elisaWell.plate}
-            location={elisaWell.location}
-          />
+          <ElisaWellInfo elisaWellRef={elisaWell} />
         </Stack>
       </CardContent>
     </Card>

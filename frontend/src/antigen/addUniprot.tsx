@@ -19,15 +19,23 @@ import {
   selectPostedUniProtAntigens,
 } from "./slice";
 import { useDispatch, useSelector } from "react-redux";
+import { selectCurrentProject } from "../project/slice";
 
 export default function AddUniProtAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedUniProtAntigens);
   const loading = useSelector(selectLoadingAntigen);
+  const currentProject = useSelector(selectCurrentProject);
   const [accessionNumber, setAccessionNumber] = useState<string>("");
 
   const submit = () => {
-    dispatch(postUniProtAntigen({ uniprot_accession_number: accessionNumber }));
+    if (currentProject)
+      dispatch(
+        postUniProtAntigen({
+          project: currentProject,
+          uniprot_accession_number: accessionNumber,
+        })
+      );
   };
 
   return (
@@ -61,7 +69,7 @@ export default function AddUniProtAntigenView() {
                 {antigen.name}
               </AccordionSummary>
               <AccordionDetails>
-                <AntigenInfo uuid={antigen.uuid} />
+                <AntigenInfo antigen={antigen} />
               </AccordionDetails>
             </Accordion>
           ))}

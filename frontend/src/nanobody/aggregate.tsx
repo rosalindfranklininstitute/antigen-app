@@ -2,17 +2,18 @@ import { Card, CardContent } from "@mui/material";
 import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
 import { useEffect } from "react";
 import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
-import { IconLinkUUIDGridColDef, WellCellRenderer } from "../utils/elements";
+import { IconLinkURIGridColDef, WellCellRenderer } from "../utils/elements";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getNanobodies,
   selectLoadingNanobody,
   selectNanobodies,
 } from "./slice";
+import { addProjectItemUri } from "../project/utils";
 
 export default function NanobodiesView() {
   const dispatch = useDispatch();
-  const nanobodies = useSelector(selectNanobodies);
+  const nanobodies = addProjectItemUri(useSelector(selectNanobodies));
   const loading = useSelector(selectLoadingNanobody);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function NanobodiesView() {
     return <FailedRetrievalPaper text="Could not retrieve nanobody list." />;
 
   const columns: GridColDef[] = [
-    IconLinkUUIDGridColDef("/nanobody/"),
+    IconLinkURIGridColDef("/nanobody/"),
     {
       field: "name",
       headerName: "Nanobody Name",
@@ -51,7 +52,7 @@ export default function NanobodiesView() {
           autoHeight
           rows={nanobodies}
           columns={columns}
-          getRowId={(row) => row.uuid}
+          getRowId={(row) => `${row.project}:${row.number}`}
           components={{ Toolbar: GridToolbar }}
           sx={{ border: 0 }}
           disableSelectionOnClick

@@ -25,7 +25,7 @@ function App() {
       <Container sx={{ mt: 4, mb: 4 }}>
         <Routes>
           <Route path="/" element={<HomeView />} />
-          <Route path="/antigen/:uuid" element={<AntigenView />} />
+          <Route path="/antigen/:project::number" element={<AntigenView />} />
           <Route path="/antigen/" element={<AntigensView />} />
           <Route
             path="/antigen/uniprot/add/"
@@ -33,15 +33,18 @@ function App() {
           />
           <Route path="/antigen/local/add/" element={<AddLocalAntigenView />} />
           <Route path="/nanobody/" element={<NanobodiesView />} />
-          <Route path="/nanobody/:uuid" element={<NanobodyView />} />
+          <Route path="/nanobody/:project::number" element={<NanobodyView />} />
           <Route path="/nanobody/add/" element={<AddNanobodyView />} />
           <Route path="/elisa_well/" element={<ElisaWellsView />} />
           <Route
-            path="/elisa_well/:plate::location/"
+            path="/elisa_well/:project::plate::location/"
             element={<ElisaWellView />}
           />
           <Route path="/elisa_plate/" element={<ElisaPlatesView />} />
-          <Route path="/elisa_plate/:uuid" element={<ElisaPlateView />} />
+          <Route
+            path="/elisa_plate/:project::number"
+            element={<ElisaPlateView />}
+          />
           <Route path="/elisa_plate/add/" element={<AddElisaPlateView />} />
         </Routes>
       </Container>

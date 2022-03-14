@@ -2,9 +2,11 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { getAPI, postAPI, APIRejection } from "../utils/api";
 import {
-  addUniqueUUID,
+  addUniqueByKeys,
   AllFetched,
-  filterUUID,
+  filterPartial,
+  intersectPartial,
+  partialEq,
 } from "../utils/state_management";
 import {
   Antigen,
@@ -12,14 +14,15 @@ import {
   UniProtAntigen,
   UniProtAntigenPost,
   LocalAntigenPost,
+  AntigenRef,
 } from "./utils";
 
 type AntigenState = {
-  antigens: Antigen[];
+  antigens: Array<Antigen>;
   allFetched: AllFetched;
-  fetchPending: string[];
-  postedUniProt: string[];
-  postedLocal: string[];
+  fetchPending: Array<AntigenRef>;
+  postedUniProt: Array<AntigenRef>;
+  postedLocal: Array<AntigenRef>;
   postPending: boolean;
 };
 
@@ -50,25 +53,22 @@ export const getAntigens = createAsyncThunk<
 
 export const getAntigen = createAsyncThunk<
   Antigen,
-  string,
+  AntigenRef,
   {
     state: RootState;
-    rejectValue: { uuid: string; apiRejection: APIRejection };
+    rejectValue: { antigenRef: AntigenRef; apiRejection: APIRejection };
   }
 >(
   "antigens/getAntigen",
-  async (uuid: string, { rejectWithValue }) =>
-    getAPI<Antigen>(`antigen/${uuid}`).catch((apiRejection) =>
-      rejectWithValue({ uuid, apiRejection })
+  async (antigenRef, { rejectWithValue }) =>
+    getAPI<Antigen>(`antigen/${antigenRef.project}:${antigenRef.number}`).catch(
+      (apiRejection) =>
+        rejectWithValue({ antigenRef: antigenRef, apiRejection })
     ),
   {
-    condition: (uuid, { getState }) =>
-      !(
-        getState().antigens.antigens.filter((antigen) => antigen.uuid === uuid)
-          .length > 0 ||
-        getState().antigens.fetchPending.filter((antigen) => antigen === uuid)
-          .length > 0
-      ),
+    condition: (antigenRef, { getState }) =>
+      filterPartial(getState().antigens.antigens, antigenRef).length === 0 &&
+      filterPartial(getState().antigens.fetchPending, antigenRef).length === 0,
   }
 );
 
@@ -79,9 +79,9 @@ export const postUniProtAntigen = createAsyncThunk<
 >("antigens/addUniProt", (post, { rejectWithValue }) =>
   postAPI<UniProtAntigenPost, UniProtAntigen>("uniprot_antigen", post).then(
     (uniProtAntigen) =>
-      getAPI<Antigen>(`antigen/${uniProtAntigen.antigen}`).catch(
-        (apiRejection) => rejectWithValue({ apiRejection })
-      ),
+      getAPI<Antigen>(
+        `antigen/${uniProtAntigen.project}:${uniProtAntigen.number}`
+      ).catch((apiRejection) => rejectWithValue({ apiRejection })),
     (apiRejection) => rejectWithValue({ apiRejection })
   )
 );
@@ -93,9 +93,9 @@ export const postLocalAntigen = createAsyncThunk<
 >("antigens/addLocal", (post, { rejectWithValue }) =>
   postAPI<LocalAntigenPost, LocalAntigen>("local_antigen", post).then(
     (localAntigen) =>
-      getAPI<Antigen>(`antigen/${localAntigen.antigen}`).catch((apiRejection) =>
-        rejectWithValue({ apiRejection })
-      ),
+      getAPI<Antigen>(
+        `antigen/${localAntigen.project}:${localAntigen.number}`
+      ).catch((apiRejection) => rejectWithValue({ apiRejection })),
     (apiRejection) => rejectWithValue({ apiRejection })
   )
 );
@@ -109,7 +109,10 @@ const antigenSlice = createSlice({
       state.allFetched = AllFetched.Pending;
     });
     builder.addCase(getAntigens.fulfilled, (state, action) => {
-      state.antigens = addUniqueUUID(state.antigens, action.payload);
+      state.antigens = addUniqueByKeys(state.antigens, action.payload, [
+        "project",
+        "number",
+      ]);
       state.allFetched = AllFetched.True;
     });
     builder.addCase(getAntigens.rejected, (state) => {
@@ -119,36 +122,48 @@ const antigenSlice = createSlice({
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getAntigen.fulfilled, (state, action) => {
-      state.antigens = addUniqueUUID(state.antigens, [action.payload]);
+      state.antigens = addUniqueByKeys(
+        state.antigens,
+        [action.payload],
+        ["project", "number"]
+      );
       state.fetchPending = state.fetchPending.filter(
-        (uuid) => uuid !== action.payload.uuid
+        (pending) => !partialEq(pending, action.meta.arg)
       );
     });
     builder.addCase(getAntigen.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (uuid) => uuid !== action.payload?.uuid
+        (pending) => !partialEq(pending, action.meta.arg)
       );
     });
     builder.addCase(postUniProtAntigen.pending, (state) => {
       state.postPending = true;
     });
     builder.addCase(postUniProtAntigen.fulfilled, (state, action) => {
-      state.antigens = addUniqueUUID(state.antigens, [action.payload]);
-      state.postedUniProt = state.postedUniProt.concat(action.payload.uuid);
+      state.antigens = addUniqueByKeys(
+        state.antigens,
+        [action.payload],
+        ["project", "number"]
+      );
+      state.postedUniProt = state.postedUniProt.concat(action.payload);
       state.postPending = false;
     });
-    builder.addCase(postUniProtAntigen.rejected, (state, action) => {
+    builder.addCase(postUniProtAntigen.rejected, (state) => {
       state.postPending = false;
     });
     builder.addCase(postLocalAntigen.pending, (state) => {
       state.postPending = true;
     });
     builder.addCase(postLocalAntigen.fulfilled, (state, action) => {
-      state.antigens = addUniqueUUID(state.antigens, [action.payload]);
-      state.postedLocal = state.postedLocal.concat(action.payload.uuid);
+      state.antigens = addUniqueByKeys(
+        state.antigens,
+        [action.payload],
+        ["project", "number"]
+      );
+      state.postedLocal = state.postedLocal.concat(action.payload);
       state.postPending = false;
     });
-    builder.addCase(postLocalAntigen.rejected, (state, action) => {
+    builder.addCase(postLocalAntigen.rejected, (state) => {
       state.postPending = false;
     });
   },
@@ -157,12 +172,12 @@ const antigenSlice = createSlice({
 export const antigenReducer = antigenSlice.reducer;
 
 export const selectAntigens = (state: RootState) => state.antigens.antigens;
-export const selectAntigen = (uuid: string) => (state: RootState) =>
-  state.antigens.antigens.find((antigen) => antigen.uuid === uuid);
+export const selectAntigen = (antigenRef: AntigenRef) => (state: RootState) =>
+  state.antigens.antigens.find((antigen) => partialEq(antigen, antigenRef));
 export const selectLoadingAntigen = (state: RootState) =>
   state.antigens.allFetched === AllFetched.Pending ||
   Boolean(state.antigens.fetchPending.length);
 export const selectPostedUniProtAntigens = (state: RootState) =>
-  filterUUID(state.antigens.antigens, state.antigens.postedUniProt);
+  intersectPartial(state.antigens.antigens, state.antigens.postedUniProt);
 export const selectPostedLocalAntignes = (state: RootState) =>
-  filterUUID(state.antigens.antigens, state.antigens.postedLocal);
+  intersectPartial(state.antigens.antigens, state.antigens.postedLocal);

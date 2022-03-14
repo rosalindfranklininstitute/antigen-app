@@ -11,27 +11,30 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAntigen, selectAntigen } from "../antigen/slice";
 import { getElisaWell, selectElisaWell } from "../elisa_well/slice";
-import { ElisaWell, ElisaWellKey, locationToGrid } from "../elisa_well/utils";
+import { ElisaWell, ElisaWellRef, locationToGrid } from "../elisa_well/utils";
 import { getNanobody, selectNanobody } from "../nanobody/slice";
 import { RootState } from "../store";
 import { Link as RouterLink } from "react-router-dom";
 import { zip } from "../utils/state_management";
 import { getElisaPlate, selectElisaPlate } from "./slice";
+import { ProjectRef } from "../project/utils";
 
 export type ElisaPlate = {
-  uuid: string;
-  project: string;
+  project: ProjectRef;
+  number: number;
   threshold: number;
-  elisawell_set: number[];
+  elisawell_set: Array<ElisaWellRef>;
   creation_time: Date;
 };
 
-export type ElisaPlatePost = Pick<ElisaPlate, "threshold">;
+export type ElisaPlateRef = Pick<ElisaPlate, "project" | "number">;
 
-function ElisaPlateWellTable(params: { wellKeys: ElisaWellKey[] }) {
+export type ElisaPlatePost = Pick<ElisaPlate, "project" | "threshold">;
+
+function ElisaPlateWellTable(params: { elisaWellRefs: ElisaWellRef[] }) {
   const dispatch = useDispatch();
   const elisaWells = useSelector((state: RootState) =>
-    params.wellKeys.map((wellKey) => selectElisaWell(wellKey)(state))
+    params.elisaWellRefs.map((wellKey) => selectElisaWell(wellKey)(state))
   ).filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);
   const antigens = useSelector((state: RootState) =>
     elisaWells.map((elisaWell) => selectAntigen(elisaWell.antigen)(state))
@@ -42,7 +45,9 @@ function ElisaPlateWellTable(params: { wellKeys: ElisaWellKey[] }) {
   );
 
   useEffect(() => {
-    params.wellKeys.forEach((wellKey) => dispatch(getElisaWell(wellKey)));
+    params.elisaWellRefs.forEach((elisaWellRef) =>
+      dispatch(getElisaWell({ elisaWellRef: elisaWellRef }))
+    );
   }, [dispatch, params]);
 
   useEffect(() => {
@@ -91,14 +96,16 @@ function ElisaPlateWellTable(params: { wellKeys: ElisaWellKey[] }) {
   );
 }
 
-export function ElisaPlateInfo(params: { uuid: string }) {
+export function ElisaPlateInfo(params: { elisaPlateRef: ElisaPlateRef }) {
   const dispatch = useDispatch();
   const elisaPlate = useSelector(
-    params.uuid ? selectElisaPlate(params.uuid) : () => undefined
+    params.elisaPlateRef
+      ? selectElisaPlate(params.elisaPlateRef)
+      : () => undefined
   );
 
   useEffect(() => {
-    dispatch(getElisaPlate(params.uuid));
+    dispatch(getElisaPlate(params.elisaPlateRef));
   }, [dispatch, params]);
 
   if (!elisaPlate) return null;
@@ -113,12 +120,7 @@ export function ElisaPlateInfo(params: { uuid: string }) {
           <TableRow>
             <TableCell>Wells:</TableCell>
             <TableCell>
-              <ElisaPlateWellTable
-                wellKeys={elisaPlate?.elisawell_set.map((location) => ({
-                  plate: elisaPlate.uuid,
-                  location,
-                }))}
-              />
+              <ElisaPlateWellTable elisaWellRefs={elisaPlate?.elisawell_set} />
             </TableCell>
           </TableRow>
           <TableRow>

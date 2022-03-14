@@ -3,18 +3,24 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAntigen, selectAntigen } from "../../antigen/slice";
 import { getElisaWell, selectElisaWell } from "../../elisa_well/slice";
-import { ElisaWellKey } from "../../elisa_well/utils";
+import { ElisaWellRef } from "../../elisa_well/utils";
 import { getNanobody, selectNanobody } from "../../nanobody/slice";
+import { partialEq } from "../../utils/state_management";
 import { selectElisaPlate } from "../slice";
 
 export function ElisaWellInfoPopover(params: {
-  wellKey: ElisaWellKey;
+  elisaWellRef: ElisaWellRef;
   anchorEl: HTMLElement | null;
   setAnchorEl: (anchorEl: HTMLAnchorElement | null) => void;
 }) {
   const dispatch = useDispatch();
-  const elisaPlate = useSelector(selectElisaPlate(params.wellKey.plate));
-  const elisaWell = useSelector(selectElisaWell(params.wellKey));
+  const elisaPlate = useSelector(
+    selectElisaPlate({
+      project: params.elisaWellRef.project,
+      number: params.elisaWellRef.plate,
+    })
+  );
+  const elisaWell = useSelector(selectElisaWell(params.elisaWellRef));
   const antigen = useSelector(
     elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined
   );
@@ -24,11 +30,11 @@ export function ElisaWellInfoPopover(params: {
 
   useEffect(() => {
     if (
-      elisaPlate?.elisawell_set.find(
-        (location) => location === params.wellKey.location
+      elisaPlate?.elisawell_set.find((well) =>
+        partialEq(well, params.elisaWellRef)
       )
     )
-      dispatch(getElisaWell(params.wellKey));
+      dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
   });
 
   useEffect(() => {

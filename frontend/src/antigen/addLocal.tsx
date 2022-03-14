@@ -20,16 +20,25 @@ import {
   selectLoadingAntigen,
   selectPostedLocalAntignes,
 } from "./slice";
+import { selectCurrentProject } from "../project/slice";
 
 export default function AddLocalAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedLocalAntignes);
   const loading = useSelector(selectLoadingAntigen);
+  const currentProject = useSelector(selectCurrentProject);
   const [sequence, setSequence] = useState<string>("");
   const [molecularMass, setMolecularMass] = useState<number>(0);
 
   const submit = async () => {
-    dispatch(postLocalAntigen({ sequence, molecular_mass: molecularMass }));
+    if (currentProject)
+      dispatch(
+        postLocalAntigen({
+          project: currentProject,
+          sequence,
+          molecular_mass: molecularMass,
+        })
+      );
   };
 
   return (
@@ -72,7 +81,7 @@ export default function AddLocalAntigenView() {
                   {antigen.name}
                 </AccordionSummary>
                 <AccordionDetails>
-                  <AntigenInfo uuid={antigen.uuid} />
+                  <AntigenInfo antigen={antigen} />
                 </AccordionDetails>
               </Accordion>
             </div>
