@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Generic, Optional, OrderedDict, TypeVar
 
 from rest_framework.serializers import (
     CharField,
@@ -6,6 +6,7 @@ from rest_framework.serializers import (
     ModelSerializer,
     PrimaryKeyRelatedField,
     ReadOnlyField,
+    RelatedField,
     SerializerMethodField,
     SlugRelatedField,
 )
@@ -18,10 +19,79 @@ from antigenapi.models import (
     LocalAntigen,
     Nanobody,
     Project,
+    ProjectModelMixin,
+    QuerySet,
     Sequence,
     UniProtAntigen,
 )
 from antigenapi.utils.permission import perform_create_allow_creator_change_delete
+
+PM = TypeVar("PM", bound=ProjectModelMixin)
+
+
+class ProjectModelRelatedField(Generic[PM], RelatedField):
+    """A related field which serializes the project and number of project models."""
+
+    def __init__(self, queryset: QuerySet[PM]) -> None:  # noqa: D107
+        self.queryset = queryset
+        super().__init__()
+
+    def to_representation(self, value: PM):
+        """Override which serializes as a dict of project model keys.
+
+        Override which serializes as dict containing project and number of the
+        project model.
+        """
+        return {"project": value.project.short_title, "number": value.number}
+
+    def get_choices(self, cutoff=None):
+        """Override to fix serialization bug.
+
+        Override which skips the to_representation call when constructing the choices
+        dict. See: https://github.com/encode/django-rest-framework/issues/5141
+        """
+        queryset = self.get_queryset()
+        if queryset is None:
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
+
+
+class ElisaWellRelatedField(RelatedField):
+    """A related field which serializes the key of elisa wells.
+
+    A related field which serializes the project, plate and location of elisa wells.
+    """
+
+    def to_representation(self, value: ElisaWell):
+        """Override which serializes as a dict of elisa well keys.
+
+        Override which serializes as a dict containing the project, plate and locaiton
+        of the elisa well.
+        """
+        return {
+            "project": value.plate.project.short_title,
+            "plate": value.plate.number,
+            "location": value.location,
+        }
+
+    def get_choices(self, cutoff=None):
+        """Override to fix serialization bug.
+
+        Override which skips the to_representation call when constructing the choices
+        dict. See: https://github.com/encode/django-rest-framework/issues/5141
+        """
+        queryset = self.get_queryset()
+        if queryset is None:
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
 
 
 class ProjectSerializer(ModelSerializer):
@@ -112,7 +182,7 @@ class AntigenSerializer(ModelSerializer):
     sequence = CharField(source="child.sequence")
     molecular_mass = IntegerField(source="child.molecular_mass")
     uniprot_accession_number = SerializerMethodField()
-    elisawell_set = SlugRelatedField(slug_field="key", many=True, read_only=True)
+    elisawell_set = ElisaWellRelatedField(many=True, read_only=True)
 
     def get_uniprot_accession_number(self, antigen: Antigen) -> Optional[str]:
         """Retrieve the uniprot accession number if the child antigen is from uniprot.
@@ -161,7 +231,7 @@ class NanobodySerializer(ModelSerializer):
 
     project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
     name = ReadOnlyField()
-    elisawell_set = SlugRelatedField(slug_field="key", many=True, read_only=True)
+    elisawell_set = ElisaWellRelatedField(many=True, read_only=True)
     sequence_set = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:  # noqa: D106
@@ -193,7 +263,7 @@ class ElisaPlateSerializer(ModelSerializer):
     """
 
     project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
-    elisawell_set = SlugRelatedField(slug_field="key", many=True, read_only=True)
+    elisawell_set = ElisaWellRelatedField(many=True, read_only=True)
 
     class Meta:  # noqa: D106
         model = ElisaPlate
@@ -220,8 +290,8 @@ class ElisaWellSerializer(ModelSerializer):
     )
     plate = SlugRelatedField(slug_field="number", queryset=ElisaPlate.objects.all())
     functional = ReadOnlyField()
-    antigen = SlugRelatedField(slug_field="key_", queryset=Antigen.objects.all())
-    nanobody = SlugRelatedField(slug_field="key_", queryset=Nanobody.objects.all())
+    antigen = ProjectModelRelatedField[Antigen](queryset=Antigen.objects.all())
+    nanobody = ProjectModelRelatedField[Nanobody](queryset=Nanobody.objects.all())
 
     class Meta:  # noqa: D106
         model = ElisaWell
