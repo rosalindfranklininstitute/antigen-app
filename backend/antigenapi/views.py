@@ -113,6 +113,7 @@ class ProjectViewSet(ModelViewSet):
 
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
+    lookup_field = "short_title"
 
     perform_create = perform_create_allow_creator_change_delete
 
@@ -144,6 +145,7 @@ class LocalAntigenViewSet(ModelViewSet):
 
     queryset = LocalAntigen.objects.all()
     serializer_class = LocalAntigenSerializer
+    lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
 
@@ -171,6 +173,7 @@ class UniProtAntigenViewSet(ModelViewSet):
 
     queryset = UniProtAntigen.objects.all()
     serializer_class = UniProtAntigenSerialzer
+    lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
 
@@ -224,6 +227,7 @@ class AntigenViewSet(ReadOnlyModelViewSet):
 
     queryset = Antigen.objects.all()
     serializer_class = AntigenSerializer
+    lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
 
@@ -257,6 +261,7 @@ class NanobodyViewSet(ModelViewSet):
 
     queryset = Nanobody.objects.all()
     serializer_class = NanobodySerializer
+    lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
 
