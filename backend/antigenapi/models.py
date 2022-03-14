@@ -260,7 +260,6 @@ class ElisaWell(Model):
                         "location",
                         output_field=CharField(),
                     ),
-                    project=F("plate__project__short_title"),
                 )
             )
 
