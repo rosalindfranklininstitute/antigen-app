@@ -17,6 +17,21 @@ import ListIcon from "@mui/icons-material/List";
 import { useState, MouseEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
+function ProjectCard() {
+  return (
+    <Card>
+      <CardContent>
+        <Typography variant="h5">Projects</Typography>
+      </CardContent>
+      <CardActions>
+        <Button startIcon={<ListIcon />} component={RouterLink} to="/project/">
+          View All
+        </Button>
+      </CardActions>
+    </Card>
+  );
+}
+
 function AntigenCard() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const add_open = Boolean(anchorEl);
@@ -141,6 +156,9 @@ function ElisaWellCard() {
 function HomeView() {
   return (
     <Grid container spacing={2} justifyContent="center">
+      <Grid item>
+        <ProjectCard />
+      </Grid>
       <Grid item>
         <AntigenCard />
       </Grid>
