@@ -133,6 +133,7 @@ const projectSlice = createSlice({
   },
 });
 
+export const { switch: switchProject } = projectSlice.actions;
 export const projectReducer = projectSlice.reducer;
 
 export const selectProjects = (state: RootState) => state.projects.projects;
