@@ -17,6 +17,8 @@ import ElisaWellView from "../elisa_well/individual";
 import ElisaPlatesView from "../elisa_plate/aggregate";
 import ElisaPlateView from "../elisa_plate/individual";
 import AddElisaPlateView from "../elisa_plate/add";
+import ProjectsView from "../project/aggregate";
+import ProjectView from "../project/individual";
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
       <Container sx={{ mt: 4, mb: 4 }}>
         <Routes>
           <Route path="/" element={<HomeView />} />
+          <Route path="/project/" element={<ProjectsView />} />
+          <Route path="/project/:project" element={<ProjectView />} />
           <Route path="/antigen/:project::number" element={<AntigenView />} />
           <Route path="/antigen/" element={<AntigensView />} />
           <Route
