@@ -62,7 +62,7 @@ const SelectionContextProvider = (props: { children: ReactNode }) => {
   const addSelectableRegion = useCallback(
     (tag: object, selectableRegion: Region) =>
       setSelectableRegions(selectableRegions.set(tag, selectableRegion)),
-    []
+    [selectableRegions]
   );
 
   return (
