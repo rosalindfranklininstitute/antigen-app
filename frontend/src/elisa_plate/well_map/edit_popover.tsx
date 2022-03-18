@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getElisaWell,
@@ -31,8 +31,116 @@ import {
 } from "@mui/material";
 import { partialEq } from "../../utils/state_management";
 import { RootState } from "../../store";
+import { Antigen, AntigenRef } from "../../antigen/utils";
+import { Nanobody, NanobodyRef } from "../../nanobody/utils";
 
 type ElisaWellState = ElisaWellRef & Partial<ElisaWellPost>;
+
+const SaveCancelPopover = (params: {
+  children: ReactNode;
+  anchorEl: HTMLElement | null;
+  setAnchorEl: (anchorEl: HTMLElement | null) => void;
+  onSave: () => void;
+}) => (
+  <Popover
+    open={Boolean(params.anchorEl)}
+    anchorEl={params.anchorEl}
+    anchorOrigin={{
+      vertical: "center",
+      horizontal: "center",
+    }}
+    transformOrigin={{
+      vertical: "center",
+      horizontal: "center",
+    }}
+    onClose={() => params.setAnchorEl(null)}
+  >
+    <Card>
+      <CardContent>
+        <Stack spacing={2}>
+          {params.children}
+          <Stack direction="row" justifyContent="space-between">
+            <Button
+              variant="outlined"
+              color="error"
+              endIcon={<CancelIcon />}
+              onClick={() => params.setAnchorEl(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              color="success"
+              endIcon={<DoneIcon />}
+              onClick={() => {
+                params.onSave();
+                params.setAnchorEl(null);
+              }}
+            >
+              Save
+            </Button>
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
+  </Popover>
+);
+
+const AntigenAutocomplete = (params: {
+  initAntigen: AntigenRef | undefined;
+  onChange: (antigen: Antigen | null) => void;
+}) => {
+  const dispatch = useDispatch();
+  const antigens = useSelector(selectAntigens);
+  const initAntigen = useSelector((state: RootState) =>
+    params.initAntigen ? selectAntigen(params.initAntigen)(state) : undefined
+  );
+
+  useEffect(() => {
+    dispatch(getAntigens());
+  }, []);
+
+  return (
+    <Autocomplete
+      renderInput={(params) => (
+        <TextField {...params} label="Antigen" sx={{ width: "32ch" }} />
+      )}
+      options={antigens}
+      groupBy={(antigen) => antigen.project}
+      getOptionLabel={(antigen) => antigen.name}
+      defaultValue={initAntigen}
+      onChange={(_, antigen) => params.onChange(antigen)}
+    />
+  );
+};
+
+const NanobodyAutocomplete = (params: {
+  initNanobody: NanobodyRef | undefined;
+  onChange: (nanobody: Nanobody | null) => void;
+}) => {
+  const dispatch = useDispatch();
+  const nanobodies = useSelector(selectNanobodies);
+  const initNanobody = useSelector((state: RootState) =>
+    params.initNanobody ? selectNanobody(params.initNanobody)(state) : undefined
+  );
+
+  useEffect(() => {
+    dispatch(getNanobodies());
+  }, []);
+
+  return (
+    <Autocomplete
+      renderInput={(params) => (
+        <TextField {...params} label="Nanobody" sx={{ width: "32ch" }} />
+      )}
+      options={nanobodies}
+      groupBy={(nanobody) => nanobody.project}
+      getOptionLabel={(nanobody) => nanobody.name}
+      defaultValue={initNanobody}
+      onChange={(_, nanobody) => params.onChange(nanobody)}
+    />
+  );
+};
 
 export function ElisaWellEditPopover(params: {
   elisaWellRef: ElisaWellRef;
@@ -47,17 +155,9 @@ export function ElisaWellEditPopover(params: {
     })
   );
   const initElisaWell = useSelector(selectElisaWell(params.elisaWellRef));
-  const initAntigen = useSelector((state: RootState) =>
-    initElisaWell ? selectAntigen(initElisaWell?.antigen)(state) : undefined
-  );
-  const initNanobody = useSelector((state: RootState) =>
-    initElisaWell ? selectNanobody(initElisaWell?.nanobody)(state) : undefined
-  );
   const [elisaWell, setElisaWell] = useState<ElisaWellState>(
     initElisaWell ? initElisaWell : params.elisaWellRef
   );
-  const antigens = useSelector(selectAntigens);
-  const nanobodies = useSelector(selectNanobodies);
 
   useEffect(() => {
     if (
@@ -66,7 +166,6 @@ export function ElisaWellEditPopover(params: {
       )
     )
       dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
-    dispatch(getAntigens());
     dispatch(getNanobodies());
   }, [dispatch, params, elisaPlate]);
 
@@ -81,91 +180,40 @@ export function ElisaWellEditPopover(params: {
   };
 
   return (
-    <Popover
-      open={Boolean(params.anchorEl)}
+    <SaveCancelPopover
       anchorEl={params.anchorEl}
-      anchorOrigin={{
-        vertical: "center",
-        horizontal: "center",
-      }}
-      transformOrigin={{
-        vertical: "center",
-        horizontal: "center",
-      }}
-      onClose={() => params.setAnchorEl(null)}
+      setAnchorEl={params.setAnchorEl}
+      onSave={updateElisaWell}
     >
-      <Card>
-        <CardContent>
-          <Stack spacing={2}>
-            <Autocomplete
-              renderInput={(params) => (
-                <TextField {...params} label="Antigen" sx={{ width: "32ch" }} />
-              )}
-              options={antigens}
-              groupBy={(antigen) => antigen.project}
-              getOptionLabel={(antigen) => antigen.name}
-              defaultValue={initAntigen}
-              onChange={(_, antigen) => {
-                setElisaWell({
-                  ...elisaWell,
-                  antigen: antigen ? antigen : elisaWell.antigen,
-                });
-              }}
-            />
-            <Autocomplete
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Nanobody"
-                  sx={{ width: "32ch" }}
-                />
-              )}
-              options={nanobodies}
-              groupBy={(nanobody) => nanobody.project}
-              getOptionLabel={(nanobody) => nanobody.name}
-              defaultValue={initNanobody}
-              onChange={(_, nanobody) => {
-                setElisaWell({
-                  ...elisaWell,
-                  nanobody: nanobody ? nanobody : elisaWell.nanobody,
-                });
-              }}
-            />
-            <TextField
-              label="Optical Density"
-              type="number"
-              defaultValue={elisaWell?.optical_density}
-              onChange={(evt) => {
-                setElisaWell({
-                  ...elisaWell,
-                  optical_density: Number(evt.target.value),
-                });
-              }}
-            />
-            <Stack direction="row" justifyContent="space-between">
-              <Button
-                variant="outlined"
-                color="error"
-                endIcon={<CancelIcon />}
-                onClick={() => params.setAnchorEl(null)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                endIcon={<DoneIcon />}
-                onClick={() => {
-                  updateElisaWell();
-                  params.setAnchorEl(null);
-                }}
-              >
-                Save
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
-    </Popover>
+      <AntigenAutocomplete
+        initAntigen={elisaWell.antigen}
+        onChange={(antigen) =>
+          setElisaWell({
+            ...elisaWell,
+            antigen: antigen ? antigen : elisaWell.antigen,
+          })
+        }
+      />
+      <NanobodyAutocomplete
+        initNanobody={elisaWell.nanobody}
+        onChange={(nanobody) =>
+          setElisaWell({
+            ...elisaWell,
+            nanobody: nanobody ? nanobody : elisaWell.nanobody,
+          })
+        }
+      />
+      <TextField
+        label="Optical Density"
+        type="number"
+        defaultValue={elisaWell?.optical_density}
+        onChange={(evt) => {
+          setElisaWell({
+            ...elisaWell,
+            optical_density: Number(evt.target.value),
+          });
+        }}
+      />
+    </SaveCancelPopover>
   );
 }
