@@ -1,4 +1,5 @@
 import {
+  Context,
   createContext,
   ReactNode,
   useCallback,
@@ -27,155 +28,170 @@ export type Region = {
 
 const initRegion = { top: 0, bottom: 0, left: 0, right: 0 };
 
-const SelectionContext = createContext<{
+type SelectionContextT<TagType> = {
   selectionRegion: Region;
   setSelectionRegion: (selectionRegion: Region) => void;
-  selectableRegions: Map<object, Region>;
-  addSelectableRegion: (tag: object, selectableRegion: Region) => void;
-  selectedRegions: Map<object, Region>;
-}>({
-  selectionRegion: initRegion,
-  setSelectionRegion: () => {},
-  selectableRegions: new Map(),
-  addSelectableRegion: () => {},
-  selectedRegions: new Map(),
-});
-
-const SelectionContextProvider = (props: { children: ReactNode }) => {
-  const [selectionRegion, setSelectionRegion] = useState<Region>(initRegion);
-  const [selectableRegions, setSelectableRegions] = useState<
-    Map<object, Region>
-  >(new Map());
-  const [selectedRegions, setSelectedRegions] = useState<Map<object, Region>>(
-    new Map()
-  );
-
-  useEffect(() => {
-    const selected = new Map(
-      Array.from(selectableRegions).filter(([_, region]) =>
-        regionsIntersect(selectionRegion, region)
-      )
-    );
-    setSelectedRegions(selected);
-  }, [selectionRegion, selectableRegions]);
-
-  const addSelectableRegion = useCallback(
-    (tag: object, selectableRegion: Region) =>
-      setSelectableRegions(selectableRegions.set(tag, selectableRegion)),
-    [selectableRegions]
-  );
-
-  return (
-    <SelectionContext.Provider
-      value={{
-        selectionRegion,
-        setSelectionRegion,
-        selectableRegions,
-        addSelectableRegion,
-        selectedRegions,
-      }}
-    >
-      {props.children}
-    </SelectionContext.Provider>
-  );
+  selectableRegions: Map<TagType, Region>;
+  addSelectableRegion: (tag: TagType, selectableRegion: Region) => void;
+  selectedRegions: Map<TagType, Region>;
 };
 
-function SelectableRegionElement(props: {
-  children: ReactNode;
-  onSelectionStart?: () => void;
-  onSelectionEnd?: (selected: Map<object, Region>) => void;
-  onSelectionChange?: (selected: Map<object, Region>) => void;
-}) {
-  const { onSelectionStart, onSelectionEnd, onSelectionChange } = props;
-  const { selectionRegion, setSelectionRegion, selectedRegions } =
-    useContext(SelectionContext);
-  const [mouseDown, setMouseDown] = useState<boolean>(false);
-  const [selection, setSelection] = useState<Selection>({
-    start: { y: 0, x: 0 },
-    current: { y: 0, x: 0 },
-  });
+function createSelectionContextProiver<TagType>(
+  SelectionContext: Context<SelectionContextT<TagType>>
+) {
+  return (props: { children: ReactNode }) => {
+    const [selectionRegion, setSelectionRegion] = useState<Region>(initRegion);
+    const [selectableRegions, setSelectableRegions] = useState<
+      Map<TagType, Region>
+    >(new Map());
+    const [selectedRegions, setSelectedRegions] = useState<
+      Map<TagType, Region>
+    >(new Map());
 
-  useEffect(() => {
-    if (mouseDown) {
-      setSelectionRegion(selectionToRegion(selection));
-      if (onSelectionChange) onSelectionChange(selectedRegions);
-    }
-  }, [
-    mouseDown,
-    selection,
-    setSelectionRegion,
-    onSelectionChange,
-    selectedRegions,
-  ]);
+    useEffect(() => {
+      const selected = new Map(
+        Array.from(selectableRegions).filter(([_, region]) =>
+          regionsIntersect(selectionRegion, region)
+        )
+      );
+      setSelectedRegions(selected);
+    }, [selectionRegion, selectableRegions]);
 
-  return (
-    <div
-      onMouseDown={(evt) => {
-        setMouseDown(true);
-        setSelection({
-          ...selection,
-          start: { x: evt.pageX, y: evt.pageY },
-        });
-        if (onSelectionStart) onSelectionStart();
-      }}
-      onMouseUp={() => {
-        setMouseDown(false);
-        if (onSelectionEnd) onSelectionEnd(selectedRegions);
-      }}
-      onMouseMove={(evt) => {
-        setSelection({
-          ...selection,
-          current: { x: evt.pageX, y: evt.pageY },
-        });
-      }}
-    >
-      {props.children}
-      {mouseDown && (
-        <div
-          style={{
-            position: "absolute",
-            top: selectionRegion.top,
-            left: selectionRegion.left,
-            width: selectionRegion.right - selectionRegion.left,
-            height: selectionRegion.bottom - selectionRegion.top,
-            backgroundColor: "red",
-            opacity: 0.5,
-          }}
-        />
-      )}
-    </div>
-  );
-}
+    const addSelectableRegion = useCallback(
+      (tag: TagType, selectableRegion: Region) =>
+        setSelectableRegions(selectableRegions.set(tag, selectableRegion)),
+      [selectableRegions]
+    );
 
-export function SelectableRegion(props: {
-  children: ReactNode;
-  onSelectionStart?: () => void;
-  onSelectionEnd?: (selected: Map<object, Region>) => void;
-  onSelectionChange?: (selected: Map<object, Region>) => void;
-}) {
-  return (
-    <SelectionContextProvider>
-      <SelectableRegionElement
-        onSelectionStart={props.onSelectionStart}
-        onSelectionEnd={props.onSelectionEnd}
-        onSelectionChange={props.onSelectionChange}
+    return (
+      <SelectionContext.Provider
+        value={{
+          selectionRegion,
+          setSelectionRegion,
+          selectableRegions,
+          addSelectableRegion,
+          selectedRegions,
+        }}
       >
         {props.children}
-      </SelectableRegionElement>
-    </SelectionContextProvider>
-  );
+      </SelectionContext.Provider>
+    );
+  };
 }
 
-export function SelectableItem(props: { children: ReactNode; tag: object }) {
-  const divRef = useRef<HTMLDivElement | null>(null);
-  const { addSelectableRegion } = useContext(SelectionContext);
+function createSelectableRegionElement<TagType>(
+  SelectionContext: Context<SelectionContextT<TagType>>
+) {
+  return (props: {
+    children: ReactNode;
+    onSelectionStart?: () => void;
+    onSelectionEnd?: (selected: Map<TagType, Region>) => void;
+    onSelectionChange?: (selected: Map<TagType, Region>) => void;
+  }) => {
+    const { onSelectionStart, onSelectionEnd, onSelectionChange } = props;
+    const { selectionRegion, setSelectionRegion, selectedRegions } =
+      useContext(SelectionContext);
+    const [mouseDown, setMouseDown] = useState<boolean>(false);
+    const [selection, setSelection] = useState<Selection>({
+      start: { y: 0, x: 0 },
+      current: { y: 0, x: 0 },
+    });
 
-  useEffect(() => {
-    if (divRef.current)
-      addSelectableRegion(props.tag, divRef.current.getBoundingClientRect());
-  }, [props.tag, addSelectableRegion]);
+    useEffect(() => {
+      if (mouseDown) {
+        setSelectionRegion(selectionToRegion(selection));
+        if (onSelectionChange) onSelectionChange(selectedRegions);
+      }
+    }, [
+      mouseDown,
+      selection,
+      setSelectionRegion,
+      onSelectionChange,
+      selectedRegions,
+    ]);
 
-  return <div ref={divRef}>{props.children}</div>;
+    return (
+      <div
+        onMouseDown={(evt) => {
+          setMouseDown(true);
+          setSelection({
+            ...selection,
+            start: { x: evt.pageX, y: evt.pageY },
+          });
+          if (onSelectionStart) onSelectionStart();
+        }}
+        onMouseUp={() => {
+          setMouseDown(false);
+          if (onSelectionEnd) onSelectionEnd(selectedRegions);
+        }}
+        onMouseMove={(evt) => {
+          setSelection({
+            ...selection,
+            current: { x: evt.pageX, y: evt.pageY },
+          });
+        }}
+      >
+        {props.children}
+        {mouseDown && (
+          <div
+            style={{
+              position: "absolute",
+              top: selectionRegion.top,
+              left: selectionRegion.left,
+              width: selectionRegion.right - selectionRegion.left,
+              height: selectionRegion.bottom - selectionRegion.top,
+              backgroundColor: "red",
+              opacity: 0.5,
+            }}
+          />
+        )}
+      </div>
+    );
+  };
+}
+
+function createSelectableRegion<TagType>(
+  SelectionContext: Context<SelectionContextT<TagType>>
+) {
+  return (props: {
+    children: ReactNode;
+    onSelectionStart?: () => void;
+    onSelectionEnd?: (selected: Map<TagType, Region>) => void;
+    onSelectionChange?: (selected: Map<TagType, Region>) => void;
+  }) => {
+    const SelectionContextProvider =
+      createSelectionContextProiver(SelectionContext);
+    const SelectableRegionElement =
+      createSelectableRegionElement(SelectionContext);
+
+    return (
+      <SelectionContextProvider>
+        <SelectableRegionElement
+          onSelectionStart={props.onSelectionStart}
+          onSelectionEnd={props.onSelectionEnd}
+          onSelectionChange={props.onSelectionChange}
+        >
+          {props.children}
+        </SelectableRegionElement>
+      </SelectionContextProvider>
+    );
+  };
+}
+
+function createSelectableItem<TagType>(
+  SelectionContext: Context<SelectionContextT<TagType>>
+) {
+  return (props: { children: ReactNode; tag: TagType }) => {
+    const divRef = useRef<HTMLDivElement | null>(null);
+    const { addSelectableRegion } = useContext(SelectionContext);
+
+    useEffect(() => {
+      if (divRef.current)
+        addSelectableRegion(props.tag, divRef.current.getBoundingClientRect());
+    }, [props.tag, addSelectableRegion]);
+
+    return <div ref={divRef}>{props.children}</div>;
+  };
 }
 
 function selectionToRegion(selection: Selection): Region {
@@ -194,4 +210,19 @@ function regionsIntersect(first: Region, second: Region): boolean {
     first.top <= second.bottom &&
     first.bottom >= second.top
   );
+}
+
+export function useDragSelector<TagType>() {
+  const SelectionContext = createContext<SelectionContextT<TagType>>({
+    selectionRegion: initRegion,
+    setSelectionRegion: () => {},
+    selectableRegions: new Map(),
+    addSelectableRegion: () => {},
+    selectedRegions: new Map(),
+  });
+
+  return {
+    SelectableRegion: createSelectableRegion(SelectionContext),
+    SelectableItem: createSelectableItem(SelectionContext),
+  };
 }
