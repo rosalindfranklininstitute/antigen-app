@@ -1,26 +1,40 @@
-import { Typography, Grid, Stack, Divider } from "@mui/material";
+import { Typography, Grid, Stack, Box } from "@mui/material";
 import { ElisaPlateRef } from "../utils";
-import { ElisaPlateMapLegend } from "./legend";
-import { ElisaPlateThresholdSlider } from "./threshold_slider";
 import { ElisaWellElement } from "./well";
 
-export function ElisaWellMapElement(params: { elisaPlateRef: ElisaPlateRef }) {
+export function ElisaWellMap(params: { elisaPlateRef: ElisaPlateRef }) {
   return (
-    <Stack gap={2} divider={<Divider />}>
-      <Grid container spacing={2} columns={13}>
-        <Grid item xs={1} key={0} />
-        {Array.from({ length: 12 }, (_, col) => (
-          <Grid item xs={1} key={col + 1}>
-            <Typography>{col + 1}</Typography>
-          </Grid>
-        ))}
-        {Array.from({ length: 8 }, (_, row) => {
-          return [
-            <Grid item xs={1} key={(row + 1) * 13}>
+    <Grid container columns={13} spacing={2}>
+      <Grid item xs={1} />
+      <Grid item xs={12}>
+        <Stack width="100%" direction="row" spacing={2}>
+          {Array.from({ length: 12 }, (_, col) => (
+            <Typography align="center" key={col} flex={1}>
+              {col + 1}
+            </Typography>
+          ))}
+        </Stack>
+      </Grid>
+      <Grid item xs={1}>
+        <Stack height="100%" spacing={2}>
+          {Array.from({ length: 8 }, (_, row) => (
+            <Box
+              key={row}
+              flex={1}
+              alignItems="center"
+              justifyContent="center"
+              display="flex"
+            >
               <Typography>{String.fromCharCode(row + 65)}</Typography>
-            </Grid>,
+            </Box>
+          ))}
+        </Stack>
+      </Grid>
+      <Grid item xs={12}>
+        <Grid container columns={12} spacing={2}>
+          {Array.from({ length: 8 }, (_, row) =>
             Array.from({ length: 12 }, (_, col) => (
-              <Grid item xs={1} key={(row + 1) * 13 + col}>
+              <Grid item xs={1} key={row * 12 + col}>
                 <ElisaWellElement
                   elisaWellRef={{
                     project: params.elisaPlateRef.project,
@@ -29,12 +43,10 @@ export function ElisaWellMapElement(params: { elisaPlateRef: ElisaPlateRef }) {
                   }}
                 />
               </Grid>
-            )),
-          ];
-        })}
+            ))
+          ).flat()}
+        </Grid>
       </Grid>
-      <ElisaPlateThresholdSlider elisaPlateRef={params.elisaPlateRef} />
-      <ElisaPlateMapLegend elisaWellRef={params.elisaPlateRef} />
-    </Stack>
+    </Grid>
   );
 }

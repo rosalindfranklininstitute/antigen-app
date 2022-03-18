@@ -17,7 +17,9 @@ import {
   selectLoadingElisaPlate,
 } from "./slice";
 import { ElisaPlateInfo, ElisaPlateRef } from "./utils";
-import { ElisaWellMapElement } from "./well_map/well_map";
+import { ElisaPlateMapLegend } from "./well_map/legend";
+import { ElisaPlateThresholdSlider } from "./well_map/threshold_slider";
+import { ElisaWellMap } from "./well_map/well_map";
 
 type StrElisaPlateKey = { [K in keyof ElisaPlateRef]: string };
 
@@ -58,7 +60,11 @@ export default function ElisaPlateView() {
               <Tab label="Table" value="table" />
             </TabList>
             <TabPanel value="map" tabIndex={0}>
-              <ElisaWellMapElement elisaPlateRef={elisaPlate} />
+              <Stack gap={2} divider={<Divider />}>
+                <ElisaWellMap elisaPlateRef={elisaPlate} />
+                <ElisaPlateThresholdSlider elisaPlateRef={elisaPlate} />
+                <ElisaPlateMapLegend elisaWellRef={elisaPlate} />
+              </Stack>
             </TabPanel>
             <TabPanel value="table">
               <ElisaPlateInfo elisaPlateRef={elisaPlate} />
