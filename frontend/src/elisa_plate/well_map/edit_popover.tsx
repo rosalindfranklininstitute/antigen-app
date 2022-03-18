@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getElisaWell,
@@ -98,7 +98,7 @@ const AntigenAutocomplete = (params: {
 
   useEffect(() => {
     dispatch(getAntigens());
-  }, []);
+  }, [dispatch]);
 
   return (
     <Autocomplete
@@ -126,7 +126,7 @@ const NanobodyAutocomplete = (params: {
 
   useEffect(() => {
     dispatch(getNanobodies());
-  }, []);
+  }, [dispatch]);
 
   return (
     <Autocomplete
@@ -169,7 +169,7 @@ export function ElisaWellEditPopover(params: {
     dispatch(getNanobodies());
   }, [dispatch, params, elisaPlate]);
 
-  const updateElisaWell = () => {
+  const updateElisaWell = useCallback(() => {
     if (Object.values(elisaWell).every((val) => val !== undefined)) {
       if (initElisaWell) {
         dispatch(putElisaWell(elisaWell as ElisaWellRef & ElisaWellPost));
@@ -177,7 +177,7 @@ export function ElisaWellEditPopover(params: {
         dispatch(postElisaWell(elisaWell as ElisaWellRef & ElisaWellPost));
       }
     }
-  };
+  }, [dispatch, elisaWell, initElisaWell]);
 
   return (
     <SaveCancelPopover
