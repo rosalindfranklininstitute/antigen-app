@@ -1,8 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { URLSearchParams } from "url";
 import { putElisaPlate } from "../elisa_plate/slice";
-import { ElisaPlate, ElisaPlateRef } from "../elisa_plate/utils";
-import { ProjectRef } from "../project/utils";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
 import {
