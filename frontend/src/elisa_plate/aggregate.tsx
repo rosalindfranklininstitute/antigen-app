@@ -17,7 +17,7 @@ export default function ElisaPlatesView() {
   const loading = useSelector(selectLoadingElisaPlate);
 
   useEffect(() => {
-    dispatch(getElisaPlates());
+    dispatch(getElisaPlates({}));
   }, [dispatch]);
 
   if (loading)

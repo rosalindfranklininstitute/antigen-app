@@ -29,12 +29,12 @@ const initialElisaPlateState: ElisaPlateState = {
 
 export const getElisaPlates = createAsyncThunk<
   Array<ElisaPlate>,
-  void,
+  Partial<Pick<ElisaPlateRef, "project">>,
   { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "elisaPlates/getElisaPlates",
-  (_, { rejectWithValue }) =>
-    getAPI<Array<ElisaPlate>>("elisa_plate").catch((apiRejection) =>
+  (params, { rejectWithValue }) =>
+    getAPI<Array<ElisaPlate>>("elisa_plate", params).catch((apiRejection) =>
       rejectWithValue({ apiRejection })
     ),
   {
@@ -54,7 +54,8 @@ export const getElisaPlate = createAsyncThunk<
   "elisaPlates/getElisaPlate",
   (elisaPlateRef, { rejectWithValue }) =>
     getAPI<ElisaPlate>(
-      `elisa_plate/${elisaPlateRef.project}:${elisaPlateRef.number}`
+      `elisa_plate/${elisaPlateRef.project}:${elisaPlateRef.number}`,
+      {}
     ).catch((apiRejection) =>
       rejectWithValue({ elisaPlateRef: elisaPlateRef, apiRejection })
     ),
@@ -90,7 +91,10 @@ export const putElisaPlate = createAsyncThunk<
       elisaPlate,
       elisaWells: await Promise.all(
         elisaPlate.elisawell_set.map((elisaWellRef) =>
-          getAPI<ElisaWell>(`elisa_well/${serializeElisaWellRef(elisaWellRef)}`)
+          getAPI<ElisaWell>(
+            `elisa_well/${serializeElisaWellRef(elisaWellRef)}`,
+            {}
+          )
         )
       ),
     }),

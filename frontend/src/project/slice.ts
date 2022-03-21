@@ -34,7 +34,7 @@ export const getProjects = createAsyncThunk<
 >(
   "projects/getProjects",
   (_, { rejectWithValue }) =>
-    getAPI<Array<Project>>("project").catch((apiRejection) =>
+    getAPI<Array<Project>>("project", {}).catch((apiRejection) =>
       rejectWithValue({ apiRejection })
     ),
   {
@@ -50,7 +50,7 @@ export const getProject = createAsyncThunk<
 >(
   "projects/getProject",
   (projectRef, { rejectWithValue }) =>
-    getAPI<Project>(`project/${projectRef}`).catch((apiRejection) =>
+    getAPI<Project>(`project/${projectRef}`, {}).catch((apiRejection) =>
       rejectWithValue({ apiRejection })
     ),
   {

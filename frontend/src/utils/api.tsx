@@ -1,5 +1,6 @@
 import { LinearProgress, Paper, Typography } from "@mui/material";
 import { NotificationType } from "./notifications";
+import { stringify } from "querystring";
 
 export type APIRejection = Pick<Response, "status" | "statusText"> & {
   payload: { detail: string };
@@ -13,8 +14,12 @@ export const GetAPIRejection = async (
   payload: await response.json(),
 });
 
-export async function getAPI<Type>(uriFrag: string): Promise<Type> {
-  return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?format=json`).then(
+export async function getAPI<Type>(
+  uriFrag: string,
+  params: object
+): Promise<Type> {
+  const query = stringify({ ...params, format: "json" });
+  return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?${query}`).then(
     async (response) =>
       response.ok
         ? await response.json()
