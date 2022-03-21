@@ -22,10 +22,10 @@ import {
 import {
   getElisaWells,
   getElisaWell,
-  postElisaWell,
+  postElisaWells,
   putElisaWell,
 } from "../elisa_well/slice";
-import { getNanobodies, getNanobody, postNanobody } from "../nanobody/slice";
+import { getNanobodies, getNanobody, postNanobodies } from "../nanobody/slice";
 import { RootState } from "../store";
 import { APIRejection, SnackifyAPIRejection } from "./api";
 
@@ -62,10 +62,10 @@ const notificationSlice = createSlice({
     builder.addCase(postLocalAntigen.rejected, PostAPIRejectionSnack);
     builder.addCase(getNanobodies.rejected, PostAPIRejectionSnack);
     builder.addCase(getNanobody.rejected, PostAPIRejectionSnack);
-    builder.addCase(postNanobody.rejected, PostAPIRejectionSnack);
+    builder.addCase(postNanobodies.rejected, PostAPIRejectionSnack);
     builder.addCase(getElisaWells.rejected, PostAPIRejectionSnack);
     builder.addCase(getElisaWell.rejected, PostAPIRejectionSnack);
-    builder.addCase(postElisaWell.rejected, PostAPIRejectionSnack);
+    builder.addCase(postElisaWells.rejected, PostAPIRejectionSnack);
     builder.addCase(putElisaWell.rejected, PostAPIRejectionSnack);
     builder.addCase(getElisaPlates.rejected, PostAPIRejectionSnack);
     builder.addCase(getElisaPlate.rejected, PostAPIRejectionSnack);

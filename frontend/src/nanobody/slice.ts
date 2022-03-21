@@ -61,13 +61,13 @@ export const getNanobody = createAsyncThunk<
   }
 );
 
-export const postNanobody = createAsyncThunk<
-  Nanobody,
-  NanobodyPost,
+export const postNanobodies = createAsyncThunk<
+  Array<Nanobody>,
+  Array<NanobodyPost>,
   { rejectValue: { apiRejection: APIRejection } }
->("nanobodies/postNanobody", (post, { rejectWithValue }) =>
-  postAPI<NanobodyPost, Nanobody>("nanobody", post).catch((apiRejection) =>
-    rejectWithValue({ apiRejection })
+>("nanobodies/postNanobodies", (post, { rejectWithValue }) =>
+  postAPI<Array<NanobodyPost>, Array<Nanobody>>("nanobody", post).catch(
+    (apiRejection) => rejectWithValue({ apiRejection })
   )
 );
 
@@ -107,22 +107,18 @@ const nanobodySlice = createSlice({
         (pending) => !partialEq(pending, action.meta.arg)
       );
     });
-    builder.addCase(postNanobody.pending, (state) => {
+    builder.addCase(postNanobodies.pending, (state) => {
       state.postPending = true;
     });
-    builder.addCase(postNanobody.fulfilled, (state, action) => {
-      state.nanobodies = addUniqueByKeys(
-        state.nanobodies,
-        [action.payload],
-        ["project", "number"]
-      );
-      state.posted = state.posted.concat({
-        project: action.payload.project,
-        number: action.payload.number,
-      });
+    builder.addCase(postNanobodies.fulfilled, (state, action) => {
+      state.nanobodies = addUniqueByKeys(state.nanobodies, action.payload, [
+        "project",
+        "number",
+      ]);
+      state.posted = state.posted.concat(action.payload);
       state.postPending = false;
     });
-    builder.addCase(postNanobody.rejected, (state) => {
+    builder.addCase(postNanobodies.rejected, (state) => {
       state.postPending = false;
     });
   },

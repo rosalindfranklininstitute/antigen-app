@@ -14,7 +14,7 @@ import { NanobodyInfo } from "./utils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  postNanobody,
+  postNanobodies,
   selectLoadingNanobody,
   selectPostedNanobodies,
 } from "./slice";
@@ -27,7 +27,7 @@ export default function AddNanobodyView() {
   const currentProject = useSelector(selectCurrentProject);
 
   const submit = async () => {
-    if (currentProject) dispatch(postNanobody({ project: currentProject }));
+    if (currentProject) dispatch(postNanobodies([{ project: currentProject }]));
   };
 
   return (
