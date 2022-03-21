@@ -1,5 +1,6 @@
 from typing import Generic, Optional, OrderedDict, TypeVar
 
+from django_filters import CharFilter, FilterSet, NumberFilter
 from rest_framework.serializers import (
     CharField,
     IntegerField,
@@ -103,6 +104,12 @@ class ElisaWellRelatedField(RelatedField):
         return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
 
 
+class ProjectFilter(FilterSet):
+    """A filterset which allows filtering by project short title."""
+
+    project = CharFilter(field_name="project__short_title")
+
+
 class ProjectSerializer(ModelSerializer):
     """A serializer for project data which serializes all internal fields."""
 
@@ -148,6 +155,7 @@ class LocalAntigenViewSet(ModelViewSet):
 
     queryset = LocalAntigen.objects.all()
     serializer_class = LocalAntigenSerializer
+    filterset_class = ProjectFilter
     lookup_field = "key"
 
     create = create_possibly_multiple
@@ -177,6 +185,7 @@ class UniProtAntigenViewSet(ModelViewSet):
 
     queryset = UniProtAntigen.objects.all()
     serializer_class = UniProtAntigenSerialzer
+    filterset_class = ProjectFilter
     lookup_field = "key"
 
     create = create_possibly_multiple
@@ -232,6 +241,7 @@ class AntigenViewSet(ReadOnlyModelViewSet):
 
     queryset = Antigen.objects.all()
     serializer_class = AntigenSerializer
+    filterset_class = ProjectFilter
     lookup_field = "key"
 
 
@@ -264,6 +274,7 @@ class NanobodyViewSet(ModelViewSet):
 
     queryset = Nanobody.objects.all()
     serializer_class = NanobodySerializer
+    filterset_class = ProjectFilter
     lookup_field = "key"
 
     create = create_possibly_multiple
@@ -290,6 +301,7 @@ class ElisaPlateViewSet(ModelViewSet):
 
     queryset = ElisaPlate.objects.all()
     serializer_class = ElisaPlateSerializer
+    filterset_class = ProjectFilter
     lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
@@ -321,11 +333,19 @@ class ElisaWellSerializer(ModelSerializer):
         ]
 
 
+class ElisaWellFilterSet(FilterSet):
+    """A filterset which allows filtering by project short title and plate number."""
+
+    project = CharFilter("plate__project__short_title")
+    plate = NumberFilter("plate__number")
+
+
 class ElisaWellViewSet(ModelViewSet):
     """A view set displaying all recorded elisa wells."""
 
     queryset = ElisaWell.objects.all()
     serializer_class = ElisaWellSerializer
+    filterset_class = ElisaWellFilterSet
     lookup_field = "key"
 
     create = create_possibly_multiple
