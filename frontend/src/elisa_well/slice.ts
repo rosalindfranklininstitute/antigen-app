@@ -67,13 +67,13 @@ export const getElisaWell = createAsyncThunk<
   }
 );
 
-export const postElisaWell = createAsyncThunk<
-  ElisaWell,
-  ElisaWellPost,
+export const postElisaWells = createAsyncThunk<
+  Array<ElisaWell>,
+  Array<ElisaWellPost>,
   { rejectValue: { apiRejection: APIRejection } }
->("elisaWells/postElisaWell", (post, { rejectWithValue }) =>
-  postAPI<ElisaWellPost, ElisaWell>("elisa_well", post).catch((apiRejection) =>
-    rejectWithValue({ apiRejection: apiRejection })
+>("elisaWells/postElisaWells", (post, { rejectWithValue }) =>
+  postAPI<Array<ElisaWellPost>, Array<ElisaWell>>("elisa_well", post).catch(
+    (apiRejection) => rejectWithValue({ apiRejection: apiRejection })
   )
 );
 
@@ -127,23 +127,19 @@ const elisaWellSlice = createSlice({
         (pending) => !partialEq(pending, action.meta.arg.elisaWellRef)
       );
     });
-    builder.addCase(postElisaWell.pending, (state) => {
+    builder.addCase(postElisaWells.pending, (state) => {
       state.postPending = true;
     });
-    builder.addCase(postElisaWell.fulfilled, (state, action) => {
-      state.elisaWells = addUniqueByKeys(
-        state.elisaWells,
-        [action.payload],
-        ["project", "plate", "location"]
-      );
-      state.posted = state.posted.concat({
-        project: action.payload.project,
-        plate: action.payload.plate,
-        location: action.payload.location,
-      });
+    builder.addCase(postElisaWells.fulfilled, (state, action) => {
+      state.elisaWells = addUniqueByKeys(state.elisaWells, action.payload, [
+        "project",
+        "plate",
+        "location",
+      ]);
+      state.posted = state.posted.concat(action.payload);
       state.postPending = false;
     });
-    builder.addCase(postElisaWell.rejected, (state) => {
+    builder.addCase(postElisaWells.rejected, (state) => {
       state.postPending = false;
     });
     builder.addCase(putElisaWell.pending, (state) => {

@@ -2,7 +2,7 @@ import { ReactNode, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   getElisaWell,
-  postElisaWell,
+  postElisaWells,
   putElisaWell,
   selectElisaWell,
 } from "../../elisa_well/slice";
@@ -174,7 +174,7 @@ export function ElisaWellEditPopover(params: {
       if (initElisaWell) {
         dispatch(putElisaWell(elisaWell as ElisaWellRef & ElisaWellPost));
       } else {
-        dispatch(postElisaWell(elisaWell as ElisaWellRef & ElisaWellPost));
+        dispatch(postElisaWells([elisaWell as ElisaWellRef & ElisaWellPost]));
       }
     }
   }, [dispatch, elisaWell, initElisaWell]);
