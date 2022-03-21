@@ -10,8 +10,8 @@ import { selectElisaPlate } from "../slice";
 
 export function ElisaWellInfoPopover(params: {
   elisaWellRef: ElisaWellRef;
-  anchorEl: HTMLElement | null;
-  setAnchorEl: (anchorEl: HTMLAnchorElement | null) => void;
+  anchorEl: HTMLElement | undefined;
+  setAnchorEl: (anchorEl: undefined) => void;
 }) {
   const dispatch = useDispatch();
   const elisaPlate = useSelector(
@@ -56,7 +56,7 @@ export function ElisaWellInfoPopover(params: {
         vertical: "top",
         horizontal: "center",
       }}
-      onClose={() => params.setAnchorEl(null)}
+      onClose={() => params.setAnchorEl(undefined)}
       sx={{ pointerEvents: "none" }}
     >
       <Stack alignItems="center">

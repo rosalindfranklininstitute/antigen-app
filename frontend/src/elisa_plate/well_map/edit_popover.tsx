@@ -6,7 +6,7 @@ import {
   putElisaWell,
   selectElisaWell,
 } from "../../elisa_well/slice";
-import { ElisaWellRef, ElisaWellPost } from "../../elisa_well/utils";
+import { ElisaWellRef, ElisaWellPost, ElisaWell } from "../../elisa_well/utils";
 import { selectElisaPlate } from "../slice";
 import DoneIcon from "@mui/icons-material/Done";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -17,6 +17,7 @@ import {
 } from "../../antigen/slice";
 import {
   getNanobodies,
+  postNanobodies,
   selectNanobodies,
   selectNanobody,
 } from "../../nanobody/slice";
@@ -29,22 +30,27 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { partialEq } from "../../utils/state_management";
-import { RootState } from "../../store";
+import { partialEq, zip } from "../../utils/state_management";
+import { DispatchType, RootState } from "../../store";
 import { Antigen, AntigenRef } from "../../antigen/utils";
 import { Nanobody, NanobodyRef } from "../../nanobody/utils";
+
+export type AnchorPosition = { top: number; left: number };
 
 type ElisaWellState = ElisaWellRef & Partial<ElisaWellPost>;
 
 const SaveCancelPopover = (params: {
   children: ReactNode;
-  anchorEl: HTMLElement | null;
-  setAnchorEl: (anchorEl: HTMLElement | null) => void;
+  anchorEl?: HTMLElement;
+  anchorPosition?: AnchorPosition;
+  setAnchor: (anchorEl: undefined) => void;
   onSave: () => void;
 }) => (
   <Popover
-    open={Boolean(params.anchorEl)}
+    open={Boolean(params.anchorEl) || Boolean(params.anchorPosition)}
+    anchorReference={params.anchorEl ? "anchorEl" : "anchorPosition"}
     anchorEl={params.anchorEl}
+    anchorPosition={params.anchorPosition}
     anchorOrigin={{
       vertical: "center",
       horizontal: "center",
@@ -53,7 +59,7 @@ const SaveCancelPopover = (params: {
       vertical: "center",
       horizontal: "center",
     }}
-    onClose={() => params.setAnchorEl(null)}
+    onClose={() => params.setAnchor(undefined)}
   >
     <Card>
       <CardContent>
@@ -64,7 +70,7 @@ const SaveCancelPopover = (params: {
               variant="outlined"
               color="error"
               endIcon={<CancelIcon />}
-              onClick={() => params.setAnchorEl(null)}
+              onClick={() => params.setAnchor(undefined)}
             >
               Cancel
             </Button>
@@ -74,7 +80,7 @@ const SaveCancelPopover = (params: {
               endIcon={<DoneIcon />}
               onClick={() => {
                 params.onSave();
-                params.setAnchorEl(null);
+                params.setAnchor(undefined);
               }}
             >
               Save
@@ -97,7 +103,7 @@ const AntigenAutocomplete = (params: {
   );
 
   useEffect(() => {
-    dispatch(getAntigens());
+    dispatch(getAntigens({}));
   }, [dispatch]);
 
   return (
@@ -125,7 +131,7 @@ const NanobodyAutocomplete = (params: {
   );
 
   useEffect(() => {
-    dispatch(getNanobodies());
+    dispatch(getNanobodies({}));
   }, [dispatch]);
 
   return (
@@ -144,8 +150,8 @@ const NanobodyAutocomplete = (params: {
 
 export function ElisaWellEditPopover(params: {
   elisaWellRef: ElisaWellRef;
-  anchorEl: HTMLElement | null;
-  setAnchorEl: (anchorEl: HTMLElement | null) => void;
+  anchorEl: HTMLElement | undefined;
+  setAnchorEl: (anchorEl: undefined) => void;
 }) {
   const dispatch = useDispatch();
   const elisaPlate = useSelector(
@@ -166,7 +172,7 @@ export function ElisaWellEditPopover(params: {
       )
     )
       dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
-    dispatch(getNanobodies());
+    dispatch(getNanobodies({}));
   }, [dispatch, params, elisaPlate]);
 
   const updateElisaWell = useCallback(() => {
@@ -182,7 +188,7 @@ export function ElisaWellEditPopover(params: {
   return (
     <SaveCancelPopover
       anchorEl={params.anchorEl}
-      setAnchorEl={params.setAnchorEl}
+      setAnchor={params.setAnchorEl}
       onSave={updateElisaWell}
     >
       <AntigenAutocomplete
@@ -212,6 +218,74 @@ export function ElisaWellEditPopover(params: {
             ...elisaWell,
             optical_density: Number(evt.target.value),
           });
+        }}
+      />
+    </SaveCancelPopover>
+  );
+}
+
+export function ElisaWellsEditPopover(params: {
+  elisaWellRefs: Array<ElisaWellRef>;
+  anchorPosition: AnchorPosition | undefined;
+  setAnchorPosition: (anchorPosition: undefined) => void;
+}) {
+  const dispatch = useDispatch<DispatchType>();
+  const elisaWells = useSelector((state: RootState) =>
+    params.elisaWellRefs.map((elisaWellRef) =>
+      selectElisaWell(elisaWellRef)(state)
+    )
+  ).filter((elisaWell): elisaWell is ElisaWell => elisaWell !== undefined);
+  const [antigen, setAntigen] = useState<Antigen | null>(null);
+
+  const updateElisaWells = useCallback(() => {
+    if (!antigen) return;
+    const [filled, empty] = params.elisaWellRefs.reduce<
+      [Array<ElisaWell>, Array<ElisaWellRef>]
+    >(
+      ([f, e], elisaWellRef) => {
+        const elisaWell = elisaWells.find((elisaWell) =>
+          partialEq(elisaWell, elisaWellRef)
+        );
+        return elisaWell !== undefined
+          ? [f.concat(elisaWell), e]
+          : [f, e.concat(elisaWellRef)];
+      },
+      [[], []]
+    );
+    filled.forEach((elisaWell) => dispatch(putElisaWell(elisaWell)));
+    dispatch(
+      postNanobodies(
+        empty.map((emptyWell) => ({
+          project: emptyWell.project,
+        }))
+      )
+    ).then((response) => {
+      if (response.meta.requestStatus === "fulfilled")
+        dispatch(
+          postElisaWells(
+            zip(empty, response.payload as Array<Nanobody>).map(
+              ([elisaWellRef, nanobody]) => ({
+                ...elisaWellRef,
+                antigen,
+                nanobody,
+                optical_density: 0.0,
+              })
+            )
+          )
+        );
+    });
+  }, [dispatch, params.elisaWellRefs, elisaWells, antigen]);
+
+  return (
+    <SaveCancelPopover
+      anchorPosition={params.anchorPosition}
+      setAnchor={params.setAnchorPosition}
+      onSave={updateElisaWells}
+    >
+      <AntigenAutocomplete
+        initAntigen={undefined}
+        onChange={(antigen) => {
+          setAntigen(antigen);
         }}
       />
     </SaveCancelPopover>
