@@ -54,7 +54,11 @@ const PostAPIRejectionSnack = (
 const notificationSlice = createSlice({
   name: "notifications",
   initialState: initialNotificationsState,
-  reducers: {},
+  reducers: {
+    notify(state, action: PayloadAction<NotificationType>) {
+      state.notifications.push(action.payload as Draft<NotificationType>);
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(getAntigens.rejected, PostAPIRejectionSnack);
     builder.addCase(getAntigen.rejected, PostAPIRejectionSnack);
@@ -75,6 +79,7 @@ const notificationSlice = createSlice({
 });
 
 export const notificationsReducer = notificationSlice.reducer;
+export const { notify } = notificationSlice.actions;
 
 const selectNotifications = (state: RootState) =>
   state.notifications.notifications;
