@@ -104,10 +104,16 @@ class ElisaWellRelatedField(RelatedField):
         return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
 
 
-class ProjectFilter(FilterSet):
+class ProjectFilterSet(FilterSet):
     """A filterset which allows filtering by project short title."""
 
     project = CharFilter(field_name="project__short_title")
+
+
+class PlateFilterSet(ProjectFilterSet):
+    """A filterset which allows filtering by elisa well plate."""
+
+    plate = NumberFilter("elisawell__plate__number", distinct=True)
 
 
 class ProjectSerializer(ModelSerializer):
@@ -155,7 +161,7 @@ class LocalAntigenViewSet(ModelViewSet):
 
     queryset = LocalAntigen.objects.all()
     serializer_class = LocalAntigenSerializer
-    filterset_class = ProjectFilter
+    filterset_class = ProjectFilterSet
     lookup_field = "key"
 
     create = create_possibly_multiple
@@ -185,7 +191,7 @@ class UniProtAntigenViewSet(ModelViewSet):
 
     queryset = UniProtAntigen.objects.all()
     serializer_class = UniProtAntigenSerialzer
-    filterset_class = ProjectFilter
+    filterset_class = ProjectFilterSet
     lookup_field = "key"
 
     create = create_possibly_multiple
@@ -239,9 +245,12 @@ class AntigenSerializer(ModelSerializer):
 class AntigenViewSet(ReadOnlyModelViewSet):
     """A view set displaying all recorded antigens."""
 
+    class AntigenFilterSet(PlateFilterSet, ProjectFilterSet):  # noqa: D106
+        pass
+
     queryset = Antigen.objects.all()
     serializer_class = AntigenSerializer
-    filterset_class = ProjectFilter
+    filterset_class = AntigenFilterSet
     lookup_field = "key"
 
 
@@ -272,9 +281,12 @@ class NanobodySerializer(ModelSerializer):
 class NanobodyViewSet(ModelViewSet):
     """A view set displaying all recorded nanobodies."""
 
+    class NanobodyFilterSet(PlateFilterSet, ProjectFilterSet):  # noqa: D106
+        pass
+
     queryset = Nanobody.objects.all()
     serializer_class = NanobodySerializer
-    filterset_class = ProjectFilter
+    filterset_class = NanobodyFilterSet
     lookup_field = "key"
 
     create = create_possibly_multiple
@@ -301,7 +313,7 @@ class ElisaPlateViewSet(ModelViewSet):
 
     queryset = ElisaPlate.objects.all()
     serializer_class = ElisaPlateSerializer
-    filterset_class = ProjectFilter
+    filterset_class = ProjectFilterSet
     lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
