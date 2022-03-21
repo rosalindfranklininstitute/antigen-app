@@ -24,7 +24,10 @@ from antigenapi.models import (
     Sequence,
     UniProtAntigen,
 )
-from antigenapi.utils.permission import perform_create_allow_creator_change_delete
+from antigenapi.utils.viewsets import (
+    create_possibly_multiple,
+    perform_create_allow_creator_change_delete,
+)
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -147,6 +150,7 @@ class LocalAntigenViewSet(ModelViewSet):
     serializer_class = LocalAntigenSerializer
     lookup_field = "key"
 
+    create = create_possibly_multiple
     perform_create = perform_create_allow_creator_change_delete
 
 
@@ -175,6 +179,7 @@ class UniProtAntigenViewSet(ModelViewSet):
     serializer_class = UniProtAntigenSerialzer
     lookup_field = "key"
 
+    create = create_possibly_multiple
     perform_create = perform_create_allow_creator_change_delete
 
 
@@ -229,8 +234,6 @@ class AntigenViewSet(ReadOnlyModelViewSet):
     serializer_class = AntigenSerializer
     lookup_field = "key"
 
-    perform_create = perform_create_allow_creator_change_delete
-
 
 class NanobodySerializer(ModelSerializer):
     """A serializer for nanobody data.
@@ -263,6 +266,7 @@ class NanobodyViewSet(ModelViewSet):
     serializer_class = NanobodySerializer
     lookup_field = "key"
 
+    create = create_possibly_multiple
     perform_create = perform_create_allow_creator_change_delete
 
 
@@ -324,6 +328,7 @@ class ElisaWellViewSet(ModelViewSet):
     serializer_class = ElisaWellSerializer
     lookup_field = "key"
 
+    create = create_possibly_multiple
     perform_create = perform_create_allow_creator_change_delete
 
 
@@ -343,4 +348,5 @@ class SequenceViewSet(ModelViewSet):
     queryset = Sequence.objects.all()
     serializer_class = SequenceSerializer
 
+    create = create_possibly_multiple
     perform_create = perform_create_allow_creator_change_delete
