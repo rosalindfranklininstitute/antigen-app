@@ -1,8 +1,39 @@
 import { Typography, Grid, Stack, Box } from "@mui/material";
 import { ElisaPlateRef } from "../utils";
 import { ElisaWellElement } from "./well";
+import { Region, useDragSelector } from "./drag_selector";
+import { useCallback, useState } from "react";
+import { AnchorPosition, ElisaWellsEditPopover } from "./edit_popover";
+import { ElisaWellRef } from "../../elisa_well/utils";
 
 export function ElisaWellMap(params: { elisaPlateRef: ElisaPlateRef }) {
+  const [selectedWells, setSelectedWells] = useState<Array<ElisaWellRef>>([]);
+  const [editAnchorPosition, setEditAnchorPosition] = useState<
+    AnchorPosition | undefined
+  >(undefined);
+  const { SelectableRegion, SelectableItem } = useDragSelector<ElisaWellRef>();
+
+  const handleSelectionEnd = useCallback(
+    (selectedRegions: Map<ElisaWellRef, Region>) => {
+      if (selectedRegions.size > 1) {
+        setSelectedWells(Array.from(selectedRegions.keys()));
+        const bounds = Array.from(selectedRegions.values()).reduce(
+          (bounds, region) => ({
+            top: Math.min(bounds.top, region.top),
+            bottom: Math.max(bounds.bottom, region.bottom),
+            left: Math.min(bounds.left, region.left),
+            right: Math.max(bounds.right, region.right),
+          })
+        );
+        setEditAnchorPosition({
+          top: (bounds.top + bounds.bottom) / 2,
+          left: (bounds.left + bounds.right) / 2,
+        });
+      }
+    },
+    []
+  );
+
   return (
     <Grid container columns={13} spacing={2}>
       <Grid item xs={1} />
@@ -31,21 +62,31 @@ export function ElisaWellMap(params: { elisaPlateRef: ElisaPlateRef }) {
         </Stack>
       </Grid>
       <Grid item xs={12}>
-        <Grid container columns={12} spacing={2}>
-          {Array.from({ length: 8 }, (_, row) =>
-            Array.from({ length: 12 }, (_, col) => (
-              <Grid item xs={1} key={row * 12 + col}>
-                <ElisaWellElement
-                  elisaWellRef={{
-                    project: params.elisaPlateRef.project,
-                    plate: params.elisaPlateRef.number,
-                    location: row * 12 + col + 1,
-                  }}
-                />
-              </Grid>
-            ))
-          ).flat()}
-        </Grid>
+        <SelectableRegion onSelectionEnd={handleSelectionEnd}>
+          <Grid container columns={12} spacing={2}>
+            {Array.from({ length: 8 }, (_, row) =>
+              Array.from({ length: 12 }, (_, col) => {
+                const wellRef = {
+                  project: params.elisaPlateRef.project,
+                  plate: params.elisaPlateRef.number,
+                  location: row * 12 + col + 1,
+                };
+                return (
+                  <Grid item xs={1} key={wellRef.location}>
+                    <SelectableItem tag={wellRef}>
+                      <ElisaWellElement elisaWellRef={wellRef} />
+                    </SelectableItem>
+                  </Grid>
+                );
+              })
+            ).flat()}
+          </Grid>
+          <ElisaWellsEditPopover
+            elisaWellRefs={selectedWells}
+            anchorPosition={editAnchorPosition}
+            setAnchorPosition={setEditAnchorPosition}
+          />
+        </SelectableRegion>
       </Grid>
     </Grid>
   );

@@ -29,8 +29,12 @@ export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
     elisaWell ? selectNanobody(elisaWell.nanobody) : () => undefined
   );
 
-  const [infoAnchorEl, setInfoAnchorEl] = useState<HTMLElement | null>(null);
-  const [editAnchorEl, setEditAnchorEl] = useState<HTMLElement | null>(null);
+  const [infoAnchorEl, setInfoAnchorEl] = useState<HTMLElement | undefined>(
+    undefined
+  );
+  const [editAnchorEl, setEditAnchorEl] = useState<HTMLElement | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     if (
@@ -87,9 +91,9 @@ export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
             padding: "0 0 100% 0",
           }}
           onMouseEnter={(evt) => setInfoAnchorEl(evt.currentTarget)}
-          onMouseLeave={() => setInfoAnchorEl(null)}
+          onMouseLeave={() => setInfoAnchorEl(undefined)}
           onClick={(evt) => {
-            setInfoAnchorEl(null);
+            setInfoAnchorEl(undefined);
             setEditAnchorEl(evt.currentTarget);
           }}
         />
