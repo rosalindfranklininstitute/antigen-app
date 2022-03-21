@@ -37,12 +37,12 @@ const initialAntigenState: AntigenState = {
 
 export const getAntigens = createAsyncThunk<
   Antigen[],
-  void,
+  Partial<Pick<AntigenRef, "project">> | { plate?: number },
   { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "antigens/getAntigens",
-  (_, { rejectWithValue }) =>
-    getAPI<Antigen[]>("antigen").catch((apiRejection) =>
+  (params, { rejectWithValue }) =>
+    getAPI<Antigen[]>("antigen", params).catch((apiRejection) =>
       rejectWithValue({ apiRejection: apiRejection })
     ),
   {
@@ -61,9 +61,11 @@ export const getAntigen = createAsyncThunk<
 >(
   "antigens/getAntigen",
   async (antigenRef, { rejectWithValue }) =>
-    getAPI<Antigen>(`antigen/${antigenRef.project}:${antigenRef.number}`).catch(
-      (apiRejection) =>
-        rejectWithValue({ antigenRef: antigenRef, apiRejection })
+    getAPI<Antigen>(
+      `antigen/${antigenRef.project}:${antigenRef.number}`,
+      {}
+    ).catch((apiRejection) =>
+      rejectWithValue({ antigenRef: antigenRef, apiRejection })
     ),
   {
     condition: (antigenRef, { getState }) =>
@@ -80,7 +82,8 @@ export const postUniProtAntigen = createAsyncThunk<
   postAPI<UniProtAntigenPost, UniProtAntigen>("uniprot_antigen", post).then(
     (uniProtAntigen) =>
       getAPI<Antigen>(
-        `antigen/${uniProtAntigen.project}:${uniProtAntigen.number}`
+        `antigen/${uniProtAntigen.project}:${uniProtAntigen.number}`,
+        {}
       ).catch((apiRejection) => rejectWithValue({ apiRejection })),
     (apiRejection) => rejectWithValue({ apiRejection })
   )
@@ -94,7 +97,8 @@ export const postLocalAntigen = createAsyncThunk<
   postAPI<LocalAntigenPost, LocalAntigen>("local_antigen", post).then(
     (localAntigen) =>
       getAPI<Antigen>(
-        `antigen/${localAntigen.project}:${localAntigen.number}`
+        `antigen/${localAntigen.project}:${localAntigen.number}`,
+        {}
       ).catch((apiRejection) => rejectWithValue({ apiRejection })),
     (apiRejection) => rejectWithValue({ apiRejection })
   )

@@ -1,5 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { URLSearchParams } from "url";
 import { putElisaPlate } from "../elisa_plate/slice";
+import { ElisaPlate, ElisaPlateRef } from "../elisa_plate/utils";
+import { ProjectRef } from "../project/utils";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
 import {
@@ -33,12 +36,12 @@ const initialElisaWellState: ElisaWellState = {
 
 export const getElisaWells = createAsyncThunk<
   Array<ElisaWell>,
-  void,
+  Partial<Pick<ElisaWellRef, "project" | "plate">>,
   { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "elisaWells/getElisaWells",
-  (_, { rejectWithValue }) =>
-    getAPI<Array<ElisaWell>>("elisa_well").catch((apiRejection) =>
+  (params, { rejectWithValue }) =>
+    getAPI<Array<ElisaWell>>(`elisa_well`, params).catch((apiRejection) =>
       rejectWithValue({ apiRejection: apiRejection })
     ),
   {
@@ -55,7 +58,8 @@ export const getElisaWell = createAsyncThunk<
   "elisaWells/getElisaWell",
   ({ elisaWellRef }, { rejectWithValue }) =>
     getAPI<ElisaWell>(
-      `elisa_well/${elisaWellRef.project}:${elisaWellRef.plate}:${elisaWellRef.location}`
+      `elisa_well/${elisaWellRef.project}:${elisaWellRef.plate}:${elisaWellRef.location}`,
+      {}
     ).catch((apiRejection) => rejectWithValue({ apiRejection: apiRejection })),
   {
     condition: ({ elisaWellRef, force }, { getState }) =>

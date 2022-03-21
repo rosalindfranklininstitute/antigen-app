@@ -27,12 +27,12 @@ const initialNanobodyState: NanobodyState = {
 
 export const getNanobodies = createAsyncThunk<
   Array<Nanobody>,
-  void,
+  Partial<Pick<NanobodyRef, "project">> | { plate?: number },
   { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "nanobodies/getNanobodies",
-  (_, { rejectWithValue }) =>
-    getAPI<Array<Nanobody>>("nanobody").catch((apiRejection) =>
+  (params, { rejectWithValue }) =>
+    getAPI<Array<Nanobody>>("nanobody", params).catch((apiRejection) =>
       rejectWithValue({ apiRejection })
     ),
   {
@@ -51,7 +51,7 @@ export const getNanobody = createAsyncThunk<
 >(
   "nanobodies/getNanobody",
   (key, { rejectWithValue }) =>
-    getAPI<Nanobody>(`nanobody/${key.project}:${key.number}`).catch(
+    getAPI<Nanobody>(`nanobody/${key.project}:${key.number}`, {}).catch(
       (apiRejection) => rejectWithValue({ key, apiRejection })
     ),
   {

@@ -13,7 +13,7 @@ export default function AntigensView() {
   const loading = useSelector(selectLoadingAntigen);
 
   useEffect(() => {
-    dispatch(getAntigens());
+    dispatch(getAntigens({}));
   }, [dispatch]);
 
   if (loading)

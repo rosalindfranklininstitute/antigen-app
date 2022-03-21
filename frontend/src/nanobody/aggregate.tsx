@@ -17,7 +17,7 @@ export default function NanobodiesView() {
   const loading = useSelector(selectLoadingNanobody);
 
   useEffect(() => {
-    dispatch(getNanobodies());
+    dispatch(getNanobodies({}));
   }, [dispatch]);
 
   if (loading)

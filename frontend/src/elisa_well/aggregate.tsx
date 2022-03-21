@@ -21,7 +21,7 @@ export default function ElisaWellsView() {
   const loading = useSelector(selectLoadingElisaWell);
 
   useEffect(() => {
-    dispatch(getElisaWells());
+    dispatch(getElisaWells({}));
   }, [dispatch]);
 
   if (loading)
