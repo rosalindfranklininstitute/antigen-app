@@ -34,6 +34,7 @@ import { partialEq, zip } from "../../utils/state_management";
 import { DispatchType, RootState } from "../../store";
 import { Antigen, AntigenRef } from "../../antigen/utils";
 import { Nanobody, NanobodyRef } from "../../nanobody/utils";
+import { ProjectRef } from "../../project/utils";
 
 export type AnchorPosition = { top: number; left: number };
 
@@ -94,17 +95,22 @@ const SaveCancelPopover = (params: {
 
 const AntigenAutocomplete = (params: {
   initAntigen: AntigenRef | undefined;
+  project: ProjectRef | undefined;
   onChange: (antigen: Antigen | null) => void;
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<DispatchType>();
   const antigens = useSelector(selectAntigens);
   const initAntigen = useSelector((state: RootState) =>
     params.initAntigen ? selectAntigen(params.initAntigen)(state) : undefined
   );
+  const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    dispatch(getAntigens({}));
-  }, [dispatch]);
+  const loadAntigens = useCallback(() => {
+    setLoading(true);
+    dispatch(getAntigens({ project: params.project })).then(() =>
+      setLoading(false)
+    );
+  }, [dispatch, params.project]);
 
   return (
     <Autocomplete
@@ -116,22 +122,30 @@ const AntigenAutocomplete = (params: {
       getOptionLabel={(antigen) => antigen.name}
       defaultValue={initAntigen}
       onChange={(_, antigen) => params.onChange(antigen)}
+      onOpen={loadAntigens}
+      loading={loading}
     />
   );
 };
 
 const NanobodyAutocomplete = (params: {
   initNanobody: NanobodyRef | undefined;
+  project: ProjectRef;
   onChange: (nanobody: Nanobody | null) => void;
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<DispatchType>();
   const nanobodies = useSelector(selectNanobodies);
   const initNanobody = useSelector((state: RootState) =>
     params.initNanobody ? selectNanobody(params.initNanobody)(state) : undefined
   );
+  const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    dispatch(getNanobodies({}));
+  const loadNanobodies = useCallback(() => {
+    setLoading(true);
+    console.log("Dispatching");
+    dispatch(getNanobodies({ project: params.project })).then(() =>
+      setLoading(false)
+    );
   }, [dispatch]);
 
   return (
@@ -144,6 +158,8 @@ const NanobodyAutocomplete = (params: {
       getOptionLabel={(nanobody) => nanobody.name}
       defaultValue={initNanobody}
       onChange={(_, nanobody) => params.onChange(nanobody)}
+      loading={loading}
+      onOpen={loadNanobodies}
     />
   );
 };
@@ -166,13 +182,7 @@ export function ElisaWellEditPopover(params: {
   );
 
   useEffect(() => {
-    if (
-      elisaPlate?.elisawell_set.find((well) =>
-        partialEq(well, params.elisaWellRef)
-      )
-    )
-      dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
-    dispatch(getNanobodies({}));
+    dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
   }, [dispatch, params, elisaPlate]);
 
   const updateElisaWell = useCallback(() => {
@@ -193,6 +203,7 @@ export function ElisaWellEditPopover(params: {
     >
       <AntigenAutocomplete
         initAntigen={elisaWell.antigen}
+        project={elisaWell.project}
         onChange={(antigen) =>
           setElisaWell({
             ...elisaWell,
@@ -202,6 +213,7 @@ export function ElisaWellEditPopover(params: {
       />
       <NanobodyAutocomplete
         initNanobody={elisaWell.nanobody}
+        project={elisaWell.project}
         onChange={(nanobody) =>
           setElisaWell({
             ...elisaWell,
@@ -284,6 +296,9 @@ export function ElisaWellsEditPopover(params: {
     >
       <AntigenAutocomplete
         initAntigen={undefined}
+        project={
+          params.elisaWellRefs[0] ? params.elisaWellRefs[0].project : undefined
+        }
         onChange={(antigen) => {
           setAntigen(antigen);
         }}
