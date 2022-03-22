@@ -3,9 +3,8 @@ import { RootState } from "../store";
 import { getAPI, postAPI, APIRejection } from "../utils/api";
 import {
   addUniqueByKeys,
-  AllFetched,
-  filterPartial,
   intersectPartial,
+  isEqual,
   partialEq,
 } from "../utils/state_management";
 import {
@@ -19,8 +18,8 @@ import {
 
 type AntigenState = {
   antigens: Array<Antigen>;
-  allFetched: AllFetched;
-  fetchPending: Array<AntigenRef>;
+  fetched: Array<Partial<AntigenRef> & { plate?: number }>;
+  fetchPending: Array<Partial<AntigenRef> & { plate?: number }>;
   postedUniProt: Array<AntigenRef>;
   postedLocal: Array<AntigenRef>;
   postPending: boolean;
@@ -28,7 +27,7 @@ type AntigenState = {
 
 const initialAntigenState: AntigenState = {
   antigens: [],
-  allFetched: AllFetched.False,
+  fetched: [],
   fetchPending: [],
   postedUniProt: [],
   postedLocal: [],
@@ -46,14 +45,16 @@ export const getAntigens = createAsyncThunk<
       rejectWithValue({ apiRejection: apiRejection })
     ),
   {
-    condition: (_, { getState }) =>
-      getState().antigens.allFetched === AllFetched.False,
+    condition: (params, { getState }) =>
+      !getState()
+        .antigens.fetched.concat(getState().antigens.fetchPending)
+        .some((got) => partialEq(params, got)),
   }
 );
 
 export const getAntigen = createAsyncThunk<
   Antigen,
-  AntigenRef,
+  AntigenRef & { plate?: number },
   {
     state: RootState;
     rejectValue: { antigenRef: AntigenRef; apiRejection: APIRejection };
@@ -69,8 +70,19 @@ export const getAntigen = createAsyncThunk<
     ),
   {
     condition: (antigenRef, { getState }) =>
-      filterPartial(getState().antigens.antigens, antigenRef).length === 0 &&
-      filterPartial(getState().antigens.fetchPending, antigenRef).length === 0,
+      !getState()
+        .antigens.fetched.concat(getState().antigens.fetchPending)
+        .some(
+          (got) =>
+            partialEq(
+              { project: antigenRef.project, number: antigenRef.number },
+              got
+            ) ||
+            partialEq(
+              { project: antigenRef.project, plate: antigenRef.plate },
+              got
+            )
+        ),
   }
 );
 
@@ -109,18 +121,23 @@ const antigenSlice = createSlice({
   initialState: initialAntigenState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(getAntigens.pending, (state) => {
-      state.allFetched = AllFetched.Pending;
+    builder.addCase(getAntigens.pending, (state, action) => {
+      state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getAntigens.fulfilled, (state, action) => {
       state.antigens = addUniqueByKeys(state.antigens, action.payload, [
         "project",
         "number",
       ]);
-      state.allFetched = AllFetched.True;
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => !isEqual(pending, action.meta.arg)
+      );
+      state.fetched = state.fetched.concat(action.meta.arg);
     });
-    builder.addCase(getAntigens.rejected, (state) => {
-      state.allFetched = AllFetched.False;
+    builder.addCase(getAntigens.rejected, (state, action) => {
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => !isEqual(pending, action.meta.arg)
+      );
     });
     builder.addCase(getAntigen.pending, (state, action) => {
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
@@ -134,6 +151,7 @@ const antigenSlice = createSlice({
       state.fetchPending = state.fetchPending.filter(
         (pending) => !partialEq(pending, action.meta.arg)
       );
+      state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getAntigen.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
@@ -179,8 +197,7 @@ export const selectAntigens = (state: RootState) => state.antigens.antigens;
 export const selectAntigen = (antigenRef: AntigenRef) => (state: RootState) =>
   state.antigens.antigens.find((antigen) => partialEq(antigen, antigenRef));
 export const selectLoadingAntigen = (state: RootState) =>
-  state.antigens.allFetched === AllFetched.Pending ||
-  Boolean(state.antigens.fetchPending.length);
+  Boolean(state.nanobodies.fetchPending.length);
 export const selectPostedUniProtAntigens = (state: RootState) =>
   intersectPartial(state.antigens.antigens, state.antigens.postedUniProt);
 export const selectPostedLocalAntignes = (state: RootState) =>

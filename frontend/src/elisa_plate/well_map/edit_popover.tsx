@@ -142,7 +142,6 @@ const NanobodyAutocomplete = (params: {
 
   const loadNanobodies = useCallback(() => {
     setLoading(true);
-    console.log("Dispatching");
     dispatch(getNanobodies({ project: params.project })).then(() =>
       setLoading(false)
     );

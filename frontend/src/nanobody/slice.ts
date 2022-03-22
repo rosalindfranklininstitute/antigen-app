@@ -4,22 +4,22 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import {
   addUniqueByKeys,
-  AllFetched,
   filterPartial,
+  isEqual,
   partialEq,
 } from "../utils/state_management";
 
 type NanobodyState = {
   nanobodies: Nanobody[];
-  allFetched: AllFetched;
-  fetchPending: NanobodyRef[];
-  posted: NanobodyRef[];
+  fetched: Array<Partial<NanobodyRef> & { plate?: number }>;
+  fetchPending: Array<Partial<NanobodyRef> & { plate?: number }>;
+  posted: Array<NanobodyRef>;
   postPending: boolean;
 };
 
 const initialNanobodyState: NanobodyState = {
   nanobodies: [],
-  allFetched: AllFetched.False,
+  fetched: [],
   fetchPending: [],
   posted: [],
   postPending: false,
@@ -27,7 +27,7 @@ const initialNanobodyState: NanobodyState = {
 
 export const getNanobodies = createAsyncThunk<
   Array<Nanobody>,
-  Partial<Pick<NanobodyRef, "project">> | { plate?: number },
+  Partial<Pick<NanobodyRef, "project">> & { plate?: number },
   { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "nanobodies/getNanobodies",
@@ -36,14 +36,16 @@ export const getNanobodies = createAsyncThunk<
       rejectWithValue({ apiRejection })
     ),
   {
-    condition: (_, { getState }) =>
-      getState().nanobodies.allFetched === AllFetched.False,
+    condition: (params, { getState }) =>
+      !getState()
+        .nanobodies.fetched.concat(getState().nanobodies.fetchPending)
+        .some((got) => partialEq(params, got)),
   }
 );
 
 export const getNanobody = createAsyncThunk<
   Nanobody,
-  NanobodyRef,
+  NanobodyRef & { plate?: number },
   {
     state: RootState;
     rejectValue: { key: NanobodyRef; apiRejection: APIRejection };
@@ -55,9 +57,20 @@ export const getNanobody = createAsyncThunk<
       (apiRejection) => rejectWithValue({ key, apiRejection })
     ),
   {
-    condition: (key, { getState }) =>
-      filterPartial(getState().nanobodies.nanobodies, key).length === 0 &&
-      filterPartial(getState().nanobodies.fetchPending, key).length === 0,
+    condition: (nanobodyRef, { getState }) =>
+      !getState()
+        .nanobodies.fetched.concat(getState().nanobodies.fetchPending)
+        .some(
+          (got) =>
+            partialEq(
+              { project: nanobodyRef.project, number: nanobodyRef.number },
+              got
+            ) ||
+            partialEq(
+              { project: nanobodyRef.project, plate: nanobodyRef.plate },
+              got
+            )
+        ),
   }
 );
 
@@ -76,18 +89,23 @@ const nanobodySlice = createSlice({
   initialState: initialNanobodyState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(getNanobodies.pending, (state) => {
-      state.allFetched = AllFetched.Pending;
+    builder.addCase(getNanobodies.pending, (state, action) => {
+      state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getNanobodies.fulfilled, (state, action) => {
       state.nanobodies = addUniqueByKeys(state.nanobodies, action.payload, [
         "project",
         "number",
       ]);
-      state.allFetched = AllFetched.True;
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => !isEqual(pending, action.meta.arg)
+      );
+      state.fetched = state.fetched.concat(action.meta.arg);
     });
-    builder.addCase(getNanobodies.rejected, (state) => {
-      state.allFetched = AllFetched.False;
+    builder.addCase(getNanobodies.rejected, (state, action) => {
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => !isEqual(pending, action.meta.arg)
+      );
     });
     builder.addCase(getNanobody.pending, (state, action) => {
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
@@ -99,12 +117,13 @@ const nanobodySlice = createSlice({
         ["project", "number"]
       );
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg)
+        (pending) => !isEqual(pending, action.meta.arg)
       );
+      state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getNanobody.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg)
+        (pending) => !isEqual(pending, action.meta.arg)
       );
     });
     builder.addCase(postNanobodies.pending, (state) => {
@@ -134,7 +153,6 @@ export const selectNanobody =
       partialEq(nanobody, nanobodyRef)
     );
 export const selectLoadingNanobody = (state: RootState) =>
-  state.nanobodies.allFetched === AllFetched.Pending ||
   Boolean(state.nanobodies.fetchPending.length);
 export const selectPostedNanobodies = (state: RootState) =>
   state.nanobodies.posted.flatMap((posted) =>
