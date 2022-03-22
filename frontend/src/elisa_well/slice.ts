@@ -2,12 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { putElisaPlate } from "../elisa_plate/slice";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
-import {
-  addUniqueByKeys,
-  AllFetched,
-  filterPartial,
-  partialEq,
-} from "../utils/state_management";
+import { addUniqueByKeys, isEqual, partialEq } from "../utils/state_management";
 import {
   ElisaWell,
   ElisaWellRef,
@@ -16,16 +11,16 @@ import {
 } from "./utils";
 
 type ElisaWellState = {
-  elisaWells: ElisaWell[];
-  allFetched: AllFetched;
-  fetchPending: ElisaWellRef[];
-  posted: ElisaWellRef[];
+  elisaWells: Array<ElisaWell>;
+  fetched: Array<Partial<ElisaWellRef>>;
+  fetchPending: Array<Partial<ElisaWellRef>>;
+  posted: Array<ElisaWellRef>;
   postPending: boolean;
 };
 
 const initialElisaWellState: ElisaWellState = {
   elisaWells: [],
-  allFetched: AllFetched.False,
+  fetched: [],
   fetchPending: [],
   posted: [],
   postPending: false,
@@ -42,8 +37,10 @@ export const getElisaWells = createAsyncThunk<
       rejectWithValue({ apiRejection: apiRejection })
     ),
   {
-    condition: (_, { getState }) =>
-      getState().elisaWells.allFetched === AllFetched.False,
+    condition: (params, { getState }) =>
+      !getState()
+        .elisaWells.fetched.concat(getState().elisaWells.fetchPending)
+        .some((got) => partialEq(params, got)),
   }
 );
 
@@ -61,10 +58,9 @@ export const getElisaWell = createAsyncThunk<
   {
     condition: ({ elisaWellRef, force }, { getState }) =>
       force ||
-      (filterPartial(getState().elisaWells.elisaWells, elisaWellRef).length ===
-        0 &&
-        filterPartial(getState().elisaWells.fetchPending, elisaWellRef)
-          .length === 0),
+      !getState()
+        .elisaWells.fetched.concat(getState().elisaWells.fetchPending)
+        .some((got) => partialEq(elisaWellRef, got)),
   }
 );
 
@@ -94,8 +90,8 @@ const elisaWellSlice = createSlice({
   initialState: initialElisaWellState,
   reducers: {},
   extraReducers: (builder) => {
-    builder.addCase(getElisaWells.pending, (state) => {
-      state.allFetched = AllFetched.Pending;
+    builder.addCase(getElisaWells.pending, (state, action) => {
+      state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getElisaWells.fulfilled, (state, action) => {
       state.elisaWells = addUniqueByKeys(state.elisaWells, action.payload, [
@@ -103,10 +99,15 @@ const elisaWellSlice = createSlice({
         "plate",
         "location",
       ]);
-      state.allFetched = AllFetched.True;
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => !isEqual(pending, action.meta.arg)
+      );
+      state.fetched = state.fetched.concat(action.meta.arg);
     });
-    builder.addCase(getElisaWells.rejected, (state) => {
-      state.allFetched = AllFetched.False;
+    builder.addCase(getElisaWells.rejected, (state, action) => {
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => !isEqual(pending, action.meta.arg)
+      );
     });
     builder.addCase(getElisaWell.pending, (state, action) => {
       state.fetchPending = state.fetchPending.concat(
@@ -120,12 +121,13 @@ const elisaWellSlice = createSlice({
         ["project", "plate", "location"]
       );
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg.elisaWellRef)
+        (pending) => !isEqual(pending, action.meta.arg.elisaWellRef)
       );
+      state.fetched = state.fetched.concat(action.meta.arg.elisaWellRef);
     });
     builder.addCase(getElisaWell.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg.elisaWellRef)
+        (pending) => !isEqual(pending, action.meta.arg.elisaWellRef)
       );
     });
     builder.addCase(postElisaWells.pending, (state) => {
@@ -182,5 +184,4 @@ export const selectElisaWell =
       partialEq(elisaWell, elisaWellRef)
     );
 export const selectLoadingElisaWell = (state: RootState) =>
-  state.elisaWells.allFetched === AllFetched.Pending ||
   Boolean(state.elisaWells.fetchPending.length);

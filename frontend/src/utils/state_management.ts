@@ -19,6 +19,12 @@ export function addUniqueByKeys<Type>(
   );
 }
 
+export function isEqual<Type>(obj: Type, other: Type): boolean {
+  return (Object.keys(obj) as Array<keyof Type>).every(
+    (key) => obj[key] === other[key]
+  );
+}
+
 export function partialEq<Type>(obj: Type, partial: Partial<Type>): boolean {
   return (Object.keys(partial) as Array<keyof Type>).every(
     (key) => partial[key] === obj[key]

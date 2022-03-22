@@ -33,8 +33,8 @@ export default function ElisaWellView() {
   }, [dispatch, project, plate, location]);
   useEffect(() => {
     if (elisaWell) {
-      dispatch(getAntigen(elisaWell.antigen));
-      dispatch(getNanobody(elisaWell.nanobody));
+      dispatch(getAntigen({ ...elisaWell.antigen, plate: elisaWell.plate }));
+      dispatch(getNanobody({ ...elisaWell.nanobody, plate: elisaWell.plate }));
     }
   }, [dispatch, elisaWell]);
 
