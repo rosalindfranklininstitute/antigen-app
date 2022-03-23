@@ -12,7 +12,6 @@ import {
   getElisaWells,
   postElisaWells,
   putElisaWell,
-  selectElisaWell,
 } from "../../elisa_well/slice";
 import { DispatchType, RootState } from "../../store";
 import { keyEq, partialEq, zip } from "../../utils/state_management";
@@ -48,12 +47,6 @@ export const ElisaWellMapContext = createContext<{
   getNanobody: () => undefined,
 });
 
-const selectRemoteElisaWells =
-  (elisaWellSet: Array<ElisaWellRef>) => (state: RootState) =>
-    elisaWellSet
-      .map((elisaWellRef) => selectElisaWell(elisaWellRef)(state))
-      .filter((elisaWell): elisaWell is ElisaWell => elisaWell !== undefined);
-
 export const ElisaWellMapContextProvider = (params: {
   children: ReactNode;
   elisaPlateRef: ElisaPlateRef;
@@ -64,8 +57,12 @@ export const ElisaWellMapContextProvider = (params: {
     selectElisaPlate(params.elisaPlateRef)
   ) as ElisaPlate;
 
-  const elisaWells = useSelector(
-    selectRemoteElisaWells(elisaPlate.elisawell_set)
+  const elisaWells = useSelector((state: RootState) =>
+    state.elisaWells.elisaWells.filter(
+      (elisaWell) =>
+        elisaWell.project === params.elisaPlateRef.project &&
+        elisaWell.plate === params.elisaPlateRef.number
+    )
   );
 
   const antigens = useSelector((state: RootState) =>
