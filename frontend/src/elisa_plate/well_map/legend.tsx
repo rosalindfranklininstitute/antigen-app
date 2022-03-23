@@ -9,7 +9,7 @@ import { Nanobody, NanobodyRef } from "../../nanobody/utils";
 import { RootState } from "../../store";
 import { selectElisaPlate } from "../slice";
 import { ElisaPlate, ElisaPlateRef } from "../utils";
-import { objToColor } from "./utils";
+import { numToColor } from "./utils";
 
 export function ElisaPlateMapLegend(params: { elisaWellRef: ElisaPlateRef }) {
   const elisaPlate = useSelector(
@@ -38,7 +38,7 @@ export function ElisaPlateMapLegend(params: { elisaWellRef: ElisaPlateRef }) {
     <Stack direction="row" spacing={1}>
       <Paper
         sx={{
-          background: `${objToColor(params.elisaWellRef)}`,
+          background: `${numToColor(params.elisaWellRef.number)}`,
           display: "table-row",
           aspectRatio: "1",
         }}

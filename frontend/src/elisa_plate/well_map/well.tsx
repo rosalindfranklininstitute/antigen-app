@@ -3,7 +3,7 @@ import { useContext, useState } from "react";
 import { ElisaWellRef } from "../../elisa_well/utils";
 import { ElisaWellEditPopover } from "./edit_popover";
 import { ElisaWellInfoPopover } from "./info_popover";
-import { objToColor } from "./utils";
+import { numToColor } from "./utils";
 import { ElisaWellMapContext } from "./well_map_context";
 
 export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
@@ -20,8 +20,8 @@ export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
     undefined
   );
 
-  const antigenColor = objToColor(antigen);
-  const nanobodyColor = objToColor(nanobody);
+  const antigenColor = numToColor(antigen?.number);
+  const nanobodyColor = numToColor(nanobody?.number);
 
   return (
     <Badge
