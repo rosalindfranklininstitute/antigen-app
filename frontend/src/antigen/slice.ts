@@ -2,9 +2,9 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { getAPI, postAPI, APIRejection } from "../utils/api";
 import {
-  addUniqueByKeys,
+  mergeByKeys,
   intersectPartial,
-  isEqual,
+  propsEq,
   partialEq,
 } from "../utils/state_management";
 import {
@@ -125,25 +125,25 @@ const antigenSlice = createSlice({
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getAntigens.fulfilled, (state, action) => {
-      state.antigens = addUniqueByKeys(state.antigens, action.payload, [
+      state.antigens = mergeByKeys(state.antigens, action.payload, [
         "project",
         "number",
       ]);
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getAntigens.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
     });
     builder.addCase(getAntigen.pending, (state, action) => {
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getAntigen.fulfilled, (state, action) => {
-      state.antigens = addUniqueByKeys(
+      state.antigens = mergeByKeys(
         state.antigens,
         [action.payload],
         ["project", "number"]
@@ -162,7 +162,7 @@ const antigenSlice = createSlice({
       state.postPending = true;
     });
     builder.addCase(postUniProtAntigen.fulfilled, (state, action) => {
-      state.antigens = addUniqueByKeys(
+      state.antigens = mergeByKeys(
         state.antigens,
         [action.payload],
         ["project", "number"]
@@ -177,7 +177,7 @@ const antigenSlice = createSlice({
       state.postPending = true;
     });
     builder.addCase(postLocalAntigen.fulfilled, (state, action) => {
-      state.antigens = addUniqueByKeys(
+      state.antigens = mergeByKeys(
         state.antigens,
         [action.payload],
         ["project", "number"]

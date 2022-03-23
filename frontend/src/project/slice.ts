@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI } from "../utils/api";
 import {
-  addUniqueByKeys,
+  mergeByKeys,
   AllFetched,
   filterPartial,
   partialEq,
@@ -84,7 +84,7 @@ const projectSlice = createSlice({
       state.allFetched = AllFetched.Pending;
     });
     builder.addCase(getProjects.fulfilled, (state, action) => {
-      state.projects = addUniqueByKeys(state.projects, action.payload, [
+      state.projects = mergeByKeys(state.projects, action.payload, [
         "short_title",
       ]);
       state.allFetched = AllFetched.True;
@@ -96,7 +96,7 @@ const projectSlice = createSlice({
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getProject.fulfilled, (state, action) => {
-      state.projects = addUniqueByKeys(
+      state.projects = mergeByKeys(
         state.projects,
         [action.payload],
         ["short_title"]
@@ -113,7 +113,7 @@ const projectSlice = createSlice({
       state.postPending.concat(action.meta.arg.short_title);
     });
     builder.addCase(postProject.fulfilled, (state, action) => {
-      state.projects = addUniqueByKeys(
+      state.projects = mergeByKeys(
         state.projects,
         [action.payload],
         ["short_title"]

@@ -2,42 +2,17 @@ import { Typography, Grid, Stack, Box } from "@mui/material";
 import { ElisaPlateRef } from "../utils";
 import { ElisaWellElement } from "./well";
 import { Region, useDragSelector } from "./drag_selector";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AnchorPosition, ElisaWellsEditPopover } from "./edit_popover";
 import { ElisaWellRef } from "../../elisa_well/utils";
-import { useDispatch } from "react-redux";
-import { getNanobodies } from "../../nanobody/slice";
-import { getAntigens } from "../../antigen/slice";
-import { getElisaWells } from "../../elisa_well/slice";
+import { ElisaWellMapContextProvider } from "./well_map_context";
 
 export function ElisaWellMap(params: { elisaPlateRef: ElisaPlateRef }) {
-  const dispatch = useDispatch();
   const [selectedWells, setSelectedWells] = useState<Array<ElisaWellRef>>([]);
   const [editAnchorPosition, setEditAnchorPosition] = useState<
     AnchorPosition | undefined
   >(undefined);
   const { SelectableRegion, SelectableItem } = useDragSelector<ElisaWellRef>();
-
-  useEffect(() => {
-    dispatch(
-      getElisaWells({
-        project: params.elisaPlateRef.project,
-        plate: params.elisaPlateRef.number,
-      })
-    );
-    dispatch(
-      getAntigens({
-        project: params.elisaPlateRef.project,
-        plate: params.elisaPlateRef.number,
-      })
-    );
-    dispatch(
-      getNanobodies({
-        project: params.elisaPlateRef.project,
-        plate: params.elisaPlateRef.number,
-      })
-    );
-  }, [dispatch, params.elisaPlateRef]);
 
   const handleSelectionEnd = useCallback(
     (selectedRegions: Map<ElisaWellRef, Region>) => {
@@ -88,31 +63,33 @@ export function ElisaWellMap(params: { elisaPlateRef: ElisaPlateRef }) {
         </Stack>
       </Grid>
       <Grid item xs={12}>
-        <SelectableRegion onSelectionEnd={handleSelectionEnd}>
-          <Grid container columns={12} spacing={2}>
-            {Array.from({ length: 8 }, (_, row) =>
-              Array.from({ length: 12 }, (_, col) => {
-                const wellRef = {
-                  project: params.elisaPlateRef.project,
-                  plate: params.elisaPlateRef.number,
-                  location: row * 12 + col + 1,
-                };
-                return (
-                  <Grid item xs={1} key={wellRef.location}>
-                    <SelectableItem tag={wellRef}>
-                      <ElisaWellElement elisaWellRef={wellRef} />
-                    </SelectableItem>
-                  </Grid>
-                );
-              })
-            ).flat()}
-          </Grid>
-          <ElisaWellsEditPopover
-            elisaWellRefs={selectedWells}
-            anchorPosition={editAnchorPosition}
-            setAnchorPosition={setEditAnchorPosition}
-          />
-        </SelectableRegion>
+        <ElisaWellMapContextProvider elisaPlateRef={params.elisaPlateRef}>
+          <SelectableRegion onSelectionEnd={handleSelectionEnd}>
+            <Grid container columns={12} spacing={2}>
+              {Array.from({ length: 8 }, (_, row) =>
+                Array.from({ length: 12 }, (_, col) => {
+                  const wellRef = {
+                    project: params.elisaPlateRef.project,
+                    plate: params.elisaPlateRef.number,
+                    location: row * 12 + col + 1,
+                  };
+                  return (
+                    <Grid item xs={1} key={wellRef.location}>
+                      <SelectableItem tag={wellRef}>
+                        <ElisaWellElement elisaWellRef={wellRef} />
+                      </SelectableItem>
+                    </Grid>
+                  );
+                })
+              ).flat()}
+            </Grid>
+            <ElisaWellsEditPopover
+              elisaWellRefs={selectedWells}
+              anchorPosition={editAnchorPosition}
+              setAnchorPosition={setEditAnchorPosition}
+            />
+          </SelectableRegion>
+        </ElisaWellMapContextProvider>
       </Grid>
     </Grid>
   );

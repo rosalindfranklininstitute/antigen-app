@@ -4,25 +4,39 @@ export enum AllFetched {
   True,
 }
 
-export function addUniqueByKeys<Type>(
-  oldObjs: Array<Type>,
-  newObjs: Array<Type>,
+export function keyEq<Type>(
+  first: Type,
+  second: Type,
+  keys: Array<keyof Type>
+): boolean {
+  return keys.every((key) => first[key] === second[key]);
+}
+
+export function replaceByKeys<Type>(
+  array: Array<Type>,
+  item: Type,
   keys: Array<keyof Type>
 ): Array<Type> {
-  return newObjs.concat(
-    oldObjs.filter(
-      (oldObj) =>
-        !newObjs.find((newObj) =>
-          keys.every((key) => oldObj[key] === newObj[key])
-        )
+  return array.map((arrayItem) =>
+    keyEq(arrayItem, item, keys) ? item : arrayItem
+  );
+}
+
+export function mergeByKeys<Type>(
+  first: Array<Type>,
+  second: Array<Type>,
+  keys: Array<keyof Type>
+): Array<Type> {
+  return second.concat(
+    first.filter(
+      (firstItem) =>
+        !second.some((secondItem) => keyEq(firstItem, secondItem, keys))
     )
   );
 }
 
-export function isEqual<Type>(obj: Type, other: Type): boolean {
-  return (Object.keys(obj) as Array<keyof Type>).every(
-    (key) => obj[key] === other[key]
-  );
+export function propsEq<Type>(first: Type, second: Type): boolean {
+  return keyEq(first, second, Object.keys(first) as Array<keyof Type>);
 }
 
 export function partialEq<Type>(obj: Type, partial: Partial<Type>): boolean {
