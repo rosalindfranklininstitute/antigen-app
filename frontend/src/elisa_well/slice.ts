@@ -2,7 +2,12 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { putElisaPlate } from "../elisa_plate/slice";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
-import { addUniqueByKeys, isEqual, partialEq } from "../utils/state_management";
+import {
+  mergeByKeys,
+  propsEq,
+  partialEq,
+  replaceByKeys,
+} from "../utils/state_management";
 import {
   ElisaWell,
   ElisaWellRef,
@@ -94,19 +99,19 @@ const elisaWellSlice = createSlice({
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getElisaWells.fulfilled, (state, action) => {
-      state.elisaWells = addUniqueByKeys(state.elisaWells, action.payload, [
+      state.elisaWells = mergeByKeys(state.elisaWells, action.payload, [
         "project",
         "plate",
         "location",
       ]);
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getElisaWells.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
     });
     builder.addCase(getElisaWell.pending, (state, action) => {
@@ -115,26 +120,26 @@ const elisaWellSlice = createSlice({
       );
     });
     builder.addCase(getElisaWell.fulfilled, (state, action) => {
-      state.elisaWells = addUniqueByKeys(
+      state.elisaWells = mergeByKeys(
         state.elisaWells,
         [action.payload],
         ["project", "plate", "location"]
       );
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg.elisaWellRef)
+        (pending) => !propsEq(pending, action.meta.arg.elisaWellRef)
       );
       state.fetched = state.fetched.concat(action.meta.arg.elisaWellRef);
     });
     builder.addCase(getElisaWell.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg.elisaWellRef)
+        (pending) => !propsEq(pending, action.meta.arg.elisaWellRef)
       );
     });
     builder.addCase(postElisaWells.pending, (state) => {
       state.postPending = true;
     });
     builder.addCase(postElisaWells.fulfilled, (state, action) => {
-      state.elisaWells = addUniqueByKeys(state.elisaWells, action.payload, [
+      state.elisaWells = mergeByKeys(state.elisaWells, action.payload, [
         "project",
         "plate",
         "location",
@@ -149,11 +154,14 @@ const elisaWellSlice = createSlice({
       state.postPending = true;
     });
     builder.addCase(putElisaWell.fulfilled, (state, action) => {
-      state.elisaWells = addUniqueByKeys(
-        state.elisaWells,
-        [action.payload],
-        ["project", "plate", "location"]
+      console.log(
+        `${action.meta.arg.antigen.number} -> ${action.payload.antigen.number}`
       );
+      state.elisaWells = replaceByKeys(state.elisaWells, action.payload, [
+        "project",
+        "plate",
+        "location",
+      ]);
       state.posted = state.posted.concat({
         project: action.payload.project,
         plate: action.payload.plate,
@@ -165,7 +173,7 @@ const elisaWellSlice = createSlice({
       state.postPending = false;
     });
     builder.addCase(putElisaPlate.fulfilled, (state, action) => {
-      state.elisaWells = addUniqueByKeys(
+      state.elisaWells = mergeByKeys(
         state.elisaWells,
         action.payload.elisaWells,
         ["project", "plate", "location"]

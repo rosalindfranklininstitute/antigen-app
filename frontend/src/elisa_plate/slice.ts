@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { ElisaWell, serializeElisaWellRef } from "../elisa_well/utils";
+import { ElisaWell } from "../elisa_well/utils";
 import { projectItemURI } from "../project/utils";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
 import {
-  addUniqueByKeys,
+  mergeByKeys,
   AllFetched,
   filterPartial,
   partialEq,
@@ -80,23 +80,19 @@ export const postElisaPlate = createAsyncThunk<
 
 export const putElisaPlate = createAsyncThunk<
   { elisaPlate: ElisaPlate; elisaWells: Array<ElisaWell> },
-  { elisaPlateRef: ElisaPlateRef; elisaPlatePost: ElisaPlatePost },
+  ElisaPlateRef & ElisaPlatePost,
   { rejectValue: { apiRejection: APIRejection } }
 >("elisaPlates", (post, { rejectWithValue }) =>
   putAPI<ElisaPlatePost, ElisaPlate>(
-    `elisa_plate/${projectItemURI(post.elisaPlateRef)}`,
-    { ...post.elisaPlateRef, ...post.elisaPlatePost }
+    `elisa_plate/${projectItemURI(post)}`,
+    post
   ).then(
     async (elisaPlate) => ({
       elisaPlate,
-      elisaWells: await Promise.all(
-        elisaPlate.elisawell_set.map((elisaWellRef) =>
-          getAPI<ElisaWell>(
-            `elisa_well/${serializeElisaWellRef(elisaWellRef)}`,
-            {}
-          )
-        )
-      ),
+      elisaWells: await getAPI<Array<ElisaWell>>("elisa_well", {
+        project: elisaPlate.project,
+        plate: elisaPlate.number,
+      }),
     }),
     (apiRejection) => rejectWithValue({ apiRejection })
   )
@@ -111,7 +107,7 @@ const elisaPlateSlice = createSlice({
       state.allFetched = AllFetched.Pending;
     });
     builder.addCase(getElisaPlates.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueByKeys(state.elisaPlates, action.payload, [
+      state.elisaPlates = mergeByKeys(state.elisaPlates, action.payload, [
         "project",
         "number",
       ]);
@@ -124,7 +120,7 @@ const elisaPlateSlice = createSlice({
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getElisaPlate.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueByKeys(
+      state.elisaPlates = mergeByKeys(
         state.elisaPlates,
         [action.payload],
         ["project", "number"]
@@ -142,7 +138,7 @@ const elisaPlateSlice = createSlice({
       state.postPending = true;
     });
     builder.addCase(postElisaPlate.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueByKeys(
+      state.elisaPlates = mergeByKeys(
         state.elisaPlates,
         [action.payload],
         ["project", "number"]
@@ -157,7 +153,7 @@ const elisaPlateSlice = createSlice({
       state.postPending = true;
     });
     builder.addCase(putElisaPlate.fulfilled, (state, action) => {
-      state.elisaPlates = addUniqueByKeys(
+      state.elisaPlates = mergeByKeys(
         state.elisaPlates,
         [action.payload.elisaPlate],
         ["project", "number"]

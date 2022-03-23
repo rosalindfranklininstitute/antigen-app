@@ -1,13 +1,6 @@
-import { ReactNode, useCallback, useEffect, useState } from "react";
+import { ReactNode, useCallback, useContext, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  getElisaWell,
-  postElisaWells,
-  putElisaWell,
-  selectElisaWell,
-} from "../../elisa_well/slice";
 import { ElisaWellRef, ElisaWellPost, ElisaWell } from "../../elisa_well/utils";
-import { selectElisaPlate } from "../slice";
 import DoneIcon from "@mui/icons-material/Done";
 import CancelIcon from "@mui/icons-material/Cancel";
 import {
@@ -17,7 +10,6 @@ import {
 } from "../../antigen/slice";
 import {
   getNanobodies,
-  postNanobodies,
   selectNanobodies,
   selectNanobody,
 } from "../../nanobody/slice";
@@ -30,11 +22,12 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { partialEq, zip } from "../../utils/state_management";
+import { partialEq } from "../../utils/state_management";
 import { DispatchType, RootState } from "../../store";
 import { Antigen, AntigenRef } from "../../antigen/utils";
 import { Nanobody, NanobodyRef } from "../../nanobody/utils";
 import { ProjectRef } from "../../project/utils";
+import { ElisaWellMapContext } from "./well_map_context";
 
 export type AnchorPosition = { top: number; left: number };
 
@@ -145,7 +138,7 @@ const NanobodyAutocomplete = (params: {
     dispatch(getNanobodies({ project: params.project })).then(() =>
       setLoading(false)
     );
-  }, [dispatch]);
+  }, [dispatch, params.project]);
 
   return (
     <Autocomplete
@@ -168,31 +161,23 @@ export function ElisaWellEditPopover(params: {
   anchorEl: HTMLElement | undefined;
   setAnchorEl: (anchorEl: undefined) => void;
 }) {
-  const dispatch = useDispatch();
-  const elisaPlate = useSelector(
-    selectElisaPlate({
-      project: params.elisaWellRef.project,
-      number: params.elisaWellRef.plate,
-    })
+  const { getElisaWell, setElisaWell } = useContext(ElisaWellMapContext);
+  const [uiElisaWell, setUiElisaWell] = useState<ElisaWellState>(
+    params.elisaWellRef
   );
-  const initElisaWell = useSelector(selectElisaWell(params.elisaWellRef));
-  const [elisaWell, setElisaWell] = useState<ElisaWellState>(
-    initElisaWell ? initElisaWell : params.elisaWellRef
-  );
-
-  useEffect(() => {
-    dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
-  }, [dispatch, params, elisaPlate]);
 
   const updateElisaWell = useCallback(() => {
-    if (Object.values(elisaWell).every((val) => val !== undefined)) {
-      if (initElisaWell) {
-        dispatch(putElisaWell(elisaWell as ElisaWellRef & ElisaWellPost));
-      } else {
-        dispatch(postElisaWells([elisaWell as ElisaWellRef & ElisaWellPost]));
-      }
+    if (Object.values(uiElisaWell).every((val) => val !== undefined)) {
+      setElisaWell(uiElisaWell as Required<typeof uiElisaWell>);
     }
-  }, [dispatch, elisaWell, initElisaWell]);
+  }, [setElisaWell, uiElisaWell]);
+
+  useEffect(() => {
+    if (params.anchorEl !== undefined) {
+      const elisaWell = getElisaWell(params.elisaWellRef);
+      setUiElisaWell(elisaWell ? elisaWell : params.elisaWellRef);
+    }
+  }, [params.elisaWellRef, params.anchorEl, getElisaWell]);
 
   return (
     <SaveCancelPopover
@@ -201,32 +186,32 @@ export function ElisaWellEditPopover(params: {
       onSave={updateElisaWell}
     >
       <AntigenAutocomplete
-        initAntigen={elisaWell.antigen}
-        project={elisaWell.project}
+        initAntigen={uiElisaWell.antigen}
+        project={uiElisaWell.project}
         onChange={(antigen) =>
-          setElisaWell({
-            ...elisaWell,
-            antigen: antigen ? antigen : elisaWell.antigen,
+          setUiElisaWell({
+            ...uiElisaWell,
+            antigen: antigen ? antigen : uiElisaWell.antigen,
           })
         }
       />
       <NanobodyAutocomplete
-        initNanobody={elisaWell.nanobody}
-        project={elisaWell.project}
+        initNanobody={uiElisaWell.nanobody}
+        project={uiElisaWell.project}
         onChange={(nanobody) =>
-          setElisaWell({
-            ...elisaWell,
-            nanobody: nanobody ? nanobody : elisaWell.nanobody,
+          setUiElisaWell({
+            ...uiElisaWell,
+            nanobody: nanobody ? nanobody : uiElisaWell.nanobody,
           })
         }
       />
       <TextField
         label="Optical Density"
         type="number"
-        defaultValue={elisaWell?.optical_density}
+        defaultValue={uiElisaWell?.optical_density}
         onChange={(evt) => {
-          setElisaWell({
-            ...elisaWell,
+          setUiElisaWell({
+            ...uiElisaWell,
             optical_density: Number(evt.target.value),
           });
         }}
@@ -240,12 +225,11 @@ export function ElisaWellsEditPopover(params: {
   anchorPosition: AnchorPosition | undefined;
   setAnchorPosition: (anchorPosition: undefined) => void;
 }) {
-  const dispatch = useDispatch<DispatchType>();
-  const elisaWells = useSelector((state: RootState) =>
-    params.elisaWellRefs.map((elisaWellRef) =>
-      selectElisaWell(elisaWellRef)(state)
-    )
-  ).filter((elisaWell): elisaWell is ElisaWell => elisaWell !== undefined);
+  const { getElisaWell, setElisaWell, generateElisaWells } =
+    useContext(ElisaWellMapContext);
+  const elisaWells = params.elisaWellRefs
+    .map((elisaWellRef) => getElisaWell(elisaWellRef))
+    .filter((elisaWell): elisaWell is ElisaWell => elisaWell !== undefined);
   const [antigen, setAntigen] = useState<Antigen | null>(null);
 
   const updateElisaWells = useCallback(() => {
@@ -263,29 +247,15 @@ export function ElisaWellsEditPopover(params: {
       },
       [[], []]
     );
-    filled.forEach((elisaWell) => dispatch(putElisaWell(elisaWell)));
-    dispatch(
-      postNanobodies(
-        empty.map((emptyWell) => ({
-          project: emptyWell.project,
-        }))
-      )
-    ).then((response) => {
-      if (response.meta.requestStatus === "fulfilled")
-        dispatch(
-          postElisaWells(
-            zip(empty, response.payload as Array<Nanobody>).map(
-              ([elisaWellRef, nanobody]) => ({
-                ...elisaWellRef,
-                antigen,
-                nanobody,
-                optical_density: 0.0,
-              })
-            )
-          )
-        );
-    });
-  }, [dispatch, params.elisaWellRefs, elisaWells, antigen]);
+    filled.forEach((elisaWell) => setElisaWell({ ...elisaWell, antigen }));
+    generateElisaWells(empty, antigen);
+  }, [
+    params.elisaWellRefs,
+    elisaWells,
+    antigen,
+    setElisaWell,
+    generateElisaWells,
+  ]);
 
   return (
     <SaveCancelPopover

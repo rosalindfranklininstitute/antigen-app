@@ -14,13 +14,7 @@ export function ElisaPlateThresholdSlider(params: {
   );
 
   const updateElisaPlateThreshold = () => {
-    if (elisaPlate)
-      dispatch(
-        putElisaPlate({
-          elisaPlateRef: elisaPlate,
-          elisaPlatePost: { ...elisaPlate, threshold },
-        })
-      );
+    if (elisaPlate) dispatch(putElisaPlate({ ...elisaPlate, threshold }));
   };
 
   return (

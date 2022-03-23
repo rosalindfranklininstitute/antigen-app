@@ -1,33 +1,17 @@
 import { Badge, Button, Paper } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getAntigen, selectAntigen } from "../../antigen/slice";
-import { getElisaWell, selectElisaWell } from "../../elisa_well/slice";
+import { useContext, useState } from "react";
 import { ElisaWellRef } from "../../elisa_well/utils";
-import { getNanobody, selectNanobody } from "../../nanobody/slice";
-import { partialEq } from "../../utils/state_management";
-import { selectElisaPlate } from "../slice";
 import { ElisaWellEditPopover } from "./edit_popover";
 import { ElisaWellInfoPopover } from "./info_popover";
 import { objToColor } from "./utils";
+import { ElisaWellMapContext } from "./well_map_context";
 
 export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
-  const dispatch = useDispatch();
-  const elisaPlate = useSelector(
-    selectElisaPlate({
-      project: params.elisaWellRef.project,
-      number: params.elisaWellRef.plate,
-    })
-  );
-  const elisaWell = useSelector(
-    params.elisaWellRef ? selectElisaWell(params.elisaWellRef) : () => undefined
-  );
-  const antigen = useSelector(
-    elisaWell ? selectAntigen(elisaWell.antigen) : () => undefined
-  );
-  const nanobody = useSelector(
-    elisaWell ? selectNanobody(elisaWell.nanobody) : () => undefined
-  );
+  const { getElisaWell, getAntigen, getNanobody } =
+    useContext(ElisaWellMapContext);
+  const elisaWell = getElisaWell(params.elisaWellRef);
+  const antigen = elisaWell ? getAntigen(elisaWell.antigen) : undefined;
+  const nanobody = elisaWell ? getNanobody(elisaWell.nanobody) : undefined;
 
   const [infoAnchorEl, setInfoAnchorEl] = useState<HTMLElement | undefined>(
     undefined
@@ -36,41 +20,8 @@ export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
     undefined
   );
 
-  useEffect(() => {
-    if (
-      elisaPlate?.elisawell_set.find((well) =>
-        partialEq(well, params.elisaWellRef)
-      )
-    )
-      dispatch(getElisaWell({ elisaWellRef: params.elisaWellRef }));
-  }, [dispatch, params, elisaPlate]);
-
-  useEffect(() => {
-    if (elisaWell) {
-      dispatch(getAntigen({ ...elisaWell.antigen, plate: elisaWell.plate }));
-      dispatch(getNanobody({ ...elisaWell.nanobody, plate: elisaWell.plate }));
-    }
-  }, [dispatch, elisaWell]);
-
   const antigenColor = objToColor(antigen);
   const nanobodyColor = objToColor(nanobody);
-
-  const InfoPopover = () =>
-    params.elisaWellRef ? (
-      <ElisaWellInfoPopover
-        elisaWellRef={params.elisaWellRef}
-        anchorEl={infoAnchorEl}
-        setAnchorEl={setInfoAnchorEl}
-      />
-    ) : null;
-  const EditPopover = () =>
-    params.elisaWellRef ? (
-      <ElisaWellEditPopover
-        elisaWellRef={params.elisaWellRef}
-        anchorEl={editAnchorEl}
-        setAnchorEl={setEditAnchorEl}
-      />
-    ) : null;
 
   return (
     <Badge
@@ -97,8 +48,16 @@ export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
             setEditAnchorEl(evt.currentTarget);
           }}
         />
-        <InfoPopover />
-        <EditPopover />
+        <ElisaWellInfoPopover
+          elisaWellRef={params.elisaWellRef}
+          anchorEl={infoAnchorEl}
+          setAnchorEl={setInfoAnchorEl}
+        />
+        <ElisaWellEditPopover
+          elisaWellRef={params.elisaWellRef}
+          anchorEl={editAnchorEl}
+          setAnchorEl={setEditAnchorEl}
+        />
       </Paper>
     </Badge>
   );

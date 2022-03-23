@@ -3,11 +3,12 @@ import { APIRejection, getAPI, postAPI } from "../utils/api";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import {
-  addUniqueByKeys,
+  mergeByKeys,
   filterPartial,
-  isEqual,
+  propsEq,
   partialEq,
 } from "../utils/state_management";
+import { ProjectRef } from "../project/utils";
 
 type NanobodyState = {
   nanobodies: Nanobody[];
@@ -74,6 +75,9 @@ export const getNanobody = createAsyncThunk<
   }
 );
 
+export const generateNanobodies = (quantity: number, project: ProjectRef) =>
+  postNanobodies(Array.from({ length: quantity }).map(() => ({ project })));
+
 export const postNanobodies = createAsyncThunk<
   Array<Nanobody>,
   Array<NanobodyPost>,
@@ -93,44 +97,44 @@ const nanobodySlice = createSlice({
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getNanobodies.fulfilled, (state, action) => {
-      state.nanobodies = addUniqueByKeys(state.nanobodies, action.payload, [
+      state.nanobodies = mergeByKeys(state.nanobodies, action.payload, [
         "project",
         "number",
       ]);
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getNanobodies.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
     });
     builder.addCase(getNanobody.pending, (state, action) => {
       state.fetchPending = state.fetchPending.concat(action.meta.arg);
     });
     builder.addCase(getNanobody.fulfilled, (state, action) => {
-      state.nanobodies = addUniqueByKeys(
+      state.nanobodies = mergeByKeys(
         state.nanobodies,
         [action.payload],
         ["project", "number"]
       );
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getNanobody.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !isEqual(pending, action.meta.arg)
+        (pending) => !propsEq(pending, action.meta.arg)
       );
     });
     builder.addCase(postNanobodies.pending, (state) => {
       state.postPending = true;
     });
     builder.addCase(postNanobodies.fulfilled, (state, action) => {
-      state.nanobodies = addUniqueByKeys(state.nanobodies, action.payload, [
+      state.nanobodies = mergeByKeys(state.nanobodies, action.payload, [
         "project",
         "number",
       ]);
