@@ -1,10 +1,9 @@
 FROM registry.hub.docker.com/library/python:3.9 AS base
 
-ENV PIPENV_DEPENDENCIES wheel pipenv
 ENV ANTIGENAPP_DIR /antigenapp
 
 RUN python3.9 -m pip install --upgrade pip
-RUN python3.9 -m pip install ${PIPENV_DEPENDENCIES}
+RUN python3.9 -m pip install wheel pipenv
 
 COPY . ${ANTIGENAPP_DIR}
 WORKDIR ${ANTIGENAPP_DIR}
