@@ -1,0 +1,21 @@
+name: Container Images CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Source
+      uses: actions/checkout@v2
+
+    - name: Build Backend Image
+      run: docker build backend/ --tag antigenapp_api:$(date +%s)
+
+    - name: Build Frontend Image
+      run: docker build frontend/ --tag antigenapp_app:$(date +%s)
