@@ -1,6 +1,12 @@
 version: "3.8"
 
 services:
+  app:
+    container_name: antigenapp_app
+    build: frontend/
+    restart: always
+    ports:
+      - 3000:3000
   api:
     container_name: antigenapp_api
     build: backend/
