@@ -1,11 +1,10 @@
-version: '3.8'
+version: "3.8"
 
 services:
   api:
     container_name: antigenapp_api
     build: backend/
     restart: always
-    command: uwsgi --ini uwsgi.ini
     volumes:
       - api_data:/api_data
   ws:
@@ -19,7 +18,6 @@ services:
       - api_data:/api_data
     ports:
       - 8000:80
-#     - 443:443
     depends_on:
       - api
 
