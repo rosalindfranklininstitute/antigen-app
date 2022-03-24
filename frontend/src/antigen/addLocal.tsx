@@ -8,10 +8,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import SendIcon from "@mui/icons-material/Send";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useDispatch, useSelector } from "react-redux";
@@ -20,21 +21,36 @@ import {
   selectLoadingAntigen,
   selectPostedLocalAntignes,
 } from "./slice";
-import { selectCurrentProject } from "../project/slice";
+import {
+  getProjects,
+  selectCurrentProject,
+  selectProjects,
+} from "../project/slice";
+import { Project } from "../project/utils";
 
 export default function AddLocalAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedLocalAntignes);
   const loading = useSelector(selectLoadingAntigen);
+  const projects = useSelector(selectProjects);
   const currentProject = useSelector(selectCurrentProject);
+  const [project, setProject] = useState<Project | undefined>(currentProject);
   const [sequence, setSequence] = useState<string>("");
   const [molecularMass, setMolecularMass] = useState<number>(0);
 
-  const submit = async () => {
-    if (currentProject)
+  useEffect(() => {
+    dispatch(getProjects());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setProject(currentProject);
+  }, [currentProject]);
+
+  const submit = () => {
+    if (project)
       dispatch(
         postLocalAntigen({
-          project: currentProject.short_title,
+          project: project.short_title,
           sequence,
           molecular_mass: molecularMass,
         })
@@ -47,6 +63,22 @@ export default function AddLocalAntigenView() {
         <Stack spacing={2}>
           <Typography variant="h4">Add new antigen</Typography>
           <Stack direction="row" spacing={2}>
+            <Autocomplete
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Project"
+                  sx={{ width: "32ch" }}
+                  variant="filled"
+                />
+              )}
+              value={project}
+              options={projects}
+              getOptionLabel={(project) => project.short_title}
+              onChange={(_, project) =>
+                setProject(project ? project : undefined)
+              }
+            />
             <TextField
               required
               label="Sequence"
