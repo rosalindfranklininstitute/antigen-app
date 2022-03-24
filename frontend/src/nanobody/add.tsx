@@ -37,8 +37,6 @@ export default function AddNanobodyView() {
   const currentProject = useSelector(selectCurrentProject);
   const [project, setProject] = useState<Project | undefined>(currentProject);
 
-  console.log(currentProject);
-
   useEffect(() => {
     dispatch(getProjects());
   }, [dispatch]);

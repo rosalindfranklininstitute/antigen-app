@@ -6,8 +6,8 @@ import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
 import {
   mergeByKeys,
   AllFetched,
-  filterPartial,
-  partialEq,
+  filterKeys,
+  keyEq,
 } from "../utils/state_management";
 import { ElisaPlate, ElisaPlatePost, ElisaPlateRef } from "./utils";
 
@@ -61,10 +61,14 @@ export const getElisaPlate = createAsyncThunk<
     ),
   {
     condition: (elisaPlateRef, { getState }) =>
-      filterPartial(getState().elisaPlates.elisaPlates, elisaPlateRef)
-        .length === 0 &&
-      filterPartial(getState().elisaPlates.fetchPending, elisaPlateRef)
-        .length === 0,
+      filterKeys(getState().elisaPlates.elisaPlates, elisaPlateRef, [
+        "project",
+        "number",
+      ]).length === 0 &&
+      filterKeys(getState().elisaPlates.fetchPending, elisaPlateRef, [
+        "project",
+        "number",
+      ]).length === 0,
   }
 );
 
@@ -126,12 +130,12 @@ const elisaPlateSlice = createSlice({
         ["project", "number"]
       );
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg)
+        (pending) => !keyEq(pending, action.meta.arg, ["project", "number"])
       );
     });
     builder.addCase(getElisaPlate.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg)
+        (pending) => !keyEq(pending, action.meta.arg, ["project", "number"])
       );
     });
     builder.addCase(postElisaPlate.pending, (state) => {
@@ -174,7 +178,7 @@ export const selectElisaPlates = (state: RootState) =>
 export const selectElisaPlate =
   (elisaPlateRef: ElisaPlateRef) => (state: RootState) =>
     state.elisaPlates.elisaPlates.find((elisaPlate) =>
-      partialEq(elisaPlate, elisaPlateRef)
+      keyEq(elisaPlate, elisaPlateRef, ["project", "number"])
     );
 export const selectLoadingElisaPlate = (state: RootState) =>
   state.elisaPlates.allFetched === AllFetched.Pending ||

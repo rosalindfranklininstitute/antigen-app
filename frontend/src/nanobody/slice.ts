@@ -2,12 +2,7 @@ import { Nanobody, NanobodyRef, NanobodyPost } from "./utils";
 import { APIRejection, getAPI, postAPI } from "../utils/api";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import {
-  mergeByKeys,
-  filterPartial,
-  propsEq,
-  partialEq,
-} from "../utils/state_management";
+import { mergeByKeys, filterKeys, keyEq } from "../utils/state_management";
 import { ProjectRef } from "../project/utils";
 
 type NanobodyState = {
@@ -40,7 +35,7 @@ export const getNanobodies = createAsyncThunk<
     condition: (params, { getState }) =>
       !getState()
         .nanobodies.fetched.concat(getState().nanobodies.fetchPending)
-        .some((got) => partialEq(params, got)),
+        .some((got) => keyEq(got, params, ["project", "plate"])),
   }
 );
 
@@ -53,9 +48,12 @@ export const getNanobody = createAsyncThunk<
   }
 >(
   "nanobodies/getNanobody",
-  (key, { rejectWithValue }) =>
-    getAPI<Nanobody>(`nanobody/${key.project}:${key.number}`, {}).catch(
-      (apiRejection) => rejectWithValue({ key, apiRejection })
+  (nanobodyRef, { rejectWithValue }) =>
+    getAPI<Nanobody>(
+      `nanobody/${nanobodyRef.project}:${nanobodyRef.number}`,
+      {}
+    ).catch((apiRejection) =>
+      rejectWithValue({ key: nanobodyRef, apiRejection })
     ),
   {
     condition: (nanobodyRef, { getState }) =>
@@ -63,13 +61,15 @@ export const getNanobody = createAsyncThunk<
         .nanobodies.fetched.concat(getState().nanobodies.fetchPending)
         .some(
           (got) =>
-            partialEq(
+            keyEq(
               { project: nanobodyRef.project, number: nanobodyRef.number },
-              got
+              got,
+              ["project", "number"]
             ) ||
-            partialEq(
+            keyEq(
               { project: nanobodyRef.project, plate: nanobodyRef.plate },
-              got
+              got,
+              ["project", "number"]
             )
         ),
   }
@@ -102,13 +102,13 @@ const nanobodySlice = createSlice({
         "number",
       ]);
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !propsEq(pending, action.meta.arg)
+        (pending) => !keyEq(pending, action.meta.arg, ["project", "plate"])
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getNanobodies.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !propsEq(pending, action.meta.arg)
+        (pending) => !keyEq(pending, action.meta.arg, ["project", "plate"])
       );
     });
     builder.addCase(getNanobody.pending, (state, action) => {
@@ -121,13 +121,17 @@ const nanobodySlice = createSlice({
         ["project", "number"]
       );
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !propsEq(pending, action.meta.arg)
+        (pending) =>
+          !keyEq(action.meta.arg, pending, ["project", "plate"]) ||
+          !keyEq(action.meta.arg, pending, ["project", "number"])
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getNanobody.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !propsEq(pending, action.meta.arg)
+        (pending) =>
+          !keyEq(action.meta.arg, pending, ["project", "plate"]) ||
+          !keyEq(action.meta.arg, pending, ["project", "number"])
       );
     });
     builder.addCase(postNanobodies.pending, (state) => {
@@ -154,11 +158,11 @@ export const selectNanobodies = (state: RootState) =>
 export const selectNanobody =
   (nanobodyRef: NanobodyRef) => (state: RootState) =>
     state.nanobodies.nanobodies.find((nanobody) =>
-      partialEq(nanobody, nanobodyRef)
+      keyEq(nanobody, nanobodyRef, ["project", "number"])
     );
 export const selectLoadingNanobody = (state: RootState) =>
   Boolean(state.nanobodies.fetchPending.length);
 export const selectPostedNanobodies = (state: RootState) =>
   state.nanobodies.posted.flatMap((posted) =>
-    filterPartial(state.nanobodies.nanobodies, posted)
+    filterKeys(state.nanobodies.nanobodies, posted, ["project", "number"])
   );

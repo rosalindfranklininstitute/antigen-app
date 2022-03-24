@@ -14,7 +14,7 @@ import {
   putElisaWell,
 } from "../../elisa_well/slice";
 import { DispatchType, RootState } from "../../store";
-import { keyEq, partialEq, zip } from "../../utils/state_management";
+import { keyEq, zip } from "../../utils/state_management";
 import { putElisaPlate, selectElisaPlate } from "../slice";
 import { Antigen, AntigenRef } from "../../antigen/utils";
 import { Nanobody, NanobodyRef } from "../../nanobody/utils";
@@ -107,7 +107,9 @@ export const ElisaWellMapContextProvider = (params: {
 
   const getElisaWell = useCallback(
     (elisaWellRef: ElisaWellRef) =>
-      elisaWells.find((elisaWell) => partialEq(elisaWell, elisaWellRef)),
+      elisaWells.find((elisaWell) =>
+        keyEq(elisaWell, elisaWellRef, ["project", "plate", "location"])
+      ),
     [elisaWells]
   );
 
@@ -115,7 +117,7 @@ export const ElisaWellMapContextProvider = (params: {
     (elisaWellPost: ElisaWellPost) => {
       if (
         elisaWells.some((elisaWell) =>
-          keyEq(elisaWellPost, elisaWell, ["project", "plate", "location"])
+          keyEq(elisaWell, elisaWellPost, ["project", "plate", "location"])
         )
       ) {
         dispatch(putElisaWell(elisaWellPost));
@@ -150,13 +152,17 @@ export const ElisaWellMapContextProvider = (params: {
 
   const getAntigen = useCallback(
     (antigenRef: AntigenRef) =>
-      antigens.find((antigen) => partialEq(antigen, antigenRef)),
+      antigens.find((antigen) =>
+        keyEq(antigen, antigenRef, ["project", "number"])
+      ),
     [antigens]
   );
 
   const getNanobody = useCallback(
     (nanobodyRef: NanobodyRef) =>
-      nanobodies.find((nanobody) => partialEq(nanobody, nanobodyRef)),
+      nanobodies.find((nanobody) =>
+        keyEq(nanobody, nanobodyRef, ["project", "number"])
+      ),
     [nanobodies]
   );
 
