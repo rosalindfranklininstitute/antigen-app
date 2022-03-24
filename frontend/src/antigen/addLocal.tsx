@@ -34,7 +34,7 @@ export default function AddLocalAntigenView() {
     if (currentProject)
       dispatch(
         postLocalAntigen({
-          project: currentProject,
+          project: currentProject.short_title,
           sequence,
           molecular_mass: molecularMass,
         })
