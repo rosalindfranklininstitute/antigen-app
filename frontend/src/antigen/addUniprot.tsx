@@ -7,10 +7,11 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Autocomplete,
 } from "@mui/material";
 import { LoadingButton } from "@mui/lab";
 import SendIcon from "@mui/icons-material/Send";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AntigenInfo } from "./utils";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
@@ -19,20 +20,35 @@ import {
   selectPostedUniProtAntigens,
 } from "./slice";
 import { useDispatch, useSelector } from "react-redux";
-import { selectCurrentProject } from "../project/slice";
+import {
+  getProjects,
+  selectCurrentProject,
+  selectProjects,
+} from "../project/slice";
+import { Project } from "../project/utils";
 
 export default function AddUniProtAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedUniProtAntigens);
   const loading = useSelector(selectLoadingAntigen);
+  const projects = useSelector(selectProjects);
   const currentProject = useSelector(selectCurrentProject);
+  const [project, setProject] = useState<Project | undefined>(currentProject);
   const [accessionNumber, setAccessionNumber] = useState<string>("");
 
+  useEffect(() => {
+    dispatch(getProjects());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setProject(currentProject);
+  }, [currentProject]);
+
   const submit = () => {
-    if (currentProject)
+    if (project)
       dispatch(
         postUniProtAntigen({
-          project: currentProject.short_title,
+          project: project.short_title,
           uniprot_accession_number: accessionNumber,
         })
       );
@@ -46,6 +62,22 @@ export default function AddUniProtAntigenView() {
             Add new antigen from UniProt database
           </Typography>
           <Stack direction="row" spacing={2}>
+            <Autocomplete
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Project"
+                  sx={{ width: "32ch" }}
+                  variant="filled"
+                />
+              )}
+              value={project}
+              options={projects}
+              getOptionLabel={(project) => project.short_title}
+              onChange={(_, project) =>
+                setProject(project ? project : undefined)
+              }
+            />
             <TextField
               required
               label="UniProt Accessation Number"
