@@ -27,6 +27,14 @@ function ProjectCard() {
         <Button startIcon={<ListIcon />} component={RouterLink} to="/project/">
           View All
         </Button>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          component={RouterLink}
+          to="/project/add/"
+        >
+          Add New
+        </Button>
       </CardActions>
     </Card>
   );
