@@ -39,10 +39,26 @@
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
+    "plugins": [
+      "jsdoc"
+    ],
     "extends": [
       "react-app",
-      "react-app/jest"
-    ]
+      "react-app/jest",
+      "plugin:jsdoc/recommended"
+    ],
+    "rules": {
+      "jsdoc/require-param-type": 0,
+      "jsdoc/require-returns-type": 0,
+      "jsdoc/no-types": 1,
+      "jsdoc/require-description": 1,
+      "jsdoc/check-indentation": 1,
+      "jsdoc/check-line-alignment": 1,
+      "max-len": [
+        1,
+        {"ignoreComments": false}
+      ]
+    }
   },
   "browserslist": {
     "production": [
