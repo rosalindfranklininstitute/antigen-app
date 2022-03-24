@@ -16,7 +16,7 @@ export default function AddElisaPlateView() {
   useEffect(() => {
     if (currentProject)
       dispatch(
-        postElisaPlate({ project: currentProject, threshold: 0.0 })
+        postElisaPlate({ project: currentProject.short_title, threshold: 0.0 })
       ).then((action) => {
         if (action.meta.requestStatus === "fulfilled")
           navigate(

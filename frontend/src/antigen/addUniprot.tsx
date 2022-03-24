@@ -32,7 +32,7 @@ export default function AddUniProtAntigenView() {
     if (currentProject)
       dispatch(
         postUniProtAntigen({
-          project: currentProject,
+          project: currentProject.short_title,
           uniprot_accession_number: accessionNumber,
         })
       );

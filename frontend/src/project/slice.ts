@@ -142,7 +142,9 @@ export const selectProject = (projectRef: ProjectRef) => (state: RootState) =>
     partialEq(project, { short_title: projectRef })
   );
 export const selectCurrentProject = (state: RootState) =>
-  state.projects.current;
+  state.projects.projects.find(
+    (project) => project.short_title === state.projects.current
+  );
 export const selectLoadingProject = (state: RootState) =>
   state.projects.allFetched === AllFetched.Pending ||
   Boolean(state.projects.fetchPending.length);
