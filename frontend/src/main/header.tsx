@@ -2,10 +2,16 @@ import { AppBar, Autocomplete, Link, TextField, Toolbar } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { getProjects, selectProjects, switchProject } from "../project/slice";
+import {
+  getProjects,
+  selectCurrentProject,
+  selectProjects,
+  switchProject,
+} from "../project/slice";
 
 function Header(props: { logo: string; title: string }) {
   const dispatch = useDispatch();
+  const currentProject = useSelector(selectCurrentProject);
   const projects = useSelector(selectProjects);
 
   useEffect(() => {
@@ -40,6 +46,7 @@ function Header(props: { logo: string; title: string }) {
           onChange={(_, project) => {
             if (project) dispatch(switchProject(project.short_title));
           }}
+          value={currentProject}
         />
       </Toolbar>
     </AppBar>
