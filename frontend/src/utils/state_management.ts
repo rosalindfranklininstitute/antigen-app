@@ -4,8 +4,8 @@ export enum AllFetched {
   True,
 }
 
-export function keyEq<Type>(
-  first: Type,
+export function keyEq<Type, Other extends Type>(
+  first: Other,
   second: Type,
   keys: Array<keyof Type>
 ): boolean {
@@ -35,28 +35,20 @@ export function mergeByKeys<Type>(
   );
 }
 
-export function propsEq<Type>(first: Type, second: Type): boolean {
-  return keyEq(first, second, Object.keys(first) as Array<keyof Type>);
-}
-
-export function partialEq<Type>(obj: Type, partial: Partial<Type>): boolean {
-  return (Object.keys(partial) as Array<keyof Type>).every(
-    (key) => partial[key] === obj[key]
-  );
-}
-
-export function filterPartial<Type>(
+export function filterKeys<Filter, Type extends Filter>(
   objs: Array<Type>,
-  filter: Partial<Type>
+  filter: Filter,
+  keys: Array<keyof Filter>
 ): Array<Type> {
-  return objs.filter((obj) => partialEq(obj, filter));
+  return objs.filter((obj) => keyEq(obj, filter, keys));
 }
 
-export function intersectPartial<Type>(
+export function intersectKeys<Filter, Type extends Filter>(
   objs: Array<Type>,
-  filters: Array<Partial<Type>>
-) {
-  return filters.flatMap((filter) => filterPartial(objs, filter));
+  filters: Array<Filter>,
+  keys: Array<keyof Filter>
+): Array<Type> {
+  return filters.flatMap((filter) => filterKeys(objs, filter, keys));
 }
 
 export function zip<T extends Array<Array<any>>>(

@@ -4,8 +4,8 @@ import { APIRejection, getAPI, postAPI } from "../utils/api";
 import {
   mergeByKeys,
   AllFetched,
-  filterPartial,
-  partialEq,
+  filterKeys,
+  keyEq,
 } from "../utils/state_management";
 import { Project, ProjectRef, ProjectPost } from "./utils";
 
@@ -55,9 +55,12 @@ export const getProject = createAsyncThunk<
     ),
   {
     condition: (projectRef, { getState }) =>
-      filterPartial(getState().projects.projects, { short_title: projectRef })
-        .length === 0 &&
-      filterPartial(getState().projects.fetchPending, projectRef).length === 0,
+      filterKeys(getState().projects.projects, { short_title: projectRef }, [
+        "short_title",
+      ]).length === 0 &&
+      !getState().projects.fetchPending.some(
+        (pending) => pending === projectRef
+      ),
   }
 );
 
@@ -101,13 +104,14 @@ const projectSlice = createSlice({
         [action.payload],
         ["short_title"]
       );
-      state.fetchPending = filterPartial(
-        state.fetchPending,
-        action.payload.short_title
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => pending === action.meta.arg
       );
     });
     builder.addCase(getProject.rejected, (state, action) => {
-      state.fetchPending = filterPartial(state.fetchPending, action.meta.arg);
+      state.fetchPending = state.fetchPending.filter(
+        (pending) => pending === action.meta.arg
+      );
     });
     builder.addCase(postProject.pending, (state, action) => {
       state.postPending.concat(action.meta.arg.short_title);
@@ -119,15 +123,13 @@ const projectSlice = createSlice({
         ["short_title"]
       );
       state.posted = state.posted.concat(action.payload.short_title);
-      state.postPending = filterPartial(
-        state.postPending,
-        action.meta.arg.short_title
+      state.postPending = state.postPending.filter(
+        (pending) => pending === action.meta.arg.short_title
       );
     });
     builder.addCase(postProject.rejected, (state, action) => {
-      state.postPending = filterPartial(
-        state.postPending,
-        action.meta.arg.short_title
+      state.postPending = state.postPending.filter(
+        (pending) => pending === action.meta.arg.short_title
       );
     });
   },
@@ -139,7 +141,7 @@ export const projectReducer = projectSlice.reducer;
 export const selectProjects = (state: RootState) => state.projects.projects;
 export const selectProject = (projectRef: ProjectRef) => (state: RootState) =>
   state.projects.projects.find((project) =>
-    partialEq(project, { short_title: projectRef })
+    keyEq(project, { short_title: projectRef }, ["short_title"])
   );
 export const selectCurrentProject = (state: RootState) =>
   state.projects.projects.find(
@@ -150,5 +152,7 @@ export const selectLoadingProject = (state: RootState) =>
   Boolean(state.projects.fetchPending.length);
 export const selectPostedProjects = (state: RootState) =>
   state.projects.posted.flatMap((posted) =>
-    filterPartial(state.projects.projects, { short_title: posted })
+    filterKeys(state.projects.projects, { short_title: posted }, [
+      "short_title",
+    ])
   );

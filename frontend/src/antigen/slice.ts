@@ -1,12 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { getAPI, postAPI, APIRejection } from "../utils/api";
-import {
-  mergeByKeys,
-  intersectPartial,
-  propsEq,
-  partialEq,
-} from "../utils/state_management";
+import { mergeByKeys, intersectKeys, keyEq } from "../utils/state_management";
 import {
   Antigen,
   LocalAntigen,
@@ -36,7 +31,7 @@ const initialAntigenState: AntigenState = {
 
 export const getAntigens = createAsyncThunk<
   Antigen[],
-  Partial<Pick<AntigenRef, "project">> | { plate?: number },
+  Partial<Pick<AntigenRef, "project">> & { plate?: number },
   { state: RootState; rejectValue: { apiRejection: APIRejection } }
 >(
   "antigens/getAntigens",
@@ -48,7 +43,7 @@ export const getAntigens = createAsyncThunk<
     condition: (params, { getState }) =>
       !getState()
         .antigens.fetched.concat(getState().antigens.fetchPending)
-        .some((got) => partialEq(params, got)),
+        .some((got) => keyEq(got, params, ["project", "plate"])),
   }
 );
 
@@ -74,13 +69,15 @@ export const getAntigen = createAsyncThunk<
         .antigens.fetched.concat(getState().antigens.fetchPending)
         .some(
           (got) =>
-            partialEq(
+            keyEq(
               { project: antigenRef.project, number: antigenRef.number },
-              got
+              got,
+              ["project", "number"]
             ) ||
-            partialEq(
+            keyEq(
               { project: antigenRef.project, plate: antigenRef.plate },
-              got
+              got,
+              ["project", "plate"]
             )
         ),
   }
@@ -130,13 +127,13 @@ const antigenSlice = createSlice({
         "number",
       ]);
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !propsEq(pending, action.meta.arg)
+        (pending) => !keyEq(pending, action.meta.arg, ["project", "plate"])
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getAntigens.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !propsEq(pending, action.meta.arg)
+        (pending) => !keyEq(pending, action.meta.arg, ["project", "plate"])
       );
     });
     builder.addCase(getAntigen.pending, (state, action) => {
@@ -149,13 +146,17 @@ const antigenSlice = createSlice({
         ["project", "number"]
       );
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg)
+        (pending) =>
+          !keyEq(action.meta.arg, pending, ["project", "number"]) ||
+          !keyEq(action.meta.arg, pending, ["project", "plate"])
       );
       state.fetched = state.fetched.concat(action.meta.arg);
     });
     builder.addCase(getAntigen.rejected, (state, action) => {
       state.fetchPending = state.fetchPending.filter(
-        (pending) => !partialEq(pending, action.meta.arg)
+        (pending) =>
+          !keyEq(action.meta.arg, pending, ["project", "number"]) ||
+          !keyEq(action.meta.arg, pending, ["project", "plate"])
       );
     });
     builder.addCase(postUniProtAntigen.pending, (state) => {
@@ -195,10 +196,18 @@ export const antigenReducer = antigenSlice.reducer;
 
 export const selectAntigens = (state: RootState) => state.antigens.antigens;
 export const selectAntigen = (antigenRef: AntigenRef) => (state: RootState) =>
-  state.antigens.antigens.find((antigen) => partialEq(antigen, antigenRef));
+  state.antigens.antigens.find((antigen) =>
+    keyEq(antigen, antigenRef, ["project", "number"])
+  );
 export const selectLoadingAntigen = (state: RootState) =>
-  Boolean(state.nanobodies.fetchPending.length);
+  state.antigens.fetchPending.length > 0 || state.antigens.postPending;
 export const selectPostedUniProtAntigens = (state: RootState) =>
-  intersectPartial(state.antigens.antigens, state.antigens.postedUniProt);
+  intersectKeys(state.antigens.antigens, state.antigens.postedUniProt, [
+    "project",
+    "number",
+  ]);
 export const selectPostedLocalAntignes = (state: RootState) =>
-  intersectPartial(state.antigens.antigens, state.antigens.postedLocal);
+  intersectKeys(state.antigens.antigens, state.antigens.postedLocal, [
+    "project",
+    "number",
+  ]);

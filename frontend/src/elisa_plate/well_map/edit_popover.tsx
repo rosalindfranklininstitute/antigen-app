@@ -22,7 +22,7 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import { partialEq } from "../../utils/state_management";
+import { keyEq } from "../../utils/state_management";
 import { DispatchType, RootState } from "../../store";
 import { Antigen, AntigenRef } from "../../antigen/utils";
 import { Nanobody, NanobodyRef } from "../../nanobody/utils";
@@ -239,7 +239,7 @@ export function ElisaWellsEditPopover(params: {
     >(
       ([f, e], elisaWellRef) => {
         const elisaWell = elisaWells.find((elisaWell) =>
-          partialEq(elisaWell, elisaWellRef)
+          keyEq(elisaWell, elisaWellRef, ["project", "plate", "location"])
         );
         return elisaWell !== undefined
           ? [f.concat(elisaWell), e]
