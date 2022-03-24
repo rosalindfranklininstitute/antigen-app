@@ -18,6 +18,7 @@
     "@types/object-hash": "^2.2.1",
     "@types/react": "^17.0.40",
     "@types/react-dom": "^17.0.13",
+    "eslint-plugin-jsdoc": "^38.0.6",
     "notistack": "^2.0.3",
     "prettier": "^2.6.0",
     "querystring": "^0.2.1",
