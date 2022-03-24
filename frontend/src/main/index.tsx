@@ -19,6 +19,7 @@ import ElisaPlateView from "../elisa_plate/individual";
 import AddElisaPlateView from "../elisa_plate/add";
 import ProjectsView from "../project/aggregate";
 import ProjectView from "../project/individual";
+import AddProjectView from "../project/add";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="/" element={<HomeView />} />
           <Route path="/project/" element={<ProjectsView />} />
           <Route path="/project/:project" element={<ProjectView />} />
+          <Route path="/project/add" element={<AddProjectView />} />
           <Route path="/antigen/:project::number" element={<AntigenView />} />
           <Route path="/antigen/" element={<AntigensView />} />
           <Route
