@@ -27,6 +27,18 @@ import {
 } from "../project/slice";
 import { Project } from "../project/utils";
 
+/**
+ *
+ * A MUI Card containing a form for adding a new uniprot antigen; the form
+ * consists of a dropdown to select the project which it corresponds to,
+ * defaulting to the active project, a text field to enter the uniprot
+ * accession number, and a submit button which when pressed dispatches a request
+ * to store the antigen and appends it to a list of uniprot antigens created
+ * this session. Available projects are retrieved from the redux store with a
+ * dispatch executed to obtain them if unavailable
+ *
+ * @returns A MUI card containing a form for adding a new antigen
+ */
 export default function AddUniProtAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedUniProtAntigens);
