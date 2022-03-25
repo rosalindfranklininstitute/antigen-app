@@ -6,6 +6,22 @@ import { ElisaWellInfoPopover } from "./info_popover";
 import { numToColor } from "./utils";
 import { ElisaWellMapContext } from "./well_map_context";
 
+/**
+ *
+ * A circular MUI Paper element which displays the antigen, nanobody and
+ * functionality of the elisa well as the left colour, right colour and a
+ * circular badge respectively. The element provides a hover popover which
+ * shows textual information including the antigen and nanobody names and an
+ * edit popover which allows editing of the antigen, nanobody and optical
+ * density of a well. Elisa well, antigen and nanobody information is retrieved
+ * from the elisa well map context
+ *
+ * @param params An elisa well reference from which the elisa well can be
+ * retrievd.
+ * @param params.elisaWellRef The elisa well reference.
+ * @returns A circular MUI Paper element which displays the antigen, nanobody
+ * and functionality of the elisa well
+ */
 export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
   const { getElisaWell, getAntigen, getNanobody } =
     useContext(ElisaWellMapContext);
@@ -31,7 +47,9 @@ export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
     >
       <Paper
         sx={{
-          background: `linear-gradient(90deg, ${antigenColor} 50%, ${nanobodyColor} 50%)`,
+          background: `linear-gradient(90deg,
+            ${antigenColor} 50%,
+            ${nanobodyColor} 50%)`,
           borderRadius: "50%",
           overflow: "hidden",
         }}

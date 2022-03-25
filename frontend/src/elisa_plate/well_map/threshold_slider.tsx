@@ -4,6 +4,20 @@ import { useDispatch, useSelector } from "react-redux";
 import { putElisaPlate, selectElisaPlate } from "../slice";
 import { ElisaPlateRef } from "../utils";
 
+/**
+ *
+ * A numeric text field and slider element used to control the threshold of an
+ * elisa plate. On entry of a value in the text box or release of the slider a
+ * dispatch is made to update the elisa plate threshold with the provided
+ * value. Elisa plate information is retrieved from the redux store with a
+ * dispatch executed to obtain it if unavailable
+ *
+ * @param params An elisa plate reference from which the elisa plate can be
+ * retrieved
+ * @param params.elisaPlateRef The elisa plate reference
+ * @returns A stack containing a numeric text field and slider for elisa plate
+ * thresholding
+ */
 export function ElisaPlateThresholdSlider(params: {
   elisaPlateRef: ElisaPlateRef;
 }) {
