@@ -1,18 +1,11 @@
-import {
-  Link,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-} from "@mui/material";
+import { Link, Stack, Table, TableBody, TableContainer } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink } from "react-router-dom";
-import { AntigenInfo, AntigenRef } from "../antigen/utils";
-import { NanobodyInfo, NanobodyRef } from "../nanobody/utils";
+import { AntigenRef } from "../antigen/utils";
+import { NanobodyRef } from "../nanobody/utils";
 import { projectItemURI, ProjectRef } from "../project/utils";
+import { TableRowPair } from "../utils/elements";
 import { getElisaWell, selectElisaWell } from "./slice";
 
 export type ElisaWell = {
@@ -120,47 +113,25 @@ export function ElisaWellInfo(params: { elisaWellRef: ElisaWellRef }) {
     <TableContainer>
       <Table>
         <TableBody>
-          <TableRow>
-            <TableCell>Plate:</TableCell>
-            <TableCell>
-              <Link
-                component={RouterLink}
-                to={`/elisa_plate/${projectItemURI({
-                  project: elisaWell.project,
-                  number: elisaWell.plate,
-                })}`}
-              >
-                {projectItemURI({
-                  project: elisaWell.project,
-                  number: elisaWell.plate,
-                })}
-              </Link>
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Location:</TableCell>
-            <TableCell>{locationToGrid(elisaWell.location)}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Antigen:</TableCell>
-            <TableCell>
-              <AntigenInfo antigen={elisaWell.antigen} />
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Nanobody:</TableCell>
-            <TableCell>
-              <NanobodyInfo nanobodyRef={elisaWell.nanobody} />
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Optical Density:</TableCell>
-            <TableCell>{elisaWell.optical_density}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Functional:</TableCell>
-            <TableCell>{elisaWell.functional ? "yes" : "no"}</TableCell>
-          </TableRow>
+          <TableRowPair name="Project" value={elisaWell.project} />
+          <TableRowPair name="Plate" value={elisaWell.plate} />
+          <TableRowPair name="Location" value={elisaWell.location} />
+          <TableRowPair
+            name="Antigen"
+            value={projectItemURI(elisaWell.antigen)}
+          />
+          <TableRowPair
+            name="Nanobody"
+            value={projectItemURI(elisaWell.nanobody)}
+          />
+          <TableRowPair
+            name="Optical Density"
+            value={elisaWell.optical_density}
+          />
+          <TableRowPair
+            name="Functional"
+            value={elisaWell.functional ? "yes" : "no"}
+          />
         </TableBody>
       </Table>
     </TableContainer>
