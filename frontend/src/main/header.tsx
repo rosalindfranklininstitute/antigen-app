@@ -9,7 +9,17 @@ import {
   switchProject,
 } from "../project/slice";
 
-function Header(props: { logo: string; title: string }) {
+/**
+ *
+ * A MUI AppBar containing a link to the homepage with title text and a
+ * dropdown allowing for selection of the current project. Available projects
+ * are retrieved from the redux store with a dispatch executed to obtain them
+ * if unavailable
+ *
+ * @returns A MUI AppBar with title text and a dropdown for selection of the
+ * current project
+ */
+function Header() {
   const dispatch = useDispatch();
   const currentProject = useSelector(selectCurrentProject);
   const projects = useSelector(selectProjects);
@@ -29,7 +39,7 @@ function Header(props: { logo: string; title: string }) {
           underline="none"
           sx={{ flexGrow: 1 }}
         >
-          {props.title}
+          Antigen App
         </Link>
         <Autocomplete
           renderInput={(params) => (
