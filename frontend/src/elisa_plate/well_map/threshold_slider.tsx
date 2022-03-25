@@ -1,7 +1,7 @@
 import { Slider, Stack, TextField } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { putElisaPlate, selectElisaPlate } from "../slice";
+import { getElisaPlate, putElisaPlate, selectElisaPlate } from "../slice";
 import { ElisaPlateRef } from "../utils";
 
 /**
@@ -30,6 +30,10 @@ export function ElisaPlateThresholdSlider(params: {
   const updateElisaPlateThreshold = () => {
     if (elisaPlate) dispatch(putElisaPlate({ ...elisaPlate, threshold }));
   };
+
+  useEffect(() => {
+    dispatch(getElisaPlate(params.elisaPlateRef));
+  }, [dispatch, params.elisaPlateRef]);
 
   return (
     <Stack direction="row" spacing={2} alignItems="center">
