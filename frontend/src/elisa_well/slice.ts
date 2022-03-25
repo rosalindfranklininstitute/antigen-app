@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { putElisaPlate } from "../elisa_plate/slice";
 import { RootState } from "../store";
 import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
-import { mergeByKeys, keyEq, replaceByKeys } from "../utils/state_management";
+import { mergeByKeys, keyEq } from "../utils/state_management";
 import {
   ElisaWell,
   ElisaWellRef,
@@ -161,11 +161,11 @@ const elisaWellSlice = createSlice({
       state.postPending = true;
     });
     builder.addCase(putElisaWell.fulfilled, (state, action) => {
-      state.elisaWells = replaceByKeys(state.elisaWells, action.payload, [
-        "project",
-        "plate",
-        "location",
-      ]);
+      state.elisaWells = mergeByKeys(
+        state.elisaWells,
+        [action.payload],
+        ["project", "plate", "location"]
+      );
       state.posted = state.posted.concat({
         project: action.payload.project,
         plate: action.payload.plate,
