@@ -17,6 +17,15 @@ import ListIcon from "@mui/icons-material/List";
 import { useState, MouseEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
+/**
+ *
+ * A MUI Card with the header Projects and buttons which link to the aggregate
+ * project view and the add project view, these buttons are styled as text with
+ * the list icon and contained with the add icon respectively
+ *
+ * @returns A card containing the header Projects and buttons which link to the
+ * aggregate and add project views
+ */
 function ProjectCard() {
   return (
     <Card>
@@ -40,6 +49,17 @@ function ProjectCard() {
   );
 }
 
+/**
+ *
+ * A MUI Card with header Antigens and buttons which link to the aggregate
+ * antigen view and a dropdown of buttons which link to the add from uniprot
+ * antigen and add local antigen views, these buttons are styled as text with
+ * the list icon and contained with the add icon respectively, with dropdown
+ * buttons styled as text with the add link icon and create icon respectively
+ *
+ * @returns A card containing the header Projects and buttons which link the
+ * aggregate and add local and add from uniprot views
+ */
 function AntigenCard() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const add_open = Boolean(anchorEl);
@@ -92,6 +112,14 @@ function AntigenCard() {
   );
 }
 
+/**
+ * A MUI Card with header Nanobodies and buttons which link to the aggregate
+ * nanobody view and the add nanobody view, these buttons are styled as text
+ * with the list icon and contained with the add icon respectively
+ *
+ * @returns A card containing the header Nanobodies and buttons which link to
+ * the aggregate and add nanobody views
+ */
 function NanobodyCard() {
   return (
     <Card>
@@ -115,6 +143,16 @@ function NanobodyCard() {
   );
 }
 
+/**
+ *
+ * A MUI Card with the header Elisa Plates and buttons which link to the
+ * aggregate elisa plate view and the add elisa plate view, these buttons are
+ * styled as text with the list icon and contained with the add icon
+ * respectively
+ *
+ * @returns A card containing the header Elisa Plates and buttons which link to
+ * the aggregate and add elisa plate views
+ */
 function ElisaPlateCard() {
   return (
     <Card>
@@ -142,6 +180,14 @@ function ElisaPlateCard() {
   );
 }
 
+/**
+ *
+ * A MUI Card with the header Elisa Wells and a button which link to the
+ * aggregate elisa well view styled as text with the list icon
+ *
+ * @returns A card containing the header Projects and buttons which link to the
+ * aggregate elisa well view
+ */
 function ElisaWellCard() {
   return (
     <Card>
@@ -161,6 +207,14 @@ function ElisaWellCard() {
   );
 }
 
+/**
+ *
+ * A MUI grid containing the project, antigen, nanobody, elisa plate
+ * and elisa well cards
+ *
+ * @returns A MUI grid containing the project, antigen, nanobody, elisa plate
+ * and elisa well cards
+ */
 function HomeView() {
   return (
     <Grid container spacing={2} justifyContent="center">

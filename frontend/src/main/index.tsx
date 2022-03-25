@@ -5,7 +5,6 @@ import AntigenView from "../antigen/individual";
 import AntigensView from "../antigen/aggregate";
 import { Header } from "./header";
 import { HomeView } from "./home";
-import logo from "./logo.svg";
 import "./main.css";
 import AddUniProtAntigenView from "../antigen/addUniprot";
 import AddLocalAntigenView from "../antigen/addLocal";
@@ -21,10 +20,17 @@ import ProjectsView from "../project/aggregate";
 import ProjectView from "../project/individual";
 import AddProjectView from "../project/add";
 
-function App() {
+/**
+ *
+ * A react browser router containing the header and all routed pages of the
+ * application, wrapped in a container
+ *
+ * @returns A react element containing all routed pages of the application
+ */
+function App(): JSX.Element {
   return (
     <BrowserRouter>
-      <Header logo={logo} title="Antigen App" />
+      <Header />
       <Container sx={{ mt: 4, mb: 4 }}>
         <Routes>
           <Route path="/" element={<HomeView />} />
