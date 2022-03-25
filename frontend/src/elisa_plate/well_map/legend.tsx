@@ -2,21 +2,18 @@ import { Divider, Grid, Paper, Stack, Typography } from "@mui/material";
 import { useSelector } from "react-redux";
 import { selectAntigen } from "../../antigen/slice";
 import { Antigen, AntigenRef } from "../../antigen/utils";
-import { selectElisaWell } from "../../elisa_well/slice";
-import { ElisaWell } from "../../elisa_well/utils";
 import { selectNanobody } from "../../nanobody/slice";
 import { Nanobody, NanobodyRef } from "../../nanobody/utils";
 import { RootState } from "../../store";
-import { selectElisaPlate } from "../slice";
-import { ElisaPlate, ElisaPlateRef } from "../utils";
+import { ElisaPlateRef } from "../utils";
 import { numToColor } from "./utils";
 
 /**
  *
  * A grid of legends for antigens and nanobodies respecitvely, each legend
  * displays a list of entries which consist of a square region coloured by the
- * item number and the item name. Elisa plate, elisa well, antigen and nanobody
- * information is retrieved from the redux store
+ * item number and the item name. Elisa well, antigen and nanobody information
+ * is retrieved from the redux store
  *
  * @param params An elisa plate reference from which the elisa plate, elisa
  * wells, antigens and nanobodies can be retrieved
@@ -25,14 +22,13 @@ import { numToColor } from "./utils";
  * with corresponding colors
  */
 export function ElisaPlateMapLegend(params: { elisaPlateRef: ElisaPlateRef }) {
-  const elisaPlate = useSelector(
-    selectElisaPlate(params.elisaPlateRef)
-  ) as ElisaPlate;
   const elisaWells = useSelector((state: RootState) =>
-    elisaPlate?.elisawell_set.map((elisaWellRef) =>
-      selectElisaWell(elisaWellRef)(state)
+    state.elisaWells.elisaWells.filter(
+      (elisaWell) =>
+        elisaWell.project === params.elisaPlateRef.project &&
+        elisaWell.plate === params.elisaPlateRef.number
     )
-  ).filter((elisaWell): elisaWell is ElisaWell => !!elisaWell);
+  );
   const antigens = useSelector((state: RootState) =>
     elisaWells.map((elisaWell) => selectAntigen(elisaWell.antigen)(state))
   )
