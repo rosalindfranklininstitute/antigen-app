@@ -6,6 +6,15 @@ import { FailedRetrievalPaper, LoadingPaper } from "../utils/api";
 import { IconLinkURIGridColDef } from "../utils/elements";
 import { getProjects, selectLoadingProject, selectProjects } from "./slice";
 
+/**
+ *
+ * A MUI Card containing a data grid of projects with columns corresponding to
+ * an icon link to the individual view, the short title, the full title and the
+ * description. Project information is retrieved from the redux store with a
+ * dispatch executed to obtain it if unavailable
+ *
+ * @returns A MUI card containing a data grid of projects
+ */
 export default function ProjectsView() {
   const dispatch = useDispatch();
   const projects = useSelector(selectProjects).map((project) => ({

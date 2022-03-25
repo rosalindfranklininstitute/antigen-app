@@ -8,6 +8,14 @@ import { DispatchType } from "../store";
 import { Project } from "./utils";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * A MUI Card containing a form for adding a new project; the form consists of
+ * fields for short title, full title and description and a submit button which
+ * when pressed dispatches a request to store the project, switches the current
+ * project to the newly created project and returns the user to the homepage
+ *
+ * @returns A MUI Card containing a form for adding a new project
+ */
 export default function AddProjectView() {
   const dispatch = useDispatch<DispatchType>();
   const navigate = useNavigate();
