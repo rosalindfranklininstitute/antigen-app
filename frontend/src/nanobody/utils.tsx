@@ -24,7 +24,7 @@ export type NanobodyRef = Pick<Nanobody, "project" | "number">;
  * A table of nanobody information, containing rows for the project, number,
  * name, elisa appearances as a list of well references and the creation time.
  * Nanobody information is retrieved from the redux store with a dispatch
- * exected to obtain it if unavailable
+ * executed to obtain it if unavailable
  *
  * @param params A nanobody reference from which the nanobody can be retrieved
  * @param params.nanobodyRef The nanobody reference
