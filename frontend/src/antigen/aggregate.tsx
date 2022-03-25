@@ -7,6 +7,15 @@ import { getAntigens, selectAntigens, selectLoadingAntigen } from "./slice";
 import { useDispatch, useSelector } from "react-redux";
 import { addProjectItemUri } from "../project/utils";
 
+/**
+ * A MUI Card containing a data grid of antigens with columns corresponding
+ * to an icon link to the individual view, the name, the elisa appearances as
+ * a list of well references and the creation time. Antigen information is
+ * retrieved from the redux store with a dispatch executed to obtain it if
+ * unavailable
+ *
+ * @returns A MUI Card containing a data grid of antigens
+ */
 export default function AntigensView() {
   const dispatch = useDispatch();
   const antigens = addProjectItemUri(useSelector(selectAntigens));

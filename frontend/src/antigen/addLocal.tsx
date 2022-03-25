@@ -28,6 +28,19 @@ import {
 } from "../project/slice";
 import { Project } from "../project/utils";
 
+/**
+ *
+ * A MUI Card containing a form for adding a new local antigen; the form
+ * consists of a dropdown to select the project which it corresponds to,
+ * defaulting to the active project, a text field to enter the antigen
+ * sequence, a numeric text field to enter the molecular mass and a submit
+ * button which when pressed dispatches a request to store the antigen and
+ * appends it to a list of local antigens created this session. Available
+ * projects are retrieved from the redux store with a dispatch executed to
+ * obtain them if unavailable
+ *
+ * @returns A MUI card containing a form for adding a new antigen
+ */
 export default function AddLocalAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedLocalAntignes);

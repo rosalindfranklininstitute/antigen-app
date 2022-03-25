@@ -8,6 +8,13 @@ import { AntigenInfo, AntigenRef } from "./utils";
 
 type StrAntigenRef = { [K in keyof AntigenRef]: string };
 
+/**
+ * A MUI Card containing a antigen name header and antigen information table.
+ * Antigen information is retrieved from the redux store with a dispatch
+ * exected to obtain it if unavailable
+ *
+ * @returns A MUI Card containing antigen name and antigen information table
+ */
 export default function AntigenView() {
   const { project, number: number_str } =
     useParams<StrAntigenRef>() as StrAntigenRef;
