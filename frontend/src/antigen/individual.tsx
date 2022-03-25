@@ -40,7 +40,7 @@ export default function AntigenView() {
       <CardContent>
         <Stack>
           <Typography variant="h4">{antigen.name}</Typography>
-          <AntigenInfo antigen={{ project, number }} />
+          <AntigenInfo antigenRef={{ project, number }} />
         </Stack>
       </CardContent>
     </Card>

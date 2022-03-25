@@ -113,7 +113,7 @@ export default function AddUniProtAntigenView() {
                 {antigen.name}
               </AccordionSummary>
               <AccordionDetails>
-                <AntigenInfo antigen={antigen} />
+                <AntigenInfo antigenRef={antigen} />
               </AccordionDetails>
             </Accordion>
           ))}
