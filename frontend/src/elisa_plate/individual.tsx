@@ -23,6 +23,9 @@ import { ElisaWellMap } from "./well_map/well_map";
 
 type StrElisaPlateKey = { [K in keyof ElisaPlateRef]: string };
 
+/**
+ *
+ */
 export default function ElisaPlateView() {
   let { project, number: number_str } =
     useParams<StrElisaPlateKey>() as StrElisaPlateKey;
@@ -63,7 +66,7 @@ export default function ElisaPlateView() {
               <Stack gap={2} divider={<Divider />}>
                 <ElisaWellMap elisaPlateRef={elisaPlate} />
                 <ElisaPlateThresholdSlider elisaPlateRef={elisaPlate} />
-                <ElisaPlateMapLegend elisaWellRef={elisaPlate} />
+                <ElisaPlateMapLegend elisaPlateRef={elisaPlate} />
               </Stack>
             </TabPanel>
             <TabPanel value="table">

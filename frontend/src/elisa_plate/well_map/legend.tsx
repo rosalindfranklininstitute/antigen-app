@@ -11,9 +11,22 @@ import { selectElisaPlate } from "../slice";
 import { ElisaPlate, ElisaPlateRef } from "../utils";
 import { numToColor } from "./utils";
 
-export function ElisaPlateMapLegend(params: { elisaWellRef: ElisaPlateRef }) {
+/**
+ *
+ * A grid of legends for antigens and nanobodies respecitvely, each legend
+ * displays a list of entries which consist of a square region coloured by the
+ * item number and the item name. Elisa plate, elisa well, antigen and nanobody
+ * information is retrieved from the redux store
+ *
+ * @param params An elisa plate reference from which the elisa plate, elisa
+ * wells, antigens and nanobodies can be retrieved
+ * @param params.elisaPlateRef The elisa plate reference
+ * @returns A grid of lengends, containing lists of antigen and nanobody names
+ * with corresponding colors
+ */
+export function ElisaPlateMapLegend(params: { elisaPlateRef: ElisaPlateRef }) {
   const elisaPlate = useSelector(
-    selectElisaPlate(params.elisaWellRef)
+    selectElisaPlate(params.elisaPlateRef)
   ) as ElisaPlate;
   const elisaWells = useSelector((state: RootState) =>
     elisaPlate?.elisawell_set.map((elisaWellRef) =>

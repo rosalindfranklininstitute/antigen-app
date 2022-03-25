@@ -47,10 +47,27 @@ export const ElisaWellMapContext = createContext<{
   getNanobody: () => undefined,
 });
 
-export const ElisaWellMapContextProvider = (params: {
+/**
+ *
+ * A context provider which provides the elisa well map context, consisting of
+ * a stateful elisa plate instance, array of elisa wells, array of
+ * corresponding antigens, array of corresponding nanobodies and methods get an
+ * elisa well, antigen or nanobody, to set the well threshold or an elisa well
+ * or to generate a set of elisa wells with a given antigen and new nanobodies.
+ * Elisa plate, elisa well, antigen and nanboody information is retrieved from
+ * the redux store with a dispatch executed to obtain it if unavailable
+ *
+ * @param params An elisa plate reference from which the elisa plate, elisa
+ * wells, antigens and nanobodies can be reteieved and a react node containing
+ * children to be contained within the context provider
+ * @param params.children The children to be contained
+ * @param params.elisaPlateRef The elisa plate reference
+ * @returns A provider of the elisa well map context
+ */
+export function ElisaWellMapContextProvider(params: {
   children: ReactNode;
   elisaPlateRef: ElisaPlateRef;
-}) => {
+}): JSX.Element {
   const dispatch = useDispatch<DispatchType>();
 
   const elisaPlate = useSelector(
@@ -184,4 +201,4 @@ export const ElisaWellMapContextProvider = (params: {
       {params.children}
     </ElisaWellMapContext.Provider>
   );
-};
+}

@@ -33,64 +33,106 @@ export type AnchorPosition = { top: number; left: number };
 
 type ElisaWellState = ElisaWellRef & Partial<ElisaWellPost>;
 
-const SaveCancelPopover = (params: {
+/**
+ *
+ * A MUI Popover for use as a popover form element; The element consists of a
+ * popover card with vertically stacked children nodes and buttons allowing
+ * for cancellation or saving of the form contents. Popover location and
+ * visibility are controlled via the presence of an anchor element or position,
+ * with a callback passed such that the component can hide itself by setting
+ * the anchor element to undefined. On pressing the save button the the passed
+ * on save callback is called and the popover closed as in the case of
+ * cancelled
+ *
+ * @param params Children elements which compose the popover form fields, an
+ * anchor element or position controlling element visibility, a callback to set
+ * the anchor element to undefined and a callback which is executed upon
+ * pressing of the save button
+ * @param params.children The children composing the form fields
+ * @param params.anchorEl The anchor element controlling visibility
+ * @param params.anchorPosition The anchor position controlling visibility
+ * @param params.setAnchor The callback to hide the component
+ * @param params.onSave A callback to be executed upon save
+ * @returns A MUI popover element which displays a form with cancel and save
+ * buttons
+ */
+function SaveCancelPopover(params: {
   children: ReactNode;
   anchorEl?: HTMLElement;
   anchorPosition?: AnchorPosition;
   setAnchor: (anchorEl: undefined) => void;
   onSave: () => void;
-}) => (
-  <Popover
-    open={Boolean(params.anchorEl) || Boolean(params.anchorPosition)}
-    anchorReference={params.anchorEl ? "anchorEl" : "anchorPosition"}
-    anchorEl={params.anchorEl}
-    anchorPosition={params.anchorPosition}
-    anchorOrigin={{
-      vertical: "center",
-      horizontal: "center",
-    }}
-    transformOrigin={{
-      vertical: "center",
-      horizontal: "center",
-    }}
-    onClose={() => params.setAnchor(undefined)}
-  >
-    <Card>
-      <CardContent>
-        <Stack spacing={2}>
-          {params.children}
-          <Stack direction="row" justifyContent="space-between">
-            <Button
-              variant="outlined"
-              color="error"
-              endIcon={<CancelIcon />}
-              onClick={() => params.setAnchor(undefined)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              color="success"
-              endIcon={<DoneIcon />}
-              onClick={() => {
-                params.onSave();
-                params.setAnchor(undefined);
-              }}
-            >
-              Save
-            </Button>
+}): JSX.Element {
+  return (
+    <Popover
+      open={Boolean(params.anchorEl) || Boolean(params.anchorPosition)}
+      anchorReference={params.anchorEl ? "anchorEl" : "anchorPosition"}
+      anchorEl={params.anchorEl}
+      anchorPosition={params.anchorPosition}
+      anchorOrigin={{
+        vertical: "center",
+        horizontal: "center",
+      }}
+      transformOrigin={{
+        vertical: "center",
+        horizontal: "center",
+      }}
+      onClose={() => params.setAnchor(undefined)}
+    >
+      <Card>
+        <CardContent>
+          <Stack spacing={2}>
+            {params.children}
+            <Stack direction="row" justifyContent="space-between">
+              <Button
+                variant="outlined"
+                color="error"
+                endIcon={<CancelIcon />}
+                onClick={() => params.setAnchor(undefined)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="success"
+                endIcon={<DoneIcon />}
+                onClick={() => {
+                  params.onSave();
+                  params.setAnchor(undefined);
+                }}
+              >
+                Save
+              </Button>
+            </Stack>
           </Stack>
-        </Stack>
-      </CardContent>
-    </Card>
-  </Popover>
-);
+        </CardContent>
+      </Card>
+    </Popover>
+  );
+}
 
-const AntigenAutocomplete = (params: {
+/**
+ *
+ * A MUI Autocomplete which allows for selection of an antibody from project
+ * antibodies. The dropdown contains all available antigens, grouped by their
+ * corresponding project and is given a default value according to the passed
+ * reference. On change of value the passed callback is called allowing
+ * upstream components to make use of the selected value. Antigens are
+ * retrieved from the redux store with a dispatch executed to obtain it if
+ * unavailable
+ *
+ * @param params An initial antigen reference, the project antibodies to
+ * retrieve and a callback to be executed on change
+ * @param params.initAntigen The initial antigen reference
+ * @param params.project The project for which antigens should be retrieved
+ * @param params.onChange A callback executed on change
+ * @returns A MUI Autocomkplete allowing selection of an antibody
+ */
+function AntigenAutocomplete(params: {
   initAntigen: AntigenRef | undefined;
   project: ProjectRef | undefined;
   onChange: (antigen: Antigen | null) => void;
-}) => {
+}): JSX.Element {
   const dispatch = useDispatch<DispatchType>();
   const antigens = useSelector(selectAntigens);
   const initAntigen = useSelector((state: RootState) =>
@@ -119,13 +161,30 @@ const AntigenAutocomplete = (params: {
       loading={loading}
     />
   );
-};
+}
 
-const NanobodyAutocomplete = (params: {
+/**
+ *
+ * A MUI Autocomplete which allows for selection of a nanobody from project
+ * antibodies. The dropdown contains all available nanobodies, grouped by their
+ * corresponding project and is given a default value according to the passed
+ * reference. On change of value the passed callback is called allowing
+ * upstream components to make use of the selected value. Nanobodies are
+ * retrieved from the redux store with a dispatch executed to obtain it if
+ * unavailable
+ *
+ * @param params An initial nanobody reference, the project antibodies to
+ * retrieve and a callback to be executed on change
+ * @param params.initNanobody The initial nanobody reference
+ * @param params.project The project for which nanobodies should be retrieved
+ * @param params.onChange A callback executed on change
+ * @returns A MUI Autocomkplete allowing selection of a nanobody
+ */
+function NanobodyAutocomplete(params: {
   initNanobody: NanobodyRef | undefined;
   project: ProjectRef;
   onChange: (nanobody: Nanobody | null) => void;
-}) => {
+}): JSX.Element {
   const dispatch = useDispatch<DispatchType>();
   const nanobodies = useSelector(selectNanobodies);
   const initNanobody = useSelector((state: RootState) =>
@@ -154,8 +213,30 @@ const NanobodyAutocomplete = (params: {
       onOpen={loadNanobodies}
     />
   );
-};
+}
 
+/**
+ *
+ * A save cancel popover with antigen autocomplete, nanobody autocomplete and
+ * threshold numeric text field. The initial values of the antigen and nanobody
+ * autocompletes and threshold text field are populated as the current values
+ * of the elisa well if it can be retrieved, otherwise they are set to
+ * undefined and none respectively. Upon saving the form the elisa well value
+ * of the context is set to that entered in the form. Popover location and
+ * visibility are controlled via the presence of an anchor element, with a
+ * callback passed such that the component can hide itself by setting the
+ * anchor element to undefined. Elisa well information is retrieved from the
+ * elisa well map context
+ *
+ * @param params An elisa well reference from which the elisa well can be
+ * retrieved, an anchor element controlling element visibility, a callback to
+ * set the anchor element to undefined
+ * @param params.elisaWellRef The elisa well reference
+ * @param params.anchorEl The anchor element controlling visibility
+ * @param params.setAnchorEl The callback to hide the component
+ * @returns A MUI popover element which displays a form with antigen
+ * autocomplete, nanobody autocomplete and threshold numeric text field
+ */
 export function ElisaWellEditPopover(params: {
   elisaWellRef: ElisaWellRef;
   anchorEl: HTMLElement | undefined;
@@ -220,6 +301,26 @@ export function ElisaWellEditPopover(params: {
   );
 }
 
+/**
+ *
+ * A save cancel popover with antigen autocomplete. Upon saving the form each
+ * previously populated elisa well is updated with the selected antigen whilst
+ * unpopulated wells are generated as new elisa wells containing the selected
+ * antigen, a new nanobody and a default optical density. Popover location and
+ * visibility are controlled via the presence of an anchor position, with a
+ * callback passed such that the component can hide itself by setting the
+ * anchor position to undefined. Elisa well information is retrieved from the
+ * elisa well map context
+ *
+ * @param params Elisa well references from which the elisa wells can be
+ * retrieved, an anchor position controlling element visibility, a callback to
+ * set the anchor position to undefined
+ * @param params.elisaWellRefs The elisa well references
+ * @param params.anchorPosition The anchor position controlling visibility
+ * @param params.setAnchorPosition The callback to hide the component
+ * @returns A MUI popover element which displays a form with antigen
+ * autocomplete, nanobody autocomplete and threshold numeric text field
+ */
 export function ElisaWellsEditPopover(params: {
   elisaWellRefs: Array<ElisaWellRef>;
   anchorPosition: AnchorPosition | undefined;

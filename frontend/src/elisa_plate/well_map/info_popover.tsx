@@ -5,6 +5,23 @@ import { ElisaWellRef } from "../../elisa_well/utils";
 
 import { ElisaWellMapContext } from "./well_map_context";
 
+/**
+ *
+ * A MUI Popover element which displays the antigen and nanobody names
+ * corresponding to a well. Popover location and visibility are controlled via
+ * the presence of an anchor element, with a callback passed such that the
+ * component can hide itself by setting the anchor element to undefined. Elisa
+ * well, antigen and nanobody information is retrieved from the elisa well map
+ * context
+ *
+ * @param params An elisa well reference from which the elisa well, antigen and
+ * nanboody can be retrieved, an anchor element controlling element visibility
+ * and a callback to set the anchor element to undefined
+ * @param params.elisaWellRef The elisa well reference
+ * @param params.anchorEl The anchor element controlling visibility
+ * @param params.setAnchorEl The callback to hide the component
+ * @returns A MUI Popover element which displays antigen and nanobody names
+ */
 export function ElisaWellInfoPopover(params: {
   elisaWellRef: ElisaWellRef;
   anchorEl: HTMLElement | undefined;
