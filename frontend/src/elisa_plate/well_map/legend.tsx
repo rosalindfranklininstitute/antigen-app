@@ -15,7 +15,7 @@ import { numToColor } from "./utils";
  * A grid of legends for antigens and nanobodies respecitvely, each legend
  * displays a list of entries which consist of a square region coloured by the
  * item number and the item name. Elisa well, antigen and nanobody information
- * is retrieved from the redux store with a dispatch exected to obtain it if
+ * is retrieved from the redux store with a dispatch executed to obtain it if
  * unavailable
  *
  * @param params An elisa plate reference from which the elisa plate, elisa

@@ -11,7 +11,7 @@ type StrNanobodyRef = { [K in keyof NanobodyRef]: string };
 /**
  * A MUI Card containing a nanobody name header and nanobody information table.
  * Nanobody information is retrieved from the redux store with a dispatch
- * exected to obtain it if unavailable
+ * executed to obtain it if unavailable
  *
  * @returns A MUI Card containing nanobody name and nanboody information table
  */

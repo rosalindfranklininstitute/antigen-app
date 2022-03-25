@@ -46,7 +46,7 @@ export type AntigenRef = Pick<Antigen, "project" | "number">;
  * A table of antigen information, containing rows for the project, number,
  * name, elisa appearances as a list of well references and the creation time.
  * Antigen information is retrieved from the redux store with a dispatch
- * exected to obtain it if unavailable
+ * executed to obtain it if unavailable
  *
  * @param params A antigen reference from which the antigen can be retrieved
  * @param params.antigen The antigen reference
