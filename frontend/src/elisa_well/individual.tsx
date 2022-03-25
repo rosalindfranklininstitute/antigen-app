@@ -10,6 +10,15 @@ import { ElisaWellInfo, ElisaWellRef } from "./utils";
 
 type StrElisaWellKey = { [K in keyof ElisaWellRef]: string };
 
+/**
+ *
+ * A MUI Card containing a title comprised of the project and number and an
+ * elisa well information table. Elisa well information is retrieved from the
+ * redux store with a dispatch executed to obtain it if unavailable
+ *
+ * @returns A MUI Card containing a title header and project
+ * information table
+ */
 export default function ElisaWellView() {
   const {
     project,

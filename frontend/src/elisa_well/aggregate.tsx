@@ -12,6 +12,16 @@ import {
 } from "./slice";
 import { projectItemURI } from "../project/utils";
 
+/**
+ *
+ * A MUI Card containing a data grid of elisa wells with columns corresponding
+ * to an icon link to the individual view, the project, plate, loction,
+ * antigen, nanobody, optical density and creation time. Elisa well information
+ * is retrieved from the redux store with a dispatch executed to obtain it if
+ * unavailable
+ *
+ * @returns A MUI card containing a data grid of elisa wells
+ */
 export default function ElisaWellsView() {
   const dispatch = useDispatch();
   const elisaWells = useSelector(selectElisaWells).map((elisaWell) => ({

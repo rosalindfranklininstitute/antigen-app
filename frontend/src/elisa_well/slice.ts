@@ -52,7 +52,8 @@ export const getElisaWell = createAsyncThunk<
   "elisaWells/getElisaWell",
   ({ elisaWellRef }, { rejectWithValue }) =>
     getAPI<ElisaWell>(
-      `elisa_well/${elisaWellRef.project}:${elisaWellRef.plate}:${elisaWellRef.location}`,
+      `elisa_well/${elisaWellRef.project}
+      :${elisaWellRef.plate}:${elisaWellRef.location}`,
       {}
     ).catch((apiRejection) => rejectWithValue({ apiRejection: apiRejection })),
   {
