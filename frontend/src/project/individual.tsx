@@ -6,7 +6,16 @@ import { FailedRetrievalPaper, LoadingPaper } from "../utils/api";
 import { getProject, selectLoadingProject, selectProject } from "./slice";
 import { ProjectInfo, ProjectRef } from "./utils";
 
-export default function ProjectView() {
+/**
+ *
+ * A MUI Card containing a project short title header and project information
+ * table. Project information is retrieved from the redux store with a dispatch
+ * executed to obtain it if unavailable
+ *
+ * @returns A MUI Card containing a project short title header and project
+ * information table
+ */
+export default function ProjectView(): JSX.Element {
   const { project: projectRef } = useParams<{ project: ProjectRef }>() as {
     project: ProjectRef;
   };
