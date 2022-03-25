@@ -6,14 +6,36 @@ export type APIRejection = Pick<Response, "status" | "statusText"> & {
   payload: { detail: string };
 };
 
-export const GetAPIRejection = async (
+/**
+ *
+ * Deserializes the response of an API request to obtain the status, statusText
+ * and a payload object from json
+ *
+ * @param response The response of an API request
+ * @returns An APIRejection object comprising of the status, statusText and a
+ * payload object
+ */
+export async function GetAPIRejection(
   response: Response
-): Promise<APIRejection> => ({
-  status: response.status,
-  statusText: response.statusText,
-  payload: await response.json(),
-});
+): Promise<APIRejection> {
+  return {
+    status: response.status,
+    statusText: response.statusText,
+    payload: await response.json(),
+  };
+}
 
+/**
+ *
+ * Sends a get request to the rest API with a URI fragment pointing to the
+ * target resource and HTTP query from params, once a response is obtained the
+ * body is deserailized and returned as an object
+ *
+ * @param uriFrag The URI fragment of the target resource
+ * @param params An object to be serialized into an HTTP query
+ * @returns A promise of a deserialized object, obtained from the rest API or
+ * an APIRejection
+ */
 export async function getAPI<Type>(
   uriFrag: string,
   params: object
@@ -27,6 +49,18 @@ export async function getAPI<Type>(
   );
 }
 
+/**
+ *
+ * Sends a post request to the rest API with a URI fragment pointing to the
+ * target resource with a request containing a json serialization of the post
+ * object, once a response is obtained the body is deserialized and returned as
+ * an object
+ *
+ * @param uriFrag The URI fragment of the target resource
+ * @param post An object to be serialized and sent to the rest API
+ * @returns A promise of a deserialized object, obtained from the rest API or
+ * an APIRejection
+ */
 export async function postAPI<Post, Response>(
   uriFrag: string,
   post: Post
@@ -47,6 +81,18 @@ export async function postAPI<Post, Response>(
   );
 }
 
+/**
+ *
+ * Sends a put request to the rest API with a URI fragment pointing to the
+ * target resource with a request containing a json serialization of the put
+ * object, once a response is obtained the body is deserialized and returned as
+ * an object
+ *
+ * @param uriFrag The URI fragment of the target resource
+ * @param put An object to be serialized and sent to the rest API
+ * @returns A promise of a deserialized object, obtained from the rest API or
+ * an APIRejection
+ */
 export async function putAPI<Put, Response>(
   uriFrag: string,
   put: Put
@@ -67,29 +113,54 @@ export async function putAPI<Put, Response>(
   );
 }
 
-export const LoadingPaper = (params: { text: string }) => {
+/**
+ *
+ * A MUI Paper element showing a linear progress bar with corresponding loading
+ * message
+ *
+ * @param params The loading message to be displayed
+ * @param params.text The loading message text
+ * @returns A MUI Paper element with linear progress bar and message
+ */
+export function LoadingPaper(params: { text: string }): JSX.Element {
   return (
     <Paper>
       <Typography>{params.text}</Typography>
       <LinearProgress />
     </Paper>
   );
-};
+}
 
-export const FailedRetrievalPaper = (params: { text: string }) => {
+/**
+ *
+ * A MUI Paper element showing a failed reteieval message
+ *
+ * @param params The failed reteieval message to be displayed
+ * @param params.text The failed reteieval message text
+ * @returns A MUI Paper element with message
+ */
+export function FailedRetrievalPaper(params: { text: string }): JSX.Element {
   return (
     <Paper>
       <Typography variant="h5">{params.text}</Typography>
     </Paper>
   );
-};
+}
 
-export const SnackifyAPIRejection = (
-  response: APIRejection
-): NotificationType => [
-  `${response.status}: ${response.statusText}\n${response.payload.detail}`,
-  {
-    variant: "error",
-    style: { whiteSpace: "pre-line" },
-  },
-];
+/**
+ *
+ * Produces a standard format snackbar message and options object for an API
+ * rejection object
+ *
+ * @param response The API rejection information
+ * @returns A snackbar message and options object
+ */
+export function SnackifyAPIRejection(response: APIRejection): NotificationType {
+  return [
+    `${response.status}: ${response.statusText}\n${response.payload.detail}`,
+    {
+      variant: "error",
+      style: { whiteSpace: "pre-line" },
+    },
+  ];
+}
