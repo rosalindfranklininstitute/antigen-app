@@ -31,6 +31,19 @@ export type ElisaPlateRef = Pick<ElisaPlate, "project" | "number">;
 
 export type ElisaPlatePost = Pick<ElisaPlate, "project" | "threshold">;
 
+/**
+ *
+ * A table of elisa plate wells, containing columns for the reference,
+ * location, antigen, nanobody, optical density and functionality. Elisa wells,
+ * antigens and nanobodies are retrieved from the redux store with a dispatch
+ * exected to obtain it if unavailable
+ *
+ * @param params Elisa well references from which the elisa wells can be
+ * retrieved
+ * @param params.elisaWellRefs The elisa well references
+ * @returns A MUI table with columns for the reference, location, antigen,
+ * nanobody, optical density and functionality
+ */
 function ElisaPlateWellTable(params: { elisaWellRefs: ElisaWellRef[] }) {
   const dispatch = useDispatch();
   const elisaWells = useSelector((state: RootState) =>
@@ -96,6 +109,17 @@ function ElisaPlateWellTable(params: { elisaWellRefs: ElisaWellRef[] }) {
   );
 }
 
+/**
+ *
+ * A table of elisa plate information, containing rows for the threshold, well
+ * and creation time. Elisa plate information is retrieved from the redux store
+ * with a dispatch exected to obtain it if unavailable
+ *
+ * @param params An elisa plate reference from which the elisa plate can be
+ * retrieved
+ * @param params.elisaPlateRef The elisa plate reference
+ * @returns A MUI table with rows containing threshold, well and creation time
+ */
 export function ElisaPlateInfo(params: { elisaPlateRef: ElisaPlateRef }) {
   const dispatch = useDispatch();
   const elisaPlate = useSelector(
