@@ -25,6 +25,12 @@ type StrElisaPlateKey = { [K in keyof ElisaPlateRef]: string };
 
 /**
  *
+ * A MUI Card with project and number as title and tab pages for the well map -
+ * containing the well map, threshold slider and the well map legend - and a
+ * table view
+ *
+ * @returns A MUI Card with project and number as title and tab pages for the
+ * well map and a table view
  */
 export default function ElisaPlateView() {
   let { project, number: number_str } =

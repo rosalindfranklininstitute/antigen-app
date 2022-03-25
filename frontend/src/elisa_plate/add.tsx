@@ -8,6 +8,17 @@ import { LoadingPaper } from "../utils/api";
 import { postElisaPlate } from "./slice";
 import { ElisaPlate } from "./utils";
 
+/**
+ *
+ * A MUI Card containing a form for adding a new elisa plate; the form consists
+ * of a dropdown to select the project which it corresponds to, defaulting to
+ * the active project, and a submit button which when pressed dispatches a
+ * request to store the elisa plate and redirects the user to the individual
+ * view of the newly created plate. Available projects are retrieved from the
+ * redux store with a dispatch executed to obtain them if unavailable
+ *
+ * @returns A MUI card containing a form for adding a new elisa plate
+ */
 export default function AddElisaPlateView() {
   const dispatch = useDispatch<DispatchType>();
   const navigate = useNavigate();

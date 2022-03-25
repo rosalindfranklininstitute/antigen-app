@@ -11,6 +11,15 @@ import {
 } from "./slice";
 import { addProjectItemUri } from "../project/utils";
 
+/**
+ * A MUI Card containing a data grid of elisa plates with columns corresponding
+ * to an icon link to the individual view, the threshold, the elisa wells as a
+ * list of well references and the creation time. Elisa plate information is
+ * retrieved from the redux store with a dispatch executed to obtain it if
+ * unavailable
+ *
+ * @returns A MUI Card containing a data grid of elisa plates
+ */
 export default function ElisaPlatesView() {
   const dispatch = useDispatch();
   const elisaPlates = addProjectItemUri(useSelector(selectElisaPlates));
