@@ -49,16 +49,16 @@ export type AntigenRef = Pick<Antigen, "project" | "number">;
  * executed to obtain it if unavailable
  *
  * @param params A antigen reference from which the antigen can be retrieved
- * @param params.antigen The antigen reference
+ * @param params.antigenRef The antigen reference
  * @returns A MUI table with rows containing project, number, name, elisa
  * appearances and creation time
  */
-export function AntigenInfo(params: { antigen: AntigenRef }) {
+export function AntigenInfo(params: { antigenRef: AntigenRef }) {
   const dispatch = useDispatch<DispatchType>();
-  const antigen = useSelector(selectAntigen(params.antigen));
+  const antigen = useSelector(selectAntigen(params.antigenRef));
 
   useEffect(() => {
-    dispatch(getAntigen(params.antigen));
+    dispatch(getAntigen(params.antigenRef));
   }, [dispatch, params]);
 
   if (!antigen) return null;

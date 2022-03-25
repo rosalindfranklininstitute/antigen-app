@@ -126,7 +126,7 @@ export default function AddLocalAntigenView() {
                   {antigen.name}
                 </AccordionSummary>
                 <AccordionDetails>
-                  <AntigenInfo antigen={antigen} />
+                  <AntigenInfo antigenRef={antigen} />
                 </AccordionDetails>
               </Accordion>
             </div>
