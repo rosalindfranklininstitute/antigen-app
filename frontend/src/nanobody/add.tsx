@@ -29,6 +29,17 @@ import { useEffect, useState } from "react";
 import { Project } from "../project/utils";
 import { Box } from "@mui/system";
 
+/**
+ *
+ * A MUI Card containing a form for adding a new nanobody; the form consists of
+ * a dropdown to select the project which it corresponds to, defaulting to the
+ * active project, and a submit button which when pressed dispatches a request
+ * to store the nanobody and appends it to a list of nanobodies created this
+ * session. Available projects are retrieved from the redux store with a
+ * dispatch executed to obtain them if unavailable
+ *
+ * @returns A MUI card containing a form for adding a new nanobody
+ */
 export default function AddNanobodyView() {
   const dispatch = useDispatch();
   const nanobodies = useSelector(selectPostedNanobodies);

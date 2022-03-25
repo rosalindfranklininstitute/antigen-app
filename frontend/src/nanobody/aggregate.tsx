@@ -11,6 +11,15 @@ import {
 } from "./slice";
 import { addProjectItemUri } from "../project/utils";
 
+/**
+ * A MUI Card containing a data grid of nanobodies with columns corresponding
+ * to an icon link to the individual view, the name, the elisa appearances as
+ * a list of well references and the creation time. Nanobody information is
+ * retrieved from the redux store with a dispatch executed to obtain it if
+ * unavailable
+ *
+ * @returns A MUI Card containing a data grid of nanobodies
+ */
 export default function NanobodiesView() {
   const dispatch = useDispatch();
   const nanobodies = addProjectItemUri(useSelector(selectNanobodies));
