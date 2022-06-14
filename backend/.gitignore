@@ -51,7 +51,6 @@ cov.xml
 
 # Django stuff:
 *.log
-migrations/
 static/
 
 # Databases

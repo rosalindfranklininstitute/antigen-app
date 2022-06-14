@@ -14,7 +14,6 @@ ENV DJANGO_CI=true
 
 RUN python3.9 manage.py collectstatic --noinput \
     && mkdir /api_data/ \
-    && mv ./static/ /api_data/static/ \
-    && python3.9 manage.py makemigrations antigenapi
+    && mv ./static/ /api_data/static/
 
 CMD ["uwsgi", "--ini", "uwsgi.ini"]
