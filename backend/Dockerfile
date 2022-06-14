@@ -10,10 +10,11 @@ WORKDIR ${ANTIGENAPP_DIR}
 
 RUN pipenv install --python python3.9 --system --deploy
 
+ENV DJANGO_CI=true
+
 RUN python3.9 manage.py collectstatic --noinput \
     && mkdir /api_data/ \
     && mv ./static/ /api_data/static/ \
-    && python3.9 manage.py makemigrations antigenapi \
-    && python3.9 manage.py migrate
+    && python3.9 manage.py makemigrations antigenapi
 
 CMD ["uwsgi", "--ini", "uwsgi.ini"]

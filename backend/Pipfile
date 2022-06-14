@@ -5,6 +5,7 @@ verify_ssl = true
 
 [packages]
 antigenapp = { editable = true, path = "." }
+psycopg2-binary = "*"
 
 [dev-packages]
 antigenapp = { editable = true, extras = ["dev"], path = "." }
