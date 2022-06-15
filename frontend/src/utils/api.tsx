@@ -41,7 +41,7 @@ export async function getAPI<Type>(
   params: object
 ): Promise<Type> {
   const query = stringify({ ...params, format: "json" });
-  return fetch(`http://127.0.0.1:8000/api/${uriFrag}/?${query}`).then(
+  return fetch(`/api/${uriFrag}/?${query}`).then(
     async (response) =>
       response.ok
         ? await response.json()
@@ -65,7 +65,7 @@ export async function postAPI<Post, Response>(
   uriFrag: string,
   post: Post
 ): Promise<Response> {
-  return fetch(`http://127.0.0.1:8000/api/${uriFrag}/`, {
+  return fetch(`/api/${uriFrag}/`, {
     method: "POST",
     mode: "cors",
     cache: "no-cache",
@@ -97,7 +97,7 @@ export async function putAPI<Put, Response>(
   uriFrag: string,
   put: Put
 ): Promise<Response> {
-  return fetch(`http://127.0.0.1:8000/api/${uriFrag}/`, {
+  return fetch(`/api/${uriFrag}/`, {
     method: "PUT",
     mode: "cors",
     cache: "no-cache",
