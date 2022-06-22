@@ -1,62 +1,26 @@
 # AntigenApp
 
-## Usage
-
-To run the API server, simply clone the repository and launch docker-compose:
-
-```
-    git clone https://github.com/rosalindfranklininstitute/antigen-app
-    cd antigen-app
-    docker-compose up
-```
-
 ## Development
 
-To develop the app in a virtual environment, clone the repository as shown below:
+To develop the app in a container environment, clone the repository as shown below:
 
 ```
-    git clone https://github.com/rosalindfranklininstitute/antigen-app
-    cd antigen-app
+git clone https://github.com/rosalindfranklininstitute/antigen-app
+cd antigen-app
 ```
 
-Then start the development environment using `docker-compose`
+Then start the development environment using `docker-compose`:
 
 ```
 docker-compose up -d
 ```
 
-And initialise the database:
+On first use, or after pulling (in case database schema has changed), initialise/migrate the database:
 
 ```
 docker-compose exec api python manage.py migrate
 ```
 
-### Run backend separately
+You should then be able to access the development site at http://localhost:8000/
 
-To create a python virtual enviroment with the required depedancies:
-
-```
-    cd backend
-    pipenv install --dev
-```
-
-To run a development server:
-
-```
-    python manage.py runserver
-```
-
-### Run frontend separately
-
-To create a node enviroment with the required dependancies:
-
-```
-    cd frontend
-    npm install
-```
-
-To run a development server:
-
-```
-    npm start
-```
+The API will be available at http://localhost:8000/api/
