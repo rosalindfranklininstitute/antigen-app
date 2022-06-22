@@ -12,14 +12,26 @@ To run the API server, simply clone the repository and launch docker-compose:
 
 ## Development
 
-To develop the app in a virtual environment, clone the repository as shown below and follow the instructions for the backend & frontend:
+To develop the app in a virtual environment, clone the repository as shown below:
 
 ```
     git clone https://github.com/rosalindfranklininstitute/antigen-app
     cd antigen-app
 ```
 
-### Backend
+Then start the development environment using `docker-compose`
+
+```
+docker-compose up -d
+```
+
+And initialise the database:
+
+```
+docker-compose exec api python manage.py migrate
+```
+
+### Run backend separately
 
 To create a python virtual enviroment with the required depedancies:
 
@@ -34,7 +46,7 @@ To run a development server:
     python manage.py runserver
 ```
 
-### Frontend
+### Run frontend separately
 
 To create a node enviroment with the required dependancies:
 
