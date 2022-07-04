@@ -56,7 +56,9 @@
       "jsdoc/check-line-alignment": 1,
       "max-len": [
         1,
-        {"ignoreComments": false}
+        {
+          "ignoreComments": false
+        }
       ]
     }
   },

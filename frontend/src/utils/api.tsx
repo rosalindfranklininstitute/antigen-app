@@ -41,11 +41,10 @@ export async function getAPI<Type>(
   params: object
 ): Promise<Type> {
   const query = stringify({ ...params, format: "json" });
-  return fetch(`/api/${uriFrag}/?${query}`).then(
-    async (response) =>
-      response.ok
-        ? await response.json()
-        : Promise.reject(await GetAPIRejection(response))
+  return fetch(`/api/${uriFrag}/?${query}`).then(async (response) =>
+    response.ok
+      ? await response.json()
+      : Promise.reject(await GetAPIRejection(response))
   );
 }
 

@@ -53,7 +53,7 @@ jobs:
           umask 0002
           SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) python -m build --sdist --wheel
       - name: Run Tests
-        run: pipenv run tests
+        run: DJANGO_CI=true pipenv run tests
 
       - name: Upload Wheel and Sdist as artifacts
         if: matrix.publish
