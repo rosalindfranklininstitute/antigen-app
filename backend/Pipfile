@@ -9,6 +9,8 @@ psycopg2-binary = "*"
 
 [dev-packages]
 antigenapp = { editable = true, extras = ["dev"], path = "." }
+pytest-black = "*"
+black = "==22.6.0"
 
 [scripts]
 tests = "python -m pytest"

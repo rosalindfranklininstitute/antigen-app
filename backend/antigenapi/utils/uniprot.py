@@ -3,7 +3,10 @@ from typing import Dict
 from xmlschema import XMLSchema
 
 URL_BASE = "https://www.uniprot.org/uniprot/"
-SCHEMA = XMLSchema("https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot.xsd")
+SCHEMA = XMLSchema(
+    "https://ftp.uniprot.org/pub/databases/uniprot/current_release/"
+    + "knowledgebase/complete/uniprot.xsd"
+)
 
 
 def get_protein(
