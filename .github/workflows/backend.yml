@@ -10,15 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"] # can add windows-latest, macos-latest
-        python: ["3.10 "]
-        pipenv: ["skip-lock"] # --${flag} will be passed to pipenv command
-
-        include:
-          # Add an extra Python3.10 runner to publish wheels and use the lockfile
-          - os: "ubuntu-latest"
-            python: "3.10"
-            pipenv: "deploy"
-            publish: true
+        python: ["3.9"]
 
     name: build/${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
     runs-on: ${{ matrix.os }}
@@ -42,44 +34,7 @@ jobs:
       - name: Install Python Dependencies
         run: |
           pip install pipenv build
-          pipenv install --dev --${{ matrix.pipenv }} --python $(python -c 'import sys; print(sys.executable)') && pipenv graph
-      - name: Create Sdist and Wheel
-        if: matrix.publish
-        # Set SOURCE_DATE_EPOCH from git commit for reproducible build
-        # https://reproducible-builds.org/
-        # Set group writable and umask to do the same to match inside DLS
-        run: |
-          chmod -R g+w .
-          umask 0002
-          SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) python -m build --sdist --wheel
+          pipenv install --dev --python $(python -c 'import sys; print(sys.executable)') && pipenv graph
+
       - name: Run Tests
         run: DJANGO_CI=true pipenv run tests
-
-      - name: Upload Wheel and Sdist as artifacts
-        if: matrix.publish
-        uses: actions/upload-artifact@v2
-        with:
-          name: dist
-          path: dist/*
-
-  release:
-    needs: [build]
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    # make a release on every tag
-    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: dist
-          path: dist
-
-      - name: Github Release
-        # We pin to the SHA, not the tag, for security reasons.
-        # https://docs.github.com/en/actions/learn-github-actions/security-hardening-for-github-actions#using-third-party-actions
-        uses: softprops/action-gh-release@2d72d869af3bf23602f9593a1e3fd739b80ac1eb # v0.1.12
-        with:
-          files: dist/*
-          body: See [Changelog](CHANGELOG.rst) for more details
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
