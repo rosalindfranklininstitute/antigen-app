@@ -6,6 +6,7 @@ import {
   Stack,
   Typography,
   Tab,
+  Button,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -71,7 +72,13 @@ export default function ElisaPlateView() {
             <TabPanel value="map" tabIndex={0}>
               <Stack gap={2} divider={<Divider />}>
                 <ElisaWellMap elisaPlateRef={elisaPlate} />
-                <ElisaPlateThresholdSlider elisaPlateRef={elisaPlate} />
+                <Stack direction="row" spacing={2}>
+                  <Button variant="outlined" component="label">
+                    Upload CSV
+                    <input type="file" hidden/>
+                  </Button>
+                  <ElisaPlateThresholdSlider elisaPlateRef={elisaPlate} />
+                </Stack>
                 <ElisaPlateMapLegend elisaPlateRef={elisaPlate} />
               </Stack>
             </TabPanel>
