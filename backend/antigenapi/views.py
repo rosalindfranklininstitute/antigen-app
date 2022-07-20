@@ -10,6 +10,8 @@ from rest_framework.serializers import (
     RelatedField,
     SerializerMethodField,
     SlugRelatedField,
+    Serializer,
+    FileField,
 )
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -29,6 +31,10 @@ from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
 )
+
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework import status
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -307,6 +313,11 @@ class ElisaPlateSerializer(ModelSerializer):
         model = ElisaPlate
         fields = ["project", "number", "threshold", "elisawell_set", "creation_time"]
 
+class FileUploadSerializer(Serializer):
+    """ A Serializer for uploading files """
+    
+    file = FileField()
+
 
 class ElisaPlateViewSet(ModelViewSet):
     """A view set displaying all recorded elisa plates."""
@@ -317,6 +328,23 @@ class ElisaPlateViewSet(ModelViewSet):
     lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
+
+    def get_serializer_class(self):
+        if self.action in ["upload_csv"]:
+            return FileUploadSerializer
+        else: 
+            return super().get_serializer_class()
+
+    @action(detail=False,methods=['post'])
+    def upload_csv(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        file = serializer.validated_data['file']
+
+        # Add csv stuff here
+
+        return Response({"status": "success"},
+                        status.HTTP_201_CREATED)
 
 
 class ElisaWellSerializer(ModelSerializer):
