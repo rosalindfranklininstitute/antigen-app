@@ -35,6 +35,7 @@ from antigenapi.utils.viewsets import (
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
+import pandas
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -340,9 +341,9 @@ class ElisaPlateViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         file = serializer.validated_data['file']
-
+        elisaData = pandas.read_csv(file)
+        
         # Add csv stuff here
-
         return Response({"status": "success"},
                         status.HTTP_201_CREATED)
 

@@ -8,7 +8,7 @@ RUN python3.9 -m pip install wheel pipenv
 COPY . ${ANTIGENAPP_DIR}
 WORKDIR ${ANTIGENAPP_DIR}
 
-RUN pipenv install --python python3.9 --system --deploy
+RUN pipenv install --python python3.9 --system --deploy --verbose --skip-lock
 
 RUN DJANGO_CI=true python3.9 manage.py collectstatic --noinput \
     && mkdir /api_data/ \
