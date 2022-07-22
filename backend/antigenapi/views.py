@@ -1,3 +1,4 @@
+from ast import Try
 from typing import Generic, Optional, OrderedDict, TypeVar
 
 from django_filters import CharFilter, FilterSet, NumberFilter
@@ -17,6 +18,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from antigenapi.models import (
     Antigen,
+    ElisaDataCSVFile,
     ElisaPlate,
     ElisaWell,
     LocalAntigen,
@@ -36,6 +38,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 import pandas
+from django.core.files import File
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -314,9 +317,10 @@ class ElisaPlateSerializer(ModelSerializer):
         model = ElisaPlate
         fields = ["project", "number", "threshold", "elisawell_set", "creation_time"]
 
+
 class FileUploadSerializer(Serializer):
-    """ A Serializer for uploading files """
-    
+    """A Serializer for uploading files"""
+
     file = FileField()
 
 
@@ -333,19 +337,26 @@ class ElisaPlateViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["upload_csv"]:
             return FileUploadSerializer
-        else: 
+        else:
             return super().get_serializer_class()
 
-    @action(detail=False,methods=['post'])
+
+    @action(detail=False, methods=["post"])
     def upload_csv(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        file = serializer.validated_data['file']
-        elisaData = pandas.read_csv(file)
+        elisa_csv_file = serializer.validated_data["file"]
+        try:
+            elisa_data = pandas.read_csv(elisa_csv_file,dtype=[float,int]) 
+            # elisa_data.shape==(8,12)
+
+        except:
+            print('hello world')
         
-        # Add csv stuff here
-        return Response({"status": "success"},
-                        status.HTTP_201_CREATED)
+        # Can save to the database with django file api
+        new_file_object = ElisaDataCSVFile(csv_file=elisa_csv_file)
+        new_file_object.save()    
+        return Response({"status": "success"}, status.HTTP_201_CREATED)
 
 
 class ElisaWellSerializer(ModelSerializer):

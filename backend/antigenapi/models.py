@@ -3,6 +3,7 @@ from itertools import product
 from typing import Iterable, Optional, Union
 from uuid import UUID, uuid4
 
+from django.core.files import File
 from django.core.validators import RegexValidator
 from django.db.models import (
     CASCADE,
@@ -27,7 +28,7 @@ from django.db.models.fields import (
 )
 from django.db.models.functions import Concat
 from django.utils.timezone import now
-
+from django.db.models import FileField
 from antigenapi.utils.uniprot import get_protein
 
 
@@ -214,6 +215,7 @@ class ElisaPlate(ProjectModelMixin, Model):
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
     threshold: float = FloatField(null=True)
     creation_time: datetime = DateTimeField(editable=False, default=now)
+    csv_file: File = FileField(null=True,blank=True,upload_to='uploads/')
 
 
 PlateLocations = IntegerChoices(
