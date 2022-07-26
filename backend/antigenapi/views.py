@@ -1,5 +1,5 @@
-from ast import Try
 from typing import Generic, Optional, OrderedDict, TypeVar
+import uuid
 
 from django_filters import CharFilter, FilterSet, NumberFilter
 from rest_framework.serializers import (
@@ -11,18 +11,16 @@ from rest_framework.serializers import (
     RelatedField,
     SerializerMethodField,
     SlugRelatedField,
-    Serializer,
-    FileField,
 )
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from antigenapi.models import (
     Antigen,
-    ElisaDataCSVFile,
     ElisaPlate,
     ElisaWell,
     LocalAntigen,
     Nanobody,
+    PlateLocations,
     Project,
     ProjectModelMixin,
     QuerySet,
@@ -34,11 +32,14 @@ from antigenapi.utils.viewsets import (
     perform_create_allow_creator_change_delete,
 )
 
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import status
 import pandas
+import os
 from django.core.files import File
+
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -318,10 +319,14 @@ class ElisaPlateSerializer(ModelSerializer):
         fields = ["project", "number", "threshold", "elisawell_set", "creation_time"]
 
 
-class FileUploadSerializer(Serializer):
-    """A Serializer for uploading files"""
-
-    file = FileField()
+class FileUploadSerializer(ModelSerializer):
+    """ A serializer for elisa plate csv files.""" 
+    
+    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
+    
+    class Meta:
+        model = ElisaPlate
+        fields = ["project", "number", "csv_file"]
 
 
 class ElisaPlateViewSet(ModelViewSet):
@@ -337,26 +342,42 @@ class ElisaPlateViewSet(ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["upload_csv"]:
             return FileUploadSerializer
-        else:
+        else: 
             return super().get_serializer_class()
 
-
-    @action(detail=False, methods=["post"])
+    @action(detail=False,methods=['post'])
     def upload_csv(self, request, *args, **kwargs):
+        """Extra action to uplaod a csv file, existing elisa plate/wells, 
+        and remove old csv file """
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        elisa_csv_file = serializer.validated_data["file"]
-        try:
-            elisa_data = pandas.read_csv(elisa_csv_file,dtype=[float,int]) 
-            # elisa_data.shape==(8,12)
-
-        except:
-            print('hello world')
+        file = serializer.validated_data['csv_file']
+        plate_number = 1 #serializer.validated_data['number']
         
-        # Can save to the database with django file api
-        new_file_object = ElisaDataCSVFile(csv_file=elisa_csv_file)
-        new_file_object.save()    
-        return Response({"status": "success"}, status.HTTP_201_CREATED)
+        csv_elisa_data = pandas.read_csv(file,dtype = (float,int),header = None)
+        # assert csv_elisa_data.shape == (8,12)
+
+        plate_object = ElisaPlate.objects.filter(number = plate_number).first()
+        elisawellobjects = ElisaWell.objects.filter(plate = plate_object.uuid)
+
+        for well in elisawellobjects:
+            well.optical_density = csv_elisa_data.stack().values[well.location - 1]
+       
+        ElisaWell.objects.bulk_update(elisawellobjects,['optical_density'])
+        # get old file path 
+        old_file_path = plate_object.csv_file.name       
+        
+        plate_object.csv_file = file
+        plate_object.save()
+        
+        # Removing old file
+        if os.path.isfile(old_file_path):
+            os.remove(old_file_path)
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(plate_object.csv_file.name, status=status.HTTP_201_CREATED, headers=headers)
+
 
 
 class ElisaWellSerializer(ModelSerializer):
@@ -422,3 +443,5 @@ class SequenceViewSet(ModelViewSet):
 
     create = create_possibly_multiple
     perform_create = perform_create_allow_creator_change_delete
+
+
