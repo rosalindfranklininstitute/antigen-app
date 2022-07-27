@@ -32,6 +32,7 @@ from django.db.models import FileField
 from antigenapi.utils.uniprot import get_protein
 from django.apps import apps
 
+
 class Project(Model):
     """A unique project."""
 
@@ -215,7 +216,7 @@ class ElisaPlate(ProjectModelMixin, Model):
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
     threshold: float = FloatField(null=True)
     creation_time: datetime = DateTimeField(editable=False, default=now)
-    csv_file: File = FileField(null=True, blank=True, upload_to='uploads/')
+    csv_file: File = FileField(null=True, blank=True, upload_to="uploads/")
 
 
 PlateLocations = IntegerChoices(

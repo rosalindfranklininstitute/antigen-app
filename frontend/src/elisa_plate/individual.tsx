@@ -45,7 +45,7 @@ export default function ElisaPlateView() {
   useEffect(() => {
     dispatch(getElisaPlate({ project, number }));
   }, [dispatch, project, number]);
-  
+
   if (loading)
     return <LoadingPaper text="Retrieving elisa plate from database." />;
   if (!elisaPlate)
@@ -75,10 +75,11 @@ export default function ElisaPlateView() {
                 <Stack direction="row" spacing={2}>
                   <Button variant="outlined" component="label">
                     Upload CSV
-                    <input 
-                    type="file"
-                    onChange={(evt)=> console.log('hi there')}
-                    hidden/>
+                    <input
+                      type="file"
+                      onChange={(evt) => console.log("hi there")}
+                      hidden
+                    />
                   </Button>
                   <ElisaPlateThresholdSlider elisaPlateRef={elisaPlate} />
                 </Stack>

@@ -9,7 +9,7 @@ import {
   filterKeys,
   keyEq,
 } from "../utils/state_management";
-import { ElisaPlate, ElisaPlatePost, ElisaPlateRef} from "./utils";
+import { ElisaPlate, ElisaPlatePost, ElisaPlateRef } from "./utils";
 
 type ElisaPlateState = {
   elisaPlates: ElisaPlate[];

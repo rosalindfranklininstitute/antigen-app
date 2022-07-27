@@ -26,5 +26,5 @@ router.register("sequence", SequenceViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
-    path(r'upload_csv/', FileUploadView.as_view(), name='upload_csv')
+    path(r"upload_csv/", FileUploadView.as_view(), name="upload_csv"),
 ]
