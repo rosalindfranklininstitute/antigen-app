@@ -46,6 +46,25 @@ export default function ElisaPlateView() {
     dispatch(getElisaPlate({ project, number }));
   }, [dispatch, project, number]);
 
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("hello how are you ");
+    let data = new FormData();
+    // will sort out and make nice later
+    const file = event!.target!.files![0];
+    console.log(file.type);
+    data.append("number", elisaPlate!.number.toString());
+    data.append("csv_file", file);
+
+    fetch(`/api/upload_csv/`, {
+      method: "POST",
+      mode: "cors",
+      cache: "no-cache",
+      credentials: "same-origin",
+      headers: {},
+      body: data,
+    });
+  };
+
   if (loading)
     return <LoadingPaper text="Retrieving elisa plate from database." />;
   if (!elisaPlate)
@@ -76,8 +95,9 @@ export default function ElisaPlateView() {
                   <Button variant="outlined" component="label">
                     Upload CSV
                     <input
+                      accept=".csv"
                       type="file"
-                      onChange={(evt) => console.log("hi there")}
+                      onChange={handleFileInput}
                       hidden
                     />
                   </Button>

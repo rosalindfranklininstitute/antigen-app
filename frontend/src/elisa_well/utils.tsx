@@ -54,9 +54,7 @@ export function deserializeElisaWellRef(elisaWellRef: string): ElisaWellRef {
  * @returns The serialized elisa well reference URI string
  */
 export function serializeElisaWellRef(elisaWellRef: ElisaWellRef): string {
-  return `${elisaWellRef.project}
-  :${elisaWellRef.plate}
-  :${elisaWellRef.location}`;
+  return `${elisaWellRef.project}:${elisaWellRef.plate}:${elisaWellRef.location}`;
 }
 
 /**

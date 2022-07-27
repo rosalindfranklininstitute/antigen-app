@@ -415,7 +415,7 @@ class FileUploadView(APIView):
         serializer = FileUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         file = serializer.validated_data["csv_file"]
-        plate_number = serializer.validated_data["number"]
+        plate_number = int(serializer.validated_data["number"])
 
         csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
         # assert csv_elisa_data.shape == (8,12)
