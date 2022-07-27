@@ -14,6 +14,11 @@ export type ElisaPlate = {
   creation_time: Date;
 };
 
+export type CSVFile = {
+  number: number;
+  csv_file: FormData;
+}
+
 export type ElisaPlateRef = Pick<ElisaPlate, "project" | "number">;
 
 export type ElisaPlatePost = Pick<ElisaPlate, "project" | "threshold">;

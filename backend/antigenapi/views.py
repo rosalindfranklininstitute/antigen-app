@@ -4,11 +4,13 @@ import uuid
 from django_filters import CharFilter, FilterSet, NumberFilter
 from rest_framework.serializers import (
     CharField,
+    FileField,
     IntegerField,
     ModelSerializer,
     PrimaryKeyRelatedField,
     ReadOnlyField,
     RelatedField,
+    Serializer,
     SerializerMethodField,
     SlugRelatedField,
 )
@@ -318,17 +320,6 @@ class ElisaPlateSerializer(ModelSerializer):
         model = ElisaPlate
         fields = ["project", "number", "threshold", "elisawell_set", "creation_time"]
 
-
-class FileUploadSerializer(ModelSerializer):
-    """ A serializer for elisa plate csv files.""" 
-    
-    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
-    
-    class Meta:
-        model = ElisaPlate
-        fields = ["project", "number", "csv_file"]
-
-
 class ElisaPlateViewSet(ModelViewSet):
     """A view set displaying all recorded elisa plates."""
 
@@ -338,47 +329,6 @@ class ElisaPlateViewSet(ModelViewSet):
     lookup_field = "key"
 
     perform_create = perform_create_allow_creator_change_delete
-
-    def get_serializer_class(self):
-        if self.action in ["upload_csv"]:
-            return FileUploadSerializer
-        else: 
-            return super().get_serializer_class()
-
-    @action(detail=False,methods=['post'])
-    def upload_csv(self, request, *args, **kwargs):
-        """Extra action to uplaod a csv file, existing elisa plate/wells, 
-        and remove old csv file """
-        
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        file = serializer.validated_data['csv_file']
-        plate_number = 1 #serializer.validated_data['number']
-        
-        csv_elisa_data = pandas.read_csv(file,dtype = (float,int),header = None)
-        # assert csv_elisa_data.shape == (8,12)
-
-        plate_object = ElisaPlate.objects.filter(number = plate_number).first()
-        elisawellobjects = ElisaWell.objects.filter(plate = plate_object.uuid)
-
-        for well in elisawellobjects:
-            well.optical_density = csv_elisa_data.stack().values[well.location - 1]
-       
-        ElisaWell.objects.bulk_update(elisawellobjects,['optical_density'])
-        # get old file path 
-        old_file_path = plate_object.csv_file.name       
-        
-        plate_object.csv_file = file
-        plate_object.save()
-        
-        # Removing old file
-        if os.path.isfile(old_file_path):
-            os.remove(old_file_path)
-        
-        headers = self.get_success_headers(serializer.data)
-        return Response(plate_object.csv_file.name, status=status.HTTP_201_CREATED, headers=headers)
-
-
 
 class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
@@ -445,3 +395,43 @@ class SequenceViewSet(ModelViewSet):
     perform_create = perform_create_allow_creator_change_delete
 
 
+class FileUploadSerializer(Serializer):
+    """ A serializer for elisa plate csv files.""" 
+    
+    number = IntegerField()
+    csv_file = FileField()
+
+class FileUploadView(APIView):
+    
+    serializer_class = FileUploadSerializer
+
+    def post(self, request, *args, **kwargs):
+        """ post to uplaod a csv file, existing elisa plate/wells, 
+        and remove old csv file """
+
+        serializer = FileUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        file = serializer.validated_data['csv_file']
+        plate_number = serializer.validated_data['number']
+        
+        csv_elisa_data = pandas.read_csv(file,dtype = (float,int),header = None)
+        # assert csv_elisa_data.shape == (8,12)
+
+        plate_object = ElisaPlate.objects.filter(number = plate_number).first()
+        elisawellobjects = ElisaWell.objects.filter(plate = plate_object.uuid)
+
+        for well in elisawellobjects:
+            well.optical_density = csv_elisa_data.stack().values[well.location - 1]
+       
+        ElisaWell.objects.bulk_update(elisawellobjects,['optical_density'])
+        # get old file path 
+        old_file_path = plate_object.csv_file.name       
+        
+        plate_object.csv_file = file
+        plate_object.save()
+        
+        # Removing old file
+        if os.path.isfile(old_file_path):
+            os.remove(old_file_path)
+        
+        return Response(plate_object.csv_file.name, status=status.HTTP_201_CREATED)
