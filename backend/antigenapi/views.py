@@ -418,7 +418,7 @@ class FileUploadView(APIView):
         csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
         assert csv_elisa_data.shape == (8, 12)
 
-        # Tests to see if the plats and wells exist
+        # Tests to see if the plates and wells exist
         plate_object = ElisaPlate.objects.filter(number=plate_number).first()
         elisawellobjects = ElisaWell.objects.filter(plate=plate_object.uuid)
 
