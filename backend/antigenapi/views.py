@@ -1,5 +1,4 @@
 from typing import Generic, Optional, OrderedDict, TypeVar
-import uuid
 
 from django_filters import CharFilter, FilterSet, NumberFilter
 from rest_framework.serializers import (
@@ -22,7 +21,6 @@ from antigenapi.models import (
     ElisaWell,
     LocalAntigen,
     Nanobody,
-    PlateLocations,
     Project,
     ProjectModelMixin,
     QuerySet,
@@ -36,12 +34,9 @@ from antigenapi.utils.viewsets import (
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from rest_framework import status
 import pandas
 import os
-from django.core.files import File
-
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -405,13 +400,15 @@ class FileUploadSerializer(Serializer):
 
 
 class FileUploadView(APIView):
+    """A view that provides and API end point for uploading csv files"""
 
     serializer_class = FileUploadSerializer
 
     def post(self, request, *args, **kwargs):
-        """post to uplaod a csv file, existing elisa plate/wells,
-        and remove old csv file"""
-
+        """
+        Post method to uplaod a csv file existing elisa plate/wells,
+        and remove old csv file
+        """
         serializer = FileUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         file = serializer.validated_data["csv_file"]
@@ -419,15 +416,15 @@ class FileUploadView(APIView):
 
         # Tests here to test the csv file
         csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
-        assert csv_elisa_data.shape == (8,12)
+        assert csv_elisa_data.shape == (8, 12)
 
-        # Tests to see if the plats and wells exist 
+        # Tests to see if the plats and wells exist
         plate_object = ElisaPlate.objects.filter(number=plate_number).first()
         elisawellobjects = ElisaWell.objects.filter(plate=plate_object.uuid)
 
         for well in elisawellobjects:
             well.optical_density = csv_elisa_data.stack().values[well.location - 1]
-        
+
         ElisaWell.objects.bulk_update(elisawellobjects, ["optical_density"])
         old_file_path = plate_object.csv_file.name
 
