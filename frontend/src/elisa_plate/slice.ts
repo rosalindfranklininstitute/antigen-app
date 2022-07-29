@@ -2,7 +2,13 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { ElisaWell } from "../elisa_well/utils";
 import { projectItemURI } from "../project/utils";
 import { RootState } from "../store";
-import { APIRejection, getAPI, postAPI, putAPI } from "../utils/api";
+import {
+  APIRejection,
+  getAPI,
+  postAPI,
+  putAPI,
+  postFormAPI,
+} from "../utils/api";
 import {
   mergeByKeys,
   AllFetched,
@@ -91,6 +97,23 @@ export const putElisaPlate = createAsyncThunk<
     `elisa_plate/${projectItemURI(post)}`,
     post
   ).then(
+    async (elisaPlate) => ({
+      elisaPlate,
+      elisaWells: await getAPI<Array<ElisaWell>>("elisa_well", {
+        project: elisaPlate.project,
+        plate: elisaPlate.number,
+      }),
+    }),
+    (apiRejection) => rejectWithValue({ apiRejection })
+  )
+);
+
+export const postElisaPlateCSV = createAsyncThunk<
+  { elisaPlate: ElisaPlate; elisaWells: Array<ElisaWell> },
+  { csvData: FormData },
+  { rejectValue: { apiRejection: APIRejection } }
+>("elisaPlates", (data, { rejectWithValue }) =>
+  postFormAPI<ElisaPlate>(`upload_csv`, data.csvData).then(
     async (elisaPlate) => ({
       elisaPlate,
       elisaWells: await getAPI<Array<ElisaWell>>("elisa_well", {

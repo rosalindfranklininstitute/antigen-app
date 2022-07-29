@@ -11,13 +11,14 @@ import {
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
+import { LoadingPaper, FailedRetrievalPaper, postFormAPI } from "../utils/api";
 import {
   getElisaPlate,
   selectElisaPlate,
   selectLoadingElisaPlate,
+  postElisaPlateCSV,
 } from "./slice";
-import { ElisaPlateInfo, ElisaPlateRef } from "./utils";
+import { ElisaPlate, ElisaPlateInfo, ElisaPlateRef } from "./utils";
 import { ElisaPlateMapLegend } from "./well_map/legend";
 import { ElisaPlateThresholdSlider } from "./well_map/threshold_slider";
 import { ElisaWellMap } from "./well_map/well_map";
@@ -46,24 +47,17 @@ export default function ElisaPlateView() {
     dispatch(getElisaPlate({ project, number }));
   }, [dispatch, project, number]);
 
-  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log("hello how are you ");
-    let data = new FormData();
-    // will sort out and make nice later
-    const file = event!.target!.files![0];
-    console.log(file.type);
-    data.append("number", elisaPlate!.number.toString());
-    data.append("csv_file", file);
+  // Function to send csv to api
 
-    fetch(`/api/upload_csv/`, {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      credentials: "same-origin",
-      headers: {},
-      body: data,
-    });
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const data = new FormData();
+    data.append("number", elisaPlate!.number.toString());
+    data.append("csv_file", event!.target!.files![0]);
+    if (elisaPlate)
+      dispatch(postElisaPlateCSV({ ...elisaPlate, csvData: data }));
   };
+
+  // Funtion to send csv to backend
 
   if (loading)
     return <LoadingPaper text="Retrieving elisa plate from database." />;

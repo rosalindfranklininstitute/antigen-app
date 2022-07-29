@@ -417,17 +417,18 @@ class FileUploadView(APIView):
         file = serializer.validated_data["csv_file"]
         plate_number = int(serializer.validated_data["number"])
 
+        # Tests here to test the csv file
         csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
-        # assert csv_elisa_data.shape == (8,12)
+        assert csv_elisa_data.shape == (8,12)
 
+        # Tests to see if the plats and wells exist 
         plate_object = ElisaPlate.objects.filter(number=plate_number).first()
         elisawellobjects = ElisaWell.objects.filter(plate=plate_object.uuid)
 
         for well in elisawellobjects:
             well.optical_density = csv_elisa_data.stack().values[well.location - 1]
-
+        
         ElisaWell.objects.bulk_update(elisawellobjects, ["optical_density"])
-        # get old file path
         old_file_path = plate_object.csv_file.name
 
         plate_object.csv_file = file

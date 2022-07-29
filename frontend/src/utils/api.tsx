@@ -114,6 +114,35 @@ export async function putAPI<Put, Response>(
 
 /**
  *
+ * Sends a post request to the rest API with a URI fragment pointing to the right
+ * end point and a form containing files such as elisa plate CSV files.
+ *
+ * @param uriFrag
+ * @param data
+ * @returns A promise of a deserialized object, obtained from the rest API or
+ * an APIRejection
+ */
+
+export async function postFormAPI<Response>(
+  uriFrag: string,
+  data: FormData
+): Promise<Response> {
+  return fetch(`/api/${uriFrag}/`, {
+    method: "POST",
+    mode: "cors",
+    cache: "no-cache",
+    credentials: "same-origin",
+    headers: {},
+    body: data,
+  }).then(async (response) =>
+    response.ok
+      ? await response.json()
+      : Promise.reject(await GetAPIRejection(response))
+  );
+}
+
+/**
+ *
  * A MUI Paper element showing a linear progress bar with corresponding loading
  * message
  *
