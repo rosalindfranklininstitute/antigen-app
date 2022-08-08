@@ -84,9 +84,7 @@ WSGI_APPLICATION = "antigendjango.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-if IS_CI:
-    DATABASES = {}
-elif "DJANGO_USE_SQLITE" in os.environ:
+if IS_CI or "DJANGO_USE_SQLITE" in os.environ:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
