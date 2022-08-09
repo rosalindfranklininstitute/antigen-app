@@ -27,7 +27,6 @@ import {
   selectProjects,
 } from "../project/slice";
 import { Project } from "../project/utils";
-
 /**
  *
  * A MUI Card containing a form for adding a new local antigen; the form
@@ -41,6 +40,8 @@ import { Project } from "../project/utils";
  *
  * @returns A MUI card containing a form for adding a new antigen
  */
+
+
 export default function AddLocalAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedLocalAntignes);
@@ -50,6 +51,7 @@ export default function AddLocalAntigenView() {
   const [project, setProject] = useState<Project | undefined>(currentProject);
   const [sequence, setSequence] = useState<string>("");
   const [molecularMass, setMolecularMass] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     dispatch(getProjects());
@@ -57,9 +59,12 @@ export default function AddLocalAntigenView() {
 
   useEffect(() => {
     setProject(currentProject);
+
   }, [currentProject]);
 
+ 
   const submit = () => {
+    setErrorMessage("");
     if (project)
       dispatch(
         postLocalAntigen({
@@ -67,8 +72,18 @@ export default function AddLocalAntigenView() {
           sequence,
           molecular_mass: molecularMass,
         })
-      );
+        );
+        
+        
+
+      else
+        setErrorMessage("Please select a project")
+        
+      ;
+   
   };
+
+
 
   return (
     <Card>
@@ -88,8 +103,8 @@ export default function AddLocalAntigenView() {
               value={project}
               options={projects}
               getOptionLabel={(project) => project.short_title}
-              onChange={(_, project) =>
-                setProject(project ? project : undefined)
+              onChange={(_, project) => setProject(project ? project : undefined)
+                
               }
             />
             <TextField
@@ -106,7 +121,8 @@ export default function AddLocalAntigenView() {
               type="number"
               value={molecularMass}
               onChange={(evt) => {
-                setMolecularMass(Number(evt.target.value));
+                setMolecularMass(Number(evt.target.value)); 
+                
               }}
             />
             <LoadingButton
@@ -117,7 +133,12 @@ export default function AddLocalAntigenView() {
             >
               Submit
             </LoadingButton>
+           
           </Stack>
+          {errorMessage && ( <div className="error"> 
+            {errorMessage}</div>
+          )}
+      
           {antigens.map((antigen) => (
             <div>
               <Divider />
