@@ -19,6 +19,7 @@ export function keyEq<First extends Second, Second>(
   second: Second,
   keys: Array<keyof Second>
 ): boolean {
+  if (second === null) return false;
   return keys.every((key) => first[key] === second[key]);
 }
 
