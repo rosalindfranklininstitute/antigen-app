@@ -237,7 +237,7 @@ class ElisaWell(Model):
     plate: ElisaPlate = ForeignKey(ElisaPlate, on_delete=CASCADE)
     location = PositiveSmallIntegerField(choices=PlateLocations.choices)
     antigen: Antigen = ForeignKey(Antigen, on_delete=CASCADE)
-    nanobody: Nanobody = ForeignKey(Nanobody, on_delete=CASCADE)
+    nanobody: Nanobody = ForeignKey(Nanobody, null=True, on_delete=CASCADE)
     optical_density: float = FloatField(null=True)
 
     class Meta:  # noqa: D106
@@ -275,9 +275,13 @@ class ElisaWell(Model):
         """The functionality of a nanobody, determined by thresholding optical density.
 
         Returns:
-            bool: True if optical density exceeds the plate threshold.
+            bool: True if optical density is set and exceeds the plate threshold
         """
-        return self.optical_density >= self.plate.threshold
+        return (
+            self.optical_density >= self.plate.threshold
+            if self.optical_density
+            else False
+        )
 
     def __str__(self) -> str:  # noqa: D105
         return self.key_

@@ -36,9 +36,9 @@ PM = TypeVar("PM", bound=ProjectModelMixin)
 class ProjectModelRelatedField(Generic[PM], RelatedField):
     """A related field which serializes the project and number of project models."""
 
-    def __init__(self, queryset: QuerySet[PM]) -> None:  # noqa: D107
+    def __init__(self, queryset: QuerySet[PM], **kwargs) -> None:  # noqa: D107
         self.queryset = queryset
-        super().__init__()
+        super().__init__(**kwargs)
 
     def to_representation(self, value: PM):
         """Override which serializes as a dict of project model keys.
@@ -330,7 +330,9 @@ class ElisaWellSerializer(ModelSerializer):
     plate = SlugRelatedField(slug_field="number", queryset=ElisaPlate.objects.all())
     functional = ReadOnlyField()
     antigen = ProjectModelRelatedField[Antigen](queryset=Antigen.objects.all())
-    nanobody = ProjectModelRelatedField[Nanobody](queryset=Nanobody.objects.all())
+    nanobody = ProjectModelRelatedField[Nanobody](
+        queryset=Nanobody.objects.all(), default=None, required=False
+    )
 
     class Meta:  # noqa: D106
         model = ElisaWell
