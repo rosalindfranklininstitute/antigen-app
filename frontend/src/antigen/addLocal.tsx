@@ -40,8 +40,6 @@ import { Project } from "../project/utils";
  *
  * @returns A MUI card containing a form for adding a new antigen
  */
-
-
 export default function AddLocalAntigenView() {
   const dispatch = useDispatch();
   const antigens = useSelector(selectPostedLocalAntignes);
