@@ -187,9 +187,7 @@ const antigenSlice = createSlice({
       state.postPending = false;
     });
     builder.addCase(postLocalAntigen.rejected, (state) => {
-      state.postPending = false; 
-      
-      
+      state.postPending = false;
     });
   },
 });
