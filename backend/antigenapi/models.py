@@ -124,7 +124,7 @@ class Antigen(ProjectModelMixin, Model):
         return f"{self.child.name} [{self.key_}]" if self.child else self.key_
 
 
-AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZ]*$")
+AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZX]*$")
 
 
 class LocalAntigen(Antigen, Model):

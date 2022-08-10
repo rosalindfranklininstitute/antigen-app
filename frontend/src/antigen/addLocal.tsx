@@ -72,9 +72,7 @@ export default function AddLocalAntigenView() {
           sequence,
           molecular_mass: molecularMass,
         })
-        );
-        
-        
+        );     
 
       else
         setErrorMessage("Please select a project")
