@@ -2,7 +2,7 @@ from typing import Dict
 
 from xmlschema import XMLSchema
 
-URL_BASE = "https://www.uniprot.org/uniprot/"
+URL_BASE = "https://rest.uniprot.org/uniprotkb/"
 SCHEMA = XMLSchema(
     "https://ftp.uniprot.org/pub/databases/uniprot/current_release/"
     + "knowledgebase/complete/uniprot.xsd"

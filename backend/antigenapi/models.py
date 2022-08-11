@@ -161,20 +161,6 @@ class UniProtAntigen(Antigen, Model):
     molecular_mass: int = IntegerField(editable=False)
     name = CharField(max_length=32, editable=False)
 
-    def save(
-        self,
-        force_insert: bool = False,
-        force_update: bool = False,
-        using: Optional[str] = None,
-        update_fields: Optional[Iterable[str]] = None,
-    ) -> None:
-        """Overridden save method which gets sequence, mass & name from UniProt."""
-        protein_data = get_protein(self.uniprot_accession_number)
-        self.sequence = protein_data["sequence"]["$"]
-        self.molecular_mass = protein_data["sequence"]["@mass"]
-        self.name = protein_data["protein"]["recommendedName"]["fullName"]["$"]
-        return super().save(force_insert, force_update, using, update_fields)
-
     class Meta:
         """Empty Meta to negate the unique_together constraint of ProjectModelMixin."""
 
