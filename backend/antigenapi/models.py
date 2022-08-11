@@ -28,8 +28,6 @@ from django.db.models.fields import (
 from django.db.models.functions import Concat
 from django.utils.timezone import now
 
-from antigenapi.utils.uniprot import get_protein
-
 
 class Project(Model):
     """A unique project."""

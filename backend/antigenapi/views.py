@@ -1,5 +1,4 @@
 import urllib.error
-
 from typing import Generic, Optional, OrderedDict, TypeVar
 
 from django_filters import CharFilter, FilterSet, NumberFilter
@@ -12,7 +11,7 @@ from rest_framework.serializers import (
     RelatedField,
     SerializerMethodField,
     SlugRelatedField,
-    ValidationError
+    ValidationError,
 )
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -28,11 +27,11 @@ from antigenapi.models import (
     Sequence,
     UniProtAntigen,
 )
+from antigenapi.utils.uniprot import get_protein
 from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
 )
-from antigenapi.utils.uniprot import get_protein
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -192,15 +191,17 @@ class UniProtAntigenSerialzer(ModelSerializer):
     def validate(self, data):
         """Check the antigen is a valid uniprot ID."""
         try:
-            protein_data = get_protein(data['uniprot_accession_number'])
+            protein_data = get_protein(data["uniprot_accession_number"])
         except urllib.error.HTTPError as e:
             if e.code == 400:
-                raise ValidationError({"uniprot_accession_number": "Couldn't validate this UniProt ID"})
+                raise ValidationError(
+                    {"uniprot_accession_number": "Couldn't validate this UniProt ID"}
+                )
             else:
                 raise
-        data['sequence'] = protein_data["sequence"]["$"]
-        data['molecular_mass'] = protein_data["sequence"]["@mass"]
-        data['name'] = protein_data["protein"]["recommendedName"]["fullName"]["$"]
+        data["sequence"] = protein_data["sequence"]["$"]
+        data["molecular_mass"] = protein_data["sequence"]["@mass"]
+        data["name"] = protein_data["protein"]["recommendedName"]["fullName"]["$"]
         return data
 
 
