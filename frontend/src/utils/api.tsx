@@ -155,8 +155,18 @@ export function FailedRetrievalPaper(params: { text: string }): JSX.Element {
  * @returns A snackbar message and options object
  */
 export function SnackifyAPIRejection(response: APIRejection): NotificationType {
+  let msg: string = "";
+  if (response.payload !== undefined) {
+    // For now, use the first field in the response payload as the error message
+    for (let prop in response.payload) {
+      if (response.payload.hasOwnProperty(prop)) {
+        msg = String(response.payload[prop as keyof typeof response.payload]);
+        break;
+      }
+    }
+  }
   return [
-    `${response.status}: ${response.statusText}\n${response.payload.detail}`,
+    `${response.status}: ${response.statusText}\n${msg}`,
     {
       variant: "error",
       style: { whiteSpace: "pre-line" },
