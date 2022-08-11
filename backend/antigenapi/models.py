@@ -172,7 +172,7 @@ class UniProtAntigen(Antigen, Model):
         protein_data = get_protein(self.uniprot_accession_number)
         self.sequence = protein_data["sequence"]["$"]
         self.molecular_mass = protein_data["sequence"]["@mass"]
-        self.name = protein_data["protein"]["recommendedName"]["fullName"]
+        self.name = protein_data["protein"]["recommendedName"]["fullName"]["$"]
         return super().save(force_insert, force_update, using, update_fields)
 
     class Meta:

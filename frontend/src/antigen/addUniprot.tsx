@@ -92,7 +92,7 @@ export default function AddUniProtAntigenView() {
             />
             <TextField
               required
-              label="UniProt Accessation Number"
+              label="UniProt Accession Number"
               value={accessionNumber}
               onChange={(evt) => {
                 setAccessionNumber(evt.target.value);
