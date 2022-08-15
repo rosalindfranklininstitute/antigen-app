@@ -394,8 +394,7 @@ class SequenceViewSet(ModelViewSet):
 
 class FileUploadSerializer(Serializer):
     """A serializer for elisa plate csv files."""
-    project = SlugRelatedField(slug_field="short_title", queryset=Project.objects.all())
-    number = IntegerField()
+    plate = SlugRelatedField(slug_field="key", queryset=ElisaPlate.objects.all())
     csv_file = FileField()
 
 
@@ -411,18 +410,18 @@ class FileUploadView(APIView):
         """
         serializer = FileUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+         
         file = serializer.validated_data["csv_file"]
-        plate_number = int(serializer.validated_data["number"])
-        
+        plate_key = serializer.validated_data["plate"]
+
         try:
             csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
             assert csv_elisa_data.shape == (8, 12)
         except:
             return Response("CSV file is the wrong format")
-        
+
         try:
-            plate_object = ElisaPlate.objects.filter(number=plate_number).first()
+            plate_object = ElisaPlate.objects.filter(key=plate_key,).first()
             elisawellobjects = ElisaWell.objects.filter(plate=plate_object.uuid)
         except: 
             return Response("Plate or wells do not exist")
