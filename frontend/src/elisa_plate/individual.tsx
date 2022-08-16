@@ -49,8 +49,7 @@ export default function ElisaPlateView() {
 
   const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     const data = new FormData();
-    const plateKey = elisaPlate!.project + elisaPlate!.number 
-    data.append("number", plateKey);
+    data.append("plate", `${elisaPlate!.project}:${elisaPlate!.number}`);
     data.append("csv_file", event!.target!.files![0]);
     if (elisaPlate)
       dispatch(postElisaPlateCSV({ ...elisaPlate, csvData: data }));
