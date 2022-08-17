@@ -78,6 +78,43 @@ class ProjectModelRelatedField(Generic[PM], RelatedField):
         return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
 
 
+
+
+
+class ElisaPlateRelatedField(Generic[PM],RelatedField):
+
+    def __init__(self, queryset: QuerySet[PM]) -> None:  # noqa: D107
+        self.queryset = queryset
+        super().__init__()
+
+    def to_representation(self,value):
+        return {"number": value.number}
+
+    def to_internal_value(self,data):
+        return self.queryset.filter(
+            project__short_title=data["project"], number=data["number"]
+        ).get()
+    
+    def get_choices(self, cutoff=None):
+        """Override to fix serialization bug.
+
+        Override which skips the to_representation call when constructing the choices
+        dict. See: https://github.com/encode/django-rest-framework/issues/5141
+        """
+        queryset = self.get_queryset()
+        if queryset is None:
+            return {}
+
+        if cutoff is not None:
+            queryset = queryset[:cutoff]
+
+        return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
+
+
+
+
+
+
 class ElisaWellRelatedField(RelatedField):
     """A related field which serializes the key of elisa wells.
 
@@ -326,7 +363,6 @@ class ElisaPlateViewSet(ModelViewSet):
 
     perform_create = perform_create_allow_creator_change_delete
 
-
 class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
 
@@ -335,7 +371,11 @@ class ElisaWellSerializer(ModelSerializer):
         queryset=Project.objects.all(),
         source="plate.project",
     )
-    plate = SlugRelatedField(slug_field="number", queryset=ElisaPlate.objects.all())
+    plate = SlugRelatedField(
+        slug_field="number",
+        queryset=ElisaPlate.objects.all(),
+    )    
+    
     functional = ReadOnlyField()
     antigen = ProjectModelRelatedField[Antigen](queryset=Antigen.objects.all())
     nanobody = ProjectModelRelatedField[Nanobody](queryset=Nanobody.objects.all())
@@ -418,13 +458,13 @@ class FileUploadView(APIView):
             csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
             assert csv_elisa_data.shape == (8, 12)
         except:
-            return Response("CSV file is the wrong format")
+            return Response("The CSV file is of the wrong format data not added")
 
         try:
             plate_object = ElisaPlate.objects.filter(key=plate_key,).first()
             elisawellobjects = ElisaWell.objects.filter(plate=plate_object.uuid)
         except: 
-            return Response("Plate or wells do not exist")
+            return Response("Plate or wells do not exist data not added")
 
         for well in elisawellobjects:
             well.optical_density = csv_elisa_data.stack().values[well.location - 1]
