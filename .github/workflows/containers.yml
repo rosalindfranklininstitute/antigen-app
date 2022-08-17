@@ -2,7 +2,8 @@ name: Container Images push to quay.io
 
 on:
   push:
-  pull_request:
+    branches:
+      - main
 
 jobs:
   build:

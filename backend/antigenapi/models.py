@@ -126,7 +126,7 @@ class Antigen(ProjectModelMixin, Model):
         return f"{self.child.name} [{self.key_}]" if self.child else self.key_
 
 
-AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZ]*$")
+AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZX]*$")
 
 
 class LocalAntigen(Antigen, Model):
@@ -162,20 +162,6 @@ class UniProtAntigen(Antigen, Model):
     sequence: str = TextField(validators=[AminoCodeLetters], editable=False)
     molecular_mass: int = IntegerField(editable=False)
     name = CharField(max_length=32, editable=False)
-
-    def save(
-        self,
-        force_insert: bool = False,
-        force_update: bool = False,
-        using: Optional[str] = None,
-        update_fields: Optional[Iterable[str]] = None,
-    ) -> None:
-        """Overridden save method which gets sequence, mass & name from UniProt."""
-        protein_data = get_protein(self.uniprot_accession_number)
-        self.sequence = protein_data["sequence"]["$"]
-        self.molecular_mass = protein_data["sequence"]["@mass"]
-        self.name = protein_data["protein"]["recommendedName"]["fullName"]
-        return super().save(force_insert, force_update, using, update_fields)
 
     class Meta:
         """Empty Meta to negate the unique_together constraint of ProjectModelMixin."""
@@ -240,7 +226,7 @@ class ElisaWell(Model):
     plate: ElisaPlate = ForeignKey(ElisaPlate, on_delete=CASCADE)
     location = PositiveSmallIntegerField(choices=PlateLocations.choices)
     antigen: Antigen = ForeignKey(Antigen, on_delete=CASCADE)
-    nanobody: Nanobody = ForeignKey(Nanobody, on_delete=CASCADE)
+    nanobody: Nanobody = ForeignKey(Nanobody, null=True, on_delete=CASCADE)
     optical_density: float = FloatField(null=True)
 
     class Meta:  # noqa: D106
@@ -278,9 +264,13 @@ class ElisaWell(Model):
         """The functionality of a nanobody, determined by thresholding optical density.
 
         Returns:
-            bool: True if optical density exceeds the plate threshold.
+            bool: True if optical density is set and exceeds the plate threshold
         """
-        return self.optical_density >= self.plate.threshold
+        return (
+            self.optical_density >= self.plate.threshold
+            if self.optical_density
+            else False
+        )
 
     def __str__(self) -> str:  # noqa: D105
         return self.key_

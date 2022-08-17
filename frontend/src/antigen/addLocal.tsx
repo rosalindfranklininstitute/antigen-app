@@ -27,7 +27,6 @@ import {
   selectProjects,
 } from "../project/slice";
 import { Project } from "../project/utils";
-
 /**
  *
  * A MUI Card containing a form for adding a new local antigen; the form
@@ -50,6 +49,7 @@ export default function AddLocalAntigenView() {
   const [project, setProject] = useState<Project | undefined>(currentProject);
   const [sequence, setSequence] = useState<string>("");
   const [molecularMass, setMolecularMass] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     dispatch(getProjects());
@@ -60,6 +60,7 @@ export default function AddLocalAntigenView() {
   }, [currentProject]);
 
   const submit = () => {
+    setErrorMessage("");
     if (project)
       dispatch(
         postLocalAntigen({
@@ -68,6 +69,7 @@ export default function AddLocalAntigenView() {
           molecular_mass: molecularMass,
         })
       );
+    else setErrorMessage("Please select a project");
   };
 
   return (
@@ -118,6 +120,8 @@ export default function AddLocalAntigenView() {
               Submit
             </LoadingButton>
           </Stack>
+          {errorMessage && <div className="error">{errorMessage}</div>}
+
           {antigens.map((antigen) => (
             <div>
               <Divider />

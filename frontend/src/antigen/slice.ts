@@ -114,7 +114,7 @@ export const postLocalAntigen = createAsyncThunk<
 );
 
 const antigenSlice = createSlice({
-  name: "anitgen",
+  name: "antigen",
   initialState: initialAntigenState,
   reducers: {},
   extraReducers: (builder) => {
