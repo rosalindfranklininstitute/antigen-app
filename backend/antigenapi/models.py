@@ -2,12 +2,13 @@ from datetime import datetime
 from itertools import product
 from typing import Iterable, Optional, Union
 from uuid import UUID, uuid4
-import os
+
 from django.core.files import File
 from django.core.validators import RegexValidator
 from django.db.models import (
     CASCADE,
     F,
+    FileField,
     ForeignKey,
     IntegerChoices,
     Manager,
@@ -28,9 +29,6 @@ from django.db.models.fields import (
 )
 from django.db.models.functions import Concat
 from django.utils.timezone import now
-from django.db.models import FileField
-from antigenapi.utils.uniprot import get_protein
-from django.apps import apps
 
 
 class Project(Model):
@@ -137,7 +135,9 @@ class LocalAntigen(Antigen, Model):
 
     @property
     def name(self) -> str:
-        """A human readable antigen name, consisting of the first eight characters of the UUID.
+        """A human readable antigen name.
+
+        Consisting of the first eight characters of the UUID.
 
         Returns:
             str: A human readable antigen name.

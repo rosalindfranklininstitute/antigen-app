@@ -1,7 +1,11 @@
-import urllib.error
+import os
 from typing import Generic, Optional, OrderedDict, TypeVar
 
+import pandas
+from django.core.exceptions import ObjectDoesNotExist
 from django_filters import CharFilter, FilterSet, NumberFilter
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.serializers import (
     CharField,
     FileField,
@@ -13,8 +17,8 @@ from rest_framework.serializers import (
     Serializer,
     SerializerMethodField,
     SlugRelatedField,
-    ValidationError,
 )
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from antigenapi.models import (
@@ -29,17 +33,10 @@ from antigenapi.models import (
     Sequence,
     UniProtAntigen,
 )
-from antigenapi.utils.uniprot import get_protein
 from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
 )
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-import pandas
-import os
 
 PM = TypeVar("PM", bound=ProjectModelMixin)
 
@@ -47,9 +44,9 @@ PM = TypeVar("PM", bound=ProjectModelMixin)
 class ProjectModelRelatedField(Generic[PM], RelatedField):
     """A related field which serializes the project and number of project models."""
 
-    def __init__(self, queryset: QuerySet[PM], **kwargs) -> None:  # noqa: D107
+    def __init__(self, queryset: QuerySet[PM]) -> None:  # noqa: D107
         self.queryset = queryset
-        super().__init__(**kwargs)
+        super().__init__()
 
     def to_representation(self, value: PM):
         """Override which serializes as a dict of project model keys.
@@ -79,43 +76,6 @@ class ProjectModelRelatedField(Generic[PM], RelatedField):
             queryset = queryset[:cutoff]
 
         return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
-
-
-
-
-
-class ElisaPlateRelatedField(Generic[PM],RelatedField):
-
-    def __init__(self, queryset: QuerySet[PM]) -> None:  # noqa: D107
-        self.queryset = queryset
-        super().__init__()
-
-    def to_representation(self,value):
-        return {"number": value.number}
-
-    def to_internal_value(self,data):
-        return self.queryset.filter(
-            project__short_title=data["project"], number=data["number"]
-        ).get()
-    
-    def get_choices(self, cutoff=None):
-        """Override to fix serialization bug.
-
-        Override which skips the to_representation call when constructing the choices
-        dict. See: https://github.com/encode/django-rest-framework/issues/5141
-        """
-        queryset = self.get_queryset()
-        if queryset is None:
-            return {}
-
-        if cutoff is not None:
-            queryset = queryset[:cutoff]
-
-        return OrderedDict([(item.pk, self.display_value(item)) for item in queryset])
-
-
-
-
 
 
 class ElisaWellRelatedField(RelatedField):
@@ -232,22 +192,6 @@ class UniProtAntigenSerialzer(ModelSerializer):
             "uniprot_accession_number",
             "creation_time",
         ]
-
-    def validate(self, data):
-        """Check the antigen is a valid uniprot ID."""
-        try:
-            protein_data = get_protein(data["uniprot_accession_number"])
-        except urllib.error.HTTPError as e:
-            if e.code == 400:
-                raise ValidationError(
-                    {"uniprot_accession_number": "Couldn't validate this UniProt ID"}
-                )
-            else:
-                raise
-        data["sequence"] = protein_data["sequence"]["$"]
-        data["molecular_mass"] = protein_data["sequence"]["@mass"]
-        data["name"] = protein_data["protein"]["recommendedName"]["fullName"]["$"]
-        return data
 
 
 class UniProtAntigenViewSet(ModelViewSet):
@@ -382,6 +326,7 @@ class ElisaPlateViewSet(ModelViewSet):
 
     perform_create = perform_create_allow_creator_change_delete
 
+
 class ElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells which serializes all intenral fields."""
 
@@ -393,13 +338,11 @@ class ElisaWellSerializer(ModelSerializer):
     plate = SlugRelatedField(
         slug_field="number",
         queryset=ElisaPlate.objects.all(),
-    )    
-    
+    )
+
     functional = ReadOnlyField()
     antigen = ProjectModelRelatedField[Antigen](queryset=Antigen.objects.all())
-    nanobody = ProjectModelRelatedField[Nanobody](
-        queryset=Nanobody.objects.all(), default=None, required=False
-    )
+    nanobody = ProjectModelRelatedField[Nanobody](queryset=Nanobody.objects.all())
 
     class Meta:  # noqa: D106
         model = ElisaWell
@@ -455,36 +398,36 @@ class SequenceViewSet(ModelViewSet):
 
 class FileUploadSerializer(Serializer):
     """A serializer for elisa plate csv files."""
+
     plate = SlugRelatedField(slug_field="key", queryset=ElisaPlate.objects.all())
     csv_file = FileField()
 
 
 class FileUploadView(APIView):
-    """A view that provides and API end point for uploading csv files"""
+    """A view that provides and API end point for uploading csv files."""
 
     serializer_class = FileUploadSerializer
 
     def post(self, request, *args, **kwargs):
-        """
-        Post method to uplaod a csv file existing elisa plate/wells,
-        and remove old csv file
-        """
+        """Post method to uplaod a csv file."""
         serializer = FileUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-         
+
         file = serializer.validated_data["csv_file"]
         plate_key = serializer.validated_data["plate"]
 
         try:
             csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
             assert csv_elisa_data.shape == (8, 12)
-        except:
+        except AssertionError:
             return Response("The CSV file is of the wrong format data not added")
 
         try:
-            plate_object = ElisaPlate.objects.filter(key=plate_key,).first()
+            plate_object = ElisaPlate.objects.filter(
+                key=plate_key,
+            ).first()
             elisawellobjects = ElisaWell.objects.filter(plate=plate_object.uuid)
-        except: 
+        except ObjectDoesNotExist:
             return Response("Plate or wells do not exist data not added")
 
         for well in elisawellobjects:

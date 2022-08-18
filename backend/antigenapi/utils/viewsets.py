@@ -28,7 +28,9 @@ def create_possibly_multiple(self: ModelViewSet, request: Request):
 def perform_create_allow_creator_change_delete(
     self: ModelViewSet, serializer: Serializer
 ):
-    """An overload of `perform_create` allowing the creator to delete or change the object.
+    """An overload of `perform_create`.
+
+    Allowing the creator to delete or change the object.
 
     Args:
         self (ModelViewSet): A model view set instance.

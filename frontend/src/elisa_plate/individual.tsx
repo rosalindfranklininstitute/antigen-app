@@ -11,7 +11,7 @@ import {
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { LoadingPaper, FailedRetrievalPaper} from "../utils/api";
+import { LoadingPaper, FailedRetrievalPaper } from "../utils/api";
 import {
   getElisaPlate,
   selectElisaPlate,
