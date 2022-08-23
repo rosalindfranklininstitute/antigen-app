@@ -114,15 +114,14 @@ export async function putAPI<Put, Response>(
 
 /**
  *
- * Sends a post request to the rest API with a URI fragment pointing to the right
- * end point and a form containing files such as elisa plate CSV files.
+ * Sends a post request to the rest API with a URI fragment pointing to the
+ * right end point and a form containing files such as elisa plate CSV files.
  *
- * @param uriFrag
- * @param data
+ * @param uriFrag URI fragment of the target resource
+ * @param data A form to be sent to the rest API
  * @returns A promise of a deserialized object, obtained from the rest API or
  * an APIRejection
  */
-
 export async function postFormAPI<Response>(
   uriFrag: string,
   data: FormData

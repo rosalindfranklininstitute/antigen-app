@@ -180,3 +180,14 @@ if "SENTRY_DSN" in os.environ:
         # django.contrib.auth) you may enable sending PII data.
         send_default_pii=True,
     )
+
+if DEBUG:
+    INSTALLED_APPS += [
+        "debug_toolbar",
+    ]
+    MIDDLEWARE += [
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+    ]
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
