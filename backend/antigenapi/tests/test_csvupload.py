@@ -1,4 +1,5 @@
 import json
+import os
 import re
 from io import StringIO
 
@@ -89,14 +90,18 @@ class TestCsvUpload(TestCase):
         self.assertEqual(resp.status_code, 201)
 
         test_file = StringIO(file_data)
+        test_file.name = "csv_file.csv"
         resp = self.client.post(
             "/api/upload_csv/", {"plate": "test:1", "csv_file": test_file}
         )
         self.assertEqual(resp.status_code, 201)
-
+        file_path = json.loads(resp.content)
         # Compare stored optical densities to file data
         resp = self.client.get("/api/elisa_well/?project=test&plate=1&format=json")
         optical_density = [well["optical_density"] for well in json.loads(resp.content)]
         file_data_list = re.split(",|\n", file_data)
 
         self.assertEqual(optical_density, list(map(int, file_data_list)))
+
+        # remove uploaded csv file
+        os.remove(file_path)
