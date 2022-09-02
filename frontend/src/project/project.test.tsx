@@ -64,7 +64,6 @@ describe("add projects page", () => {
             </Router>);
         await waitFor(() => expect(fetchMock.called()).toBe(true));
         // Check to see if page loaded and grid exists
-        console.log(screen.getAllByRole('input'))
         expect(screen.getAllByRole('grid')).toBeTruthy();
     });
 });
