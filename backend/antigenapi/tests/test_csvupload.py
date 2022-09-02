@@ -103,5 +103,5 @@ class TestCsvUpload(TestCase):
 
         self.assertEqual(optical_density, list(map(int, file_data_list)))
 
-        # remove uploaded csv file
+        # Remove uploaded csv file
         os.remove(file_path)
