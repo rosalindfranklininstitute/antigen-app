@@ -47,12 +47,9 @@ describe("test adding a new antigens", () => {
         // render add antigen view
         renderWithProviders(<AddLocalAntigenView />);
 
-        // Await api requests
-        await waitFor(() => expect(fetchMock.called()).toBe(true));
-
         // Fill in boxes to add local antigen 
         userEvent.click(screen.getByRole("combobox", { name: "Project" }));
-        userEvent.click(screen.getByRole("option", { name: "test" }))
+        userEvent.click(await screen.findByRole("option", { name: "test" }))
         userEvent.type(
             screen.getByRole("textbox", { name: "Sequence" }),
             "AAAAAAAAAAAAAAAAA"
@@ -65,10 +62,10 @@ describe("test adding a new antigens", () => {
         userEvent.click(screen.getByRole("button", { name: "Submit" }));
 
         // Await post api requests 
-        await waitFor(() => expect(fetchMock.calls().length).toBeGreaterThanOrEqual(2))
+        //await waitFor(() => expect(fetchMock.calls().length).toBeGreaterThanOrEqual(2))
 
         // Check if new antigen button and table is was created
-        userEvent.click(screen.getByRole('button', { name: "5a0f1822" }))
+        userEvent.click(await screen.findByRole('button', { name: "5a0f1822" }))
         expect(screen.getAllByRole('table')).toBeTruthy()
 
     });

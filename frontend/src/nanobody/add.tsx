@@ -46,7 +46,7 @@ export default function AddNanobodyView() {
   const loading = useSelector(selectLoadingNanobody);
   const projects = useSelector(selectProjects);
   const currentProject = useSelector(selectCurrentProject);
-  const [project, setProject] = useState<Project | undefined>(currentProject);
+  const [project, setProject] = useState<Project | null>(currentProject);
 
   useEffect(() => {
     dispatch(getProjects());
@@ -79,7 +79,7 @@ export default function AddNanobodyView() {
               options={projects}
               getOptionLabel={(project) => project.short_title}
               onChange={(_, project) =>
-                setProject(project ? project : undefined)
+                setProject(project ? project : null)
               }
             />
             <LoadingButton

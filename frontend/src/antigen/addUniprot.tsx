@@ -45,7 +45,7 @@ export default function AddUniProtAntigenView() {
   const loading = useSelector(selectLoadingAntigen);
   const projects = useSelector(selectProjects);
   const currentProject = useSelector(selectCurrentProject);
-  const [project, setProject] = useState<Project | undefined>(currentProject);
+  const [project, setProject] = useState<Project | null>(currentProject);
   const [accessionNumber, setAccessionNumber] = useState<string>("");
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function AddUniProtAntigenView() {
               options={projects}
               getOptionLabel={(project) => project.short_title}
               onChange={(_, project) =>
-                setProject(project ? project : undefined)
+                setProject(project ? project : null)
               }
             />
             <TextField

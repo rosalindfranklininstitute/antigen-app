@@ -3,13 +3,20 @@ import React from "react";
 import { describe, expect, test } from "@jest/globals";
 import { screen, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "../utils/test-utils";
-import { MemoryRouter as Router } from 'react-router-dom'
 import AddProjectView from "./add";
 import ProjectsView from "./aggregate";
 import userEvent from "@testing-library/user-event";
-import { act } from "react-dom/test-utils";
-
+import { MemoryRouter } from "react-router-dom";
+import * as router from 'react-router'
 const fetchMock = require("fetch-mock-jest");
+
+// mocking UseNavigate for navigating after changing the project 
+const mockUseNavigate = jest.fn()
+jest.mock("react-router-dom", () => ({
+    ...(jest.requireActual("react-router-dom") as any),
+    useNavigate: () => mockUseNavigate,
+}));
+
 
 beforeAll(() =>
     // Mock required api calls and responses
@@ -38,32 +45,31 @@ afterAll(() => fetchMock.reset());
 describe("add projects page", () => {
     test("Creates a new project", async () => {
         // Render and project view 
-        renderWithProviders(
-            <Router>
-                <AddProjectView />
-            </Router>);
-        // Type in details of new textbox
-        userEvent.type(screen.getByRole("textbox", { name: "Short Title" }), "red");
+        renderWithProviders(<AddProjectView />)
+
+        userEvent.type(screen.getByRole("textbox", { name: "Short Title" }), "red")
         userEvent.type(screen.getByRole("textbox", { name: "Title" }), "blue");
         userEvent.type(
             screen.getByRole("textbox", { name: "Description" }),
             "green"
-        );
-        act(() => {
-            // Click submit button and check api was called 
-            userEvent.click(screen.getByRole("button", { name: "Submit" }));
-        });
+        )
+        // Click submit button and check api was called 
+        userEvent.click(screen.getByRole("button", { name: "Submit" }));
         expect(fetchMock.called("/api/project/")).toBe(true);
 
+        // Check if use navigate was called for redirect
+        await waitFor(() => expect(mockUseNavigate).toHaveBeenCalled())
     });
 
+
     test("viewing project list page", async () => {
+        // Use in memory router to allow useHref() to work
         renderWithProviders(
-            <Router>
+            <MemoryRouter>
                 <ProjectsView />
-            </Router>);
-        await waitFor(() => expect(fetchMock.called()).toBe(true));
+            </MemoryRouter>
+        )
         // Check to see if page loaded and grid exists
-        expect(screen.getAllByRole('grid')).toBeTruthy();
+        expect(await screen.findAllByRole('grid')).toBeTruthy();
     });
 });

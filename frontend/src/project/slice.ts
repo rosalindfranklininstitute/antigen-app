@@ -10,7 +10,7 @@ import {
 import { Project, ProjectRef, ProjectPost } from "./utils";
 
 type ProjectState = {
-  current: ProjectRef | undefined;
+  current: ProjectRef | null;
   projects: Project[];
   allFetched: AllFetched;
   fetchPending: ProjectRef[];
@@ -19,7 +19,7 @@ type ProjectState = {
 };
 
 const initialProjectState: ProjectState = {
-  current: undefined,
+  current: null,
   projects: [],
   allFetched: AllFetched.False,
   fetchPending: [],
@@ -143,10 +143,11 @@ export const selectProject = (projectRef: ProjectRef) => (state: RootState) =>
   state.projects.projects.find((project) =>
     keyEq(project, { short_title: projectRef }, ["short_title"])
   );
-export const selectCurrentProject = (state: RootState) =>
-  state.projects.projects.find(
+export const selectCurrentProject = (state: RootState) => {
+  return state.projects.projects.find(
     (project) => project.short_title === state.projects.current
-  );
+  ) || null;
+};
 export const selectLoadingProject = (state: RootState) =>
   state.projects.allFetched === AllFetched.Pending ||
   Boolean(state.projects.fetchPending.length);
