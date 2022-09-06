@@ -10,6 +10,7 @@ import {
   selectNanobodies,
 } from "./slice";
 import { addProjectItemUri } from "../project/utils";
+import { stringify } from "querystring";
 
 /**
  * A MUI Card containing a data grid of nanobodies with columns corresponding

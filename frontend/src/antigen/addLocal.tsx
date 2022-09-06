@@ -90,9 +90,7 @@ export default function AddLocalAntigenView() {
               value={project}
               options={projects}
               getOptionLabel={(project) => project.short_title}
-              onChange={(_, project) =>
-                setProject(project ? project : null)
-              }
+              onChange={(_, project) => setProject(project ? project : null)}
             />
             <TextField
               required

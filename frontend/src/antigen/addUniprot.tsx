@@ -86,9 +86,7 @@ export default function AddUniProtAntigenView() {
               value={project}
               options={projects}
               getOptionLabel={(project) => project.short_title}
-              onChange={(_, project) =>
-                setProject(project ? project : null)
-              }
+              onChange={(_, project) => setProject(project ? project : null)}
             />
             <TextField
               required
@@ -108,7 +106,7 @@ export default function AddUniProtAntigenView() {
             </LoadingButton>
           </Stack>
           {antigens.map((antigen) => (
-            <Accordion>
+            <Accordion key={antigen.name}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 {antigen.name}
               </AccordionSummary>

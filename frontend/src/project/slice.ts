@@ -144,9 +144,11 @@ export const selectProject = (projectRef: ProjectRef) => (state: RootState) =>
     keyEq(project, { short_title: projectRef }, ["short_title"])
   );
 export const selectCurrentProject = (state: RootState) => {
-  return state.projects.projects.find(
-    (project) => project.short_title === state.projects.current
-  ) || null;
+  return (
+    state.projects.projects.find(
+      (project) => project.short_title === state.projects.current
+    ) || null
+  );
 };
 export const selectLoadingProject = (state: RootState) =>
   state.projects.allFetched === AllFetched.Pending ||

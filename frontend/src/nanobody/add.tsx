@@ -78,9 +78,7 @@ export default function AddNanobodyView() {
               value={project}
               options={projects}
               getOptionLabel={(project) => project.short_title}
-              onChange={(_, project) =>
-                setProject(project ? project : null)
-              }
+              onChange={(_, project) => setProject(project ? project : null)}
             />
             <LoadingButton
               variant="contained"

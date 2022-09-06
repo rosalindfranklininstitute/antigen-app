@@ -16,31 +16,31 @@ import { projectReducer } from "../project/slice";
 import { notificationsReducer } from "../utils/notifications";
 
 interface ExtendRenderOptions extends Omit<RenderOptions, "queries"> {
-    preloadedState?: PreloadedState<RootState>;
-    store?: AppStore;
+  preloadedState?: PreloadedState<RootState>;
+  store?: AppStore;
 }
 
 export function renderWithProviders(
-    ui: React.ReactElement,
-    {
-        // Automatically create a store instance if no store is passed in
-        store = configureStore({
-            reducer: {
-                projects: projectReducer,
-                nanobodies: nanobodyReducer,
-                antigens: antigenReducer,
-                elisaWells: elisaWellReducer,
-                elisaPlates: elisaPlateReducer,
-                notifications: notificationsReducer,
-            },
-        }),
-        ...renderOptions
-    }: ExtendRenderOptions = {}
+  ui: React.ReactElement,
+  {
+    // Automatically create a store instance if no store is passed in
+    store = configureStore({
+      reducer: {
+        projects: projectReducer,
+        nanobodies: nanobodyReducer,
+        antigens: antigenReducer,
+        elisaWells: elisaWellReducer,
+        elisaPlates: elisaPlateReducer,
+        notifications: notificationsReducer,
+      },
+    }),
+    ...renderOptions
+  }: ExtendRenderOptions = {}
 ) {
-    function Wrapper({ children }: PropsWithChildren<{}>): JSX.Element {
-        return <Provider store={store}>{children}</Provider>;
-    }
+  function Wrapper({ children }: PropsWithChildren<{}>): JSX.Element {
+    return <Provider store={store}>{children}</Provider>;
+  }
 
-    // Return an object with the store and all of RTL's query functions
-    return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
+  // Return an object with the store and all of RTL's query functions
+  return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
 }

@@ -168,6 +168,7 @@ function ElisaPlateCard() {
           View All
         </Button>
         <Button
+          data-testid="elisa_plate_link"
           variant="contained"
           startIcon={<AddIcon />}
           component={RouterLink}
