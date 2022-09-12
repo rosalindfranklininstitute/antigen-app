@@ -2,7 +2,10 @@
 import React from "react";
 import { describe, expect, test } from "@jest/globals";
 import { screen } from "@testing-library/react";
-import { renderWithProviders, elisaWellListGenerator } from "../utils/test-utils";
+import {
+  renderWithProviders,
+  elisaWellListGenerator,
+} from "../utils/test-utils";
 import { BrowserRouter } from "react-router-dom";
 import { Route, Routes } from "react-router";
 import { Container } from "@mui/material";
@@ -20,7 +23,6 @@ jest.mock("react-router-dom", () => ({
   ...jest.requireActual("react-router-dom"),
   useParams: jest.fn().mockReturnValue({ project: "test", number: "1" }),
 }));
-
 
 beforeAll(() => {
   fetchMock
@@ -79,52 +81,64 @@ describe("Create new elisa plate", () => {
 
 describe("Testing PLateview itself", () => {
   test("Testing if plate view renders wells that already exist", async () => {
-
     fetchMock
-      .get("/api/elisa_plate/test:1/?format=json", {
-        project: "test",
-        number: 1,
-        threhold: 0,
-        elisawell_set: elisaWellListGenerator({
+      .get(
+        "/api/elisa_plate/test:1/?format=json",
+        {
           project: "test",
-          plate: 6,
-        }),
-        creation_time: "2022-09-05T14:44:41.025379Z",
-      }, { overwriteRoutes: true })
-      .get("/api/elisa_well/?project=test&plate=6&format=json",
+          number: 1,
+          threhold: 0,
+          elisawell_set: elisaWellListGenerator({
+            project: "test",
+            plate: 6,
+          }),
+          creation_time: "2022-09-05T14:44:41.025379Z",
+        },
+        { overwriteRoutes: true }
+      )
+      .get(
+        "/api/elisa_well/?project=test&plate=6&format=json",
         elisaWellListGenerator({
           project: "test",
           plate: 1,
-          antigen: { project: "test", number: 1, },
+          antigen: { project: "test", number: 1 },
           nanobody: { project: "test", number: 1 },
           optical_density: 0,
           fuctional: false,
-        }), { overwriteRoutes: true }
-      )
-      .get("/api/antigen/?project=test&plate=6&format=json", {
-        project: "test",
-        number: 1,
-        name: "7e63f509",
-        sequence: "AAAAAAAAAAA",
-        molecular_mass: 1,
-        uniprot_accenssion_number: null,
-        elisaWell_set: elisaWellListGenerator({
-          project: "test", plate: 1,
         }),
-        creation_time: "2022-09-06T12:18:41.090398Z",
-      }, { overwriteRoutes: true }
+        { overwriteRoutes: true }
       )
-      .get("/api/nanobodt/?project=test&plate=1&format=json", {
-        project: "test",
-        number: 1,
-        name: "6c10bf0c",
-        elisawell_set: elisaWellListGenerator({
+      .get(
+        "/api/antigen/?project=test&plate=6&format=json",
+        {
           project: "test",
-          plate: "1",
-          sequence_set: [],
-          creation_time: "2022-09-09T14:35:06.741295Z",
-        })
-      }, { overwriteRoutes: true }
+          number: 1,
+          name: "7e63f509",
+          sequence: "AAAAAAAAAAA",
+          molecular_mass: 1,
+          uniprot_accenssion_number: null,
+          elisaWell_set: elisaWellListGenerator({
+            project: "test",
+            plate: 1,
+          }),
+          creation_time: "2022-09-06T12:18:41.090398Z",
+        },
+        { overwriteRoutes: true }
+      )
+      .get(
+        "/api/nanobodt/?project=test&plate=1&format=json",
+        {
+          project: "test",
+          number: 1,
+          name: "6c10bf0c",
+          elisawell_set: elisaWellListGenerator({
+            project: "test",
+            plate: "1",
+            sequence_set: [],
+            creation_time: "2022-09-09T14:35:06.741295Z",
+          }),
+        },
+        { overwriteRoutes: true }
       );
 
     renderWithProviders(
@@ -133,8 +147,7 @@ describe("Testing PLateview itself", () => {
       </BrowserRouter>
     );
     await screen.findByRole("heading", { name: "test:1" });
-    const wellButtonArray = screen.getAllByRole('button', { name: "" });
+    const wellButtonArray = screen.getAllByRole("button", { name: "" });
     expect(wellButtonArray.length).toBe(96);
   });
 });
-

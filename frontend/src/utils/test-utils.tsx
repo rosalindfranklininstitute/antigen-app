@@ -48,8 +48,12 @@ export function renderWithProviders(
 /**
  * Creates an array of 96 well objects with incrementing location.
  * @param {object} wellInfo oject containing the  other fields of the well object
-*/
-export function elisaWellListGenerator<GenericWellInfo>(wellInfo: GenericWellInfo) {
+ */
+export function elisaWellListGenerator<GenericWellInfo>(
+  wellInfo: GenericWellInfo
+) {
   const ind = Array.from(Array(96).keys());
-  return ind.map((i) => { return { ...wellInfo, location: i + 1 } });
+  return ind.map((i) => {
+    return { ...wellInfo, location: i + 1 };
+  });
 }
