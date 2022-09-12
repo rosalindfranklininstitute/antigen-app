@@ -1,23 +1,16 @@
 /** @jest-environment jsdom */
 import React from "react";
 import { describe, expect, test } from "@jest/globals";
-import {
-  findAllByRole,
-  findByRole,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import { renderWithProviders } from "../utils/test-utils";
-import { BrowserRouter, Navigate } from "react-router-dom";
+import { screen } from "@testing-library/react";
+import { renderWithProviders, elisaWellListGenerator } from "../utils/test-utils";
+import { BrowserRouter } from "react-router-dom";
 import { Route, Routes } from "react-router";
-import { Container, toggleButtonClasses } from "@mui/material";
+import { Container } from "@mui/material";
 import { Header } from "../main/header";
 import { HomeView } from "../main/home";
-import ElisaPlatesView from "./aggregate";
 import ElisaPlateView from "./individual";
 import AddElisaPlateView from "./add";
 import userEvent from "@testing-library/user-event";
-import { ElisaPlateInfo, ElisaPlateRef } from "./utils";
 import { act } from "react-dom/test-utils";
 
 const fetchMock = require("fetch-mock-jest");
@@ -28,20 +21,13 @@ jest.mock("react-router-dom", () => ({
   useParams: jest.fn().mockReturnValue({ project: "test", number: "1" }),
 }));
 
+
 beforeAll(() => {
   fetchMock
     .post("/api/elisa_plate/", {
       project: "test",
       number: "1",
       threshold: "0",
-      elisawell_set: [],
-      creation_time: "2022-09-05T14:44:41.025379Z",
-    })
-    .get("/elisa_plate/test:1", "hello")
-    .get("/api/elisa_plate/undefined:NaN/?format=json", {
-      project: "test",
-      number: 1,
-      threhold: 0,
       elisawell_set: [],
       creation_time: "2022-09-05T14:44:41.025379Z",
     })
@@ -90,3 +76,65 @@ describe("Create new elisa plate", () => {
     expect(screen.getByRole("tab", { name: "Table" })).toBeTruthy();
   });
 });
+
+describe("Testing PLateview itself", () => {
+  test("Testing if plate view renders wells that already exist", async () => {
+
+    fetchMock
+      .get("/api/elisa_plate/test:1/?format=json", {
+        project: "test",
+        number: 1,
+        threhold: 0,
+        elisawell_set: elisaWellListGenerator({
+          project: "test",
+          plate: 6,
+        }),
+        creation_time: "2022-09-05T14:44:41.025379Z",
+      }, { overwriteRoutes: true })
+      .get("/api/elisa_well/?project=test&plate=6&format=json",
+        elisaWellListGenerator({
+          project: "test",
+          plate: 1,
+          antigen: { project: "test", number: 1, },
+          nanobody: { project: "test", number: 1 },
+          optical_density: 0,
+          fuctional: false,
+        }), { overwriteRoutes: true }
+      )
+      .get("/api/antigen/?project=test&plate=6&format=json", {
+        project: "test",
+        number: 1,
+        name: "7e63f509",
+        sequence: "AAAAAAAAAAA",
+        molecular_mass: 1,
+        uniprot_accenssion_number: null,
+        elisaWell_set: elisaWellListGenerator({
+          project: "test", plate: 1,
+        }),
+        creation_time: "2022-09-06T12:18:41.090398Z",
+      }, { overwriteRoutes: true }
+      )
+      .get("/api/nanobodt/?project=test&plate=1&format=json", {
+        project: "test",
+        number: 1,
+        name: "6c10bf0c",
+        elisawell_set: elisaWellListGenerator({
+          project: "test",
+          plate: "1",
+          sequence_set: [],
+          creation_time: "2022-09-09T14:35:06.741295Z",
+        })
+      }, { overwriteRoutes: true }
+      );
+
+    renderWithProviders(
+      <BrowserRouter>
+        <ElisaPlateView />
+      </BrowserRouter>
+    );
+    await screen.findByRole("heading", { name: "test:1" });
+    const wellButtonArray = screen.getAllByRole('button', { name: "" });
+    expect(wellButtonArray.length).toBe(96);
+  });
+});
+

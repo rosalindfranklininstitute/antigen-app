@@ -7,7 +7,6 @@ import AddProjectView from "./add";
 import ProjectsView from "./aggregate";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import * as router from "react-router";
 
 const fetchMock = require("fetch-mock-jest");
 

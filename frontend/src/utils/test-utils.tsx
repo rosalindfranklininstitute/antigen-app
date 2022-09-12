@@ -44,3 +44,12 @@ export function renderWithProviders(
   // Return an object with the store and all of RTL's query functions
   return { store, ...render(ui, { wrapper: Wrapper, ...renderOptions }) };
 }
+
+/**
+ * Creates an array of 96 well objects with incrementing location.
+ * @param {object} wellInfo oject containing the  other fields of the well object
+*/
+export function elisaWellListGenerator<GenericWellInfo>(wellInfo: GenericWellInfo) {
+  const ind = Array.from(Array(96).keys());
+  return ind.map((i) => { return { ...wellInfo, location: i + 1 } });
+}
