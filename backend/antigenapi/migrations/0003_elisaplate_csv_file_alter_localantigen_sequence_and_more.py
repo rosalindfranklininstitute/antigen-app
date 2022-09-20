@@ -7,38 +7,69 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('antigenapi', '0002_elisawell_nanobody_optional'),
+        ("antigenapi", "0002_elisawell_nanobody_optional"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='elisaplate',
-            name='csv_file',
-            field=models.FileField(blank=True, null=True, upload_to='uploads/'),
+            model_name="elisaplate",
+            name="csv_file",
+            field=models.FileField(blank=True, null=True, upload_to="uploads/"),
         ),
         migrations.AlterField(
-            model_name='localantigen',
-            name='sequence',
-            field=models.TextField(validators=[django.core.validators.RegexValidator('^[ARNDCHIQEGLKMFPSTWYVBZX]*$')]),
+            model_name="localantigen",
+            name="sequence",
+            field=models.TextField(
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^[ARNDCHIQEGLKMFPSTWYVBZX]*$"
+                    )
+                ]
+            ),
         ),
         migrations.AlterField(
-            model_name='sequence',
-            name='cdr1',
-            field=models.TextField(validators=[django.core.validators.RegexValidator('^[ARNDCHIQEGLKMFPSTWYVBZX]*$')]),
+            model_name="sequence",
+            name="cdr1",
+            field=models.TextField(
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^[ARNDCHIQEGLKMFPSTWYVBZX]*$"
+                    )
+                ]
+            ),
         ),
         migrations.AlterField(
-            model_name='sequence',
-            name='cdr2',
-            field=models.TextField(validators=[django.core.validators.RegexValidator('^[ARNDCHIQEGLKMFPSTWYVBZX]*$')]),
+            model_name="sequence",
+            name="cdr2",
+            field=models.TextField(
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^[ARNDCHIQEGLKMFPSTWYVBZX]*$"
+                    )
+                ]
+            ),
         ),
         migrations.AlterField(
-            model_name='sequence',
-            name='cdr3',
-            field=models.TextField(validators=[django.core.validators.RegexValidator('^[ARNDCHIQEGLKMFPSTWYVBZX]*$')]),
+            model_name="sequence",
+            name="cdr3",
+            field=models.TextField(
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^[ARNDCHIQEGLKMFPSTWYVBZX]*$"
+                    )
+                ]
+            ),
         ),
         migrations.AlterField(
-            model_name='uniprotantigen',
-            name='sequence',
-            field=models.TextField(editable=False, validators=[django.core.validators.RegexValidator('^[ARNDCHIQEGLKMFPSTWYVBZX]*$')]),
+            model_name="uniprotantigen",
+            name="sequence",
+            field=models.TextField(
+                editable=False,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^[ARNDCHIQEGLKMFPSTWYVBZX]*$"
+                    )
+                ],
+            ),
         ),
     ]
