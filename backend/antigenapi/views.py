@@ -1,5 +1,5 @@
-import urllib.error
 import os
+import urllib.error
 from typing import Generic, Optional, OrderedDict, TypeVar
 
 import pandas
