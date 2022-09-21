@@ -1,4 +1,5 @@
 import os
+import urllib.error
 from typing import Generic, Optional, OrderedDict, TypeVar
 
 import pandas
@@ -17,6 +18,7 @@ from rest_framework.serializers import (
     Serializer,
     SerializerMethodField,
     SlugRelatedField,
+    ValidationError,
 )
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
@@ -33,6 +35,7 @@ from antigenapi.models import (
     Sequence,
     UniProtAntigen,
 )
+from antigenapi.utils.uniprot import get_protein
 from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
@@ -44,9 +47,9 @@ PM = TypeVar("PM", bound=ProjectModelMixin)
 class ProjectModelRelatedField(Generic[PM], RelatedField):
     """A related field which serializes the project and number of project models."""
 
-    def __init__(self, queryset: QuerySet[PM]) -> None:  # noqa: D107
+    def __init__(self, queryset: QuerySet[PM], **kwargs) -> None:  # noqa: D107
         self.queryset = queryset
-        super().__init__()
+        super().__init__(**kwargs)
 
     def to_representation(self, value: PM):
         """Override which serializes as a dict of project model keys.
@@ -192,6 +195,22 @@ class UniProtAntigenSerialzer(ModelSerializer):
             "uniprot_accession_number",
             "creation_time",
         ]
+
+    def validate(self, data):
+        """Check the antigen is a valid uniprot ID."""
+        try:
+            protein_data = get_protein(data["uniprot_accession_number"])
+        except urllib.error.HTTPError as e:
+            if e.code == 400:
+                raise ValidationError(
+                    {"uniprot_accession_number": "Couldn't validate this UniProt ID"}
+                )
+            else:
+                raise
+        data["sequence"] = protein_data["sequence"]["$"]
+        data["molecular_mass"] = protein_data["sequence"]["@mass"]
+        data["name"] = protein_data["protein"]["recommendedName"]["fullName"]["$"]
+        return data
 
 
 class UniProtAntigenViewSet(ModelViewSet):
