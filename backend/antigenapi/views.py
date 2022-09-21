@@ -47,7 +47,7 @@ PM = TypeVar("PM", bound=ProjectModelMixin)
 class ProjectModelRelatedField(Generic[PM], RelatedField):
     """A related field which serializes the project and number of project models."""
 
-    def __init__(self, queryset: QuerySet[PM], **kwargs) -> None:  # noqa: D10
+    def __init__(self, queryset: QuerySet[PM], **kwargs) -> None:  # noqa: D107
         self.queryset = queryset
         super().__init__(**kwargs)
 
