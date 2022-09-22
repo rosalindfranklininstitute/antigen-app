@@ -52,8 +52,8 @@ export function renderWithProviders(
 export function elisaWellListGenerator<GenericWellInfo>(
   wellInfo: GenericWellInfo
 ) {
-  const ind = Array.from(Array(96).keys());
-  return ind.map((i) => {
+  const indices = Array.from(Array(96).keys());
+  return indices.map((i) => {
     return { ...wellInfo, location: i + 1 };
   });
 }

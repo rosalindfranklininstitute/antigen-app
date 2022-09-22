@@ -65,6 +65,7 @@ export function ElisaWellElement(params: { elisaWellRef: ElisaWellRef }) {
             setInfoAnchorEl(undefined);
             setEditAnchorEl(evt.currentTarget);
           }}
+          data-testid={elisaWell?.location}
         />
         <ElisaWellInfoPopover
           elisaWellRef={params.elisaWellRef}

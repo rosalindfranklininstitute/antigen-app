@@ -5,9 +5,16 @@ import { screen, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "./test-utils";
 import AddNanobodyView from "../src/nanobody/add";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import NanobodiesView from "../src/nanobody/aggregate";
+import NanobodyView from "../src/nanobody/individual";
+
 const fetchMock = require("fetch-mock-jest");
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useParams: jest.fn().mockReturnValue({ project: "test", number: "1" }),
+}));
 
 beforeAll(() => {
   fetchMock
@@ -38,7 +45,7 @@ beforeAll(() => {
         creation_time: "2022-09-05T08:24:17.043847Z",
       },
     ])
-    .get("/api/nanobody/test:1/?format=json", [
+    .get("/api/nanobody/test:1/?format=json",
       {
         project: "test",
         number: 1,
@@ -47,11 +54,12 @@ beforeAll(() => {
         sequence_set: [],
         creation_time: "2022-09-05T08:24:17.043847Z",
       },
-    ]);
+    );
 });
 afterAll(() => fetchMock.reset());
 
 describe("Nanobody adding", () => {
+
   test("Adding a new nanobody", async () => {
     renderWithProviders(<AddNanobodyView />);
     await waitFor(() => expect(fetchMock.called()).toBe(true));
@@ -67,14 +75,25 @@ describe("Nanobody adding", () => {
   });
 
   test(" Viewing the nanobody list screen", async () => {
-    // Use in memory router to allow useHref() to work
     renderWithProviders(
-      <MemoryRouter>
+      <BrowserRouter>
         <NanobodiesView />
-      </MemoryRouter>
+      </BrowserRouter>
     );
     // Check to see if page loaded and grid and cell for antigen exists
     // expect(await screen.findAllByRole('cell')).toBeTruthy();
-    // expect(screen.getByRole('cell', { name: "6b6d9017" })).toBeTruthy()
+    // expect(screen.getByRole('cell', { name: "6b6d9017" })).toBeTruthy();
+  });
+
+  test("Viewing an individual nanobody", async () => {
+    renderWithProviders(<NanobodyView />);
+    expect(await screen.findByRole("heading", { name: "6b6d9017" })).toBeTruthy();
+    expect(screen.getAllByRole("table")).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy()
+    expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy()
+    expect(screen.getByRole("row", { name: "Name: 6b6d9017" })).toBeTruthy()
+    expect(screen.getByRole("row", {
+      name: "Creation Time: 2022-09-05T08:24:17.043847Z"
+    })).toBeTruthy()
   });
 });

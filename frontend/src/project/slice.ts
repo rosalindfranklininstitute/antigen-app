@@ -151,7 +151,7 @@ export const selectCurrentProject = (state: RootState) => {
   );
 };
 export const selectLoadingProject = (state: RootState) =>
-  state.projects.allFetched === AllFetched.Pending ||
+  // state.projects.allFetched === AllFetched.Pending ||
   Boolean(state.projects.fetchPending.length);
 export const selectPostedProjects = (state: RootState) =>
   state.projects.posted.flatMap((posted) =>

@@ -5,6 +5,7 @@ import { screen, waitFor } from "@testing-library/react";
 import { renderWithProviders } from "./test-utils";
 import AddProjectView from "../src/project/add";
 import ProjectsView from "../src/project/aggregate";
+import ProjectView from "../src/project/individual";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 
@@ -15,6 +16,7 @@ const mockUseNavigate = jest.fn();
 jest.mock("react-router-dom", () => ({
   ...(jest.requireActual("react-router-dom") as any),
   useNavigate: () => mockUseNavigate,
+  useParams: jest.fn().mockReturnValue({ project: "test", number: "1" }),
 }));
 
 beforeAll(() =>
@@ -38,11 +40,19 @@ beforeAll(() =>
         },
       ],
     })
+    .get("/api/project/test/?format=json", {
+      status: 200,
+      body: {
+        short_title: "test",
+        title: "test",
+        description: "test",
+      },
+    })
 );
 afterAll(() => fetchMock.reset());
 
-describe("add projects page", () => {
-  test("Creates a new project", async () => {
+describe("Tests for project views ", () => {
+  test("Creating a new project", async () => {
     // Render and project view
     renderWithProviders(<AddProjectView />);
 
@@ -60,15 +70,21 @@ describe("add projects page", () => {
     await waitFor(() => expect(mockUseNavigate).toHaveBeenCalled());
   });
 
-  test("viewing project list page", async () => {
+  test("Viewing aggregate projects", async () => {
     // Use in memory router to allow useHref() to work
     renderWithProviders(
       <MemoryRouter>
         <ProjectsView />
       </MemoryRouter>
     );
+
     // Check to see if page loaded and grid and cell for project exists
     expect(await screen.findAllByRole("grid")).toBeTruthy();
     expect(screen.getAllByRole("cell", { name: "test" })).toBeTruthy();
   });
+
+  test("Viewing individual project", async () => {
+    renderWithProviders(<ProjectView />)
+    // work needs to be done here test individual project view
+  })
 });

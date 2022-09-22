@@ -8,8 +8,14 @@ import AddLocalAntigenView from "../src/antigen/addLocal";
 import AddUniProtAntigenView from "../src/antigen/addUniprot";
 import userEvent from "@testing-library/user-event";
 import AntigensView from "../src/antigen/aggregate";
+import AntigenView from "../src/antigen/individual";
 
 const fetchMock = require("fetch-mock-jest");
+
+jest.mock("react-router-dom", () => ({
+  ...jest.requireActual("react-router-dom"),
+  useParams: jest.fn().mockReturnValue({ project: "test", number: "1" }),
+}));
 
 // Create mock of the api calls needed
 beforeAll(() =>
@@ -18,10 +24,10 @@ beforeAll(() =>
     .post("/api/local_antigen/", {
       status: 201,
       body: {
-        project: " test",
+        project: "test",
         number: "1",
         name: "5a0f1822",
-        sequence: "AAAAAAAAAAAAAAA",
+        sequence: "AAAAAAAAAAAAAAAAA",
         molecular_mass: "1",
         creation_time: "2022-09-01T08:38:16.555199Z",
       },
@@ -42,7 +48,7 @@ beforeAll(() =>
         project: "test",
         number: "1",
         name: "5a0f1822",
-        sequence: "AAAAAAAAAAAA",
+        sequence: "AAAAAAAAAAAAAAAAA",
         molecular_mass: "1",
         uniprot_accession_number: null,
         elisawell_set: [],
@@ -50,21 +56,21 @@ beforeAll(() =>
       },
     ])
     .get("/api/antigen/test:1/?format=json", {
-      project: " test",
-      number: "1",
+      project: "test",
+      number: 1,
       name: "5a0f1822",
-      sequence: "AAAAAAAAAAAAAAA",
-      molecular_mass: "1",
+      sequence: "AAAAAAAAAAAAAAAAA",
+      molecular_mass: 1,
       uniprot_accession_number: null,
       elisawell_set: [],
-      creation_time: "2022-09-01T08:38:16.555199Z",
+      creation_time: "2022-09-01T08:38:16.555199Z"
     })
     .get("/api/antigen/%20test:1/?format=json", {
-      project: " test",
-      number: "1",
+      project: "test",
+      number: 1,
       name: "5a0f1822",
-      sequence: "AAAAAAAAAAAAAAA",
-      molecular_mass: "1",
+      sequence: "AAAAAAAAAAAAAAAAA",
+      molecular_mass: 1,
       uniprot_accession_number: null,
       elisawell_set: [],
       creation_time: "2022-09-01T08:38:16.555199Z",
@@ -125,4 +131,16 @@ describe("Test adding a new antigens", () => {
     expect(await screen.findAllByRole("grid")).toBeTruthy();
     expect(screen.getAllByRole("cell", { name: "5a0f1822" })).toBeTruthy();
   });
+
+  test("Viewing an individual antigen", async () => {
+    renderWithProviders(<AntigenView />)
+    expect(await screen.findByRole("heading", { name: "5a0f1822" })).toBeTruthy();
+    expect(await screen.findAllByRole("table")).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Name: 5a0f1822" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Sequence: AAAAAAAAAAAAAAAAA" }))
+    expect(screen.getByRole("row", { name: "Molecular Mass: 1" }))
+    expect(screen.getByRole("row", { name: "Creation Time: 2022-09-01T08:38:16.555199Z" }))
+  })
 });
