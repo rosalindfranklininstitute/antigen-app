@@ -35,6 +35,16 @@ beforeAll(() => {
         creation_time: "2022-09-05T14:33:53.892643Z",
       },
     ])
+    .post("/api/nanobody/", [
+      {
+        project: "test",
+        number: "1",
+        name: "6b6d9017",
+        elisawell_set: [],
+        sequence_set: [],
+        creation_time: "2022-09-05T08:24:17.043847Z",
+      },
+    ])
     .get("/api/nanobody/test:1/?format=json",
       {
         project: "test",
@@ -52,8 +62,7 @@ describe("Tests on Nanobody views", () => {
 
   test("Adding a new nanobody", async () => {
     renderWithProviders(<AddNanobodyView />);
-    await waitFor(() => expect(fetchMock.called()).toBe(true));
-    userEvent.click(screen.getByRole("combobox", { name: "Project" }));
+    userEvent.click(await screen.findByRole("combobox", { name: "Project" }));
     userEvent.click(await screen.findByRole("option", { name: "test" }));
 
     // Submit new local antigen
@@ -70,9 +79,7 @@ describe("Tests on Nanobody views", () => {
         <NanobodiesView />
       </BrowserRouter>
     );
-    // Check to see if page loaded and grid and cell for antigen exists
-    // expect(await screen.findAllByRole('cell')).toBeTruthy();
-    // expect(screen.getByRole('cell', { name: "6b6d9017" })).toBeTruthy();
+    // Tests needed for this aggregate view
   });
 
   test("Rendering the nanobody individual view", async () => {

@@ -78,7 +78,7 @@ beforeAll(() =>
 );
 afterAll(() => fetchMock.reset());
 
-describe("Test adding a new antigens", () => {
+describe("Tests on antigen views ", () => {
   test("Adding a local antigen", async () => {
     // render add antigen view
     renderWithProviders(<AddLocalAntigenView />);
@@ -120,7 +120,7 @@ describe("Test adding a new antigens", () => {
     expect(screen.getAllByRole("table")).toBeTruthy();
   });
 
-  test("Viewing antigen list page", async () => {
+  test("Rendering antigen aggregate view", async () => {
     // Use in memory router to allow useHref() to work
     renderWithProviders(
       <MemoryRouter>
@@ -132,7 +132,7 @@ describe("Test adding a new antigens", () => {
     expect(screen.getAllByRole("cell", { name: "5a0f1822" })).toBeTruthy();
   });
 
-  test("Viewing an individual antigen", async () => {
+  test("Rendering the antigen individual view", async () => {
     renderWithProviders(<AntigenView />)
     expect(await screen.findByRole("heading", { name: "5a0f1822" })).toBeTruthy();
     expect(await screen.findAllByRole("table")).toBeTruthy();
