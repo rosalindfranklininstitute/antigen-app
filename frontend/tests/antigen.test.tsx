@@ -63,7 +63,7 @@ beforeAll(() =>
       molecular_mass: 1,
       uniprot_accession_number: null,
       elisawell_set: [],
-      creation_time: "2022-09-01T08:38:16.555199Z"
+      creation_time: "2022-09-01T08:38:16.555199Z",
     })
     .get("/api/antigen/%20test:1/?format=json", {
       project: "test",
@@ -133,14 +133,20 @@ describe("Tests on antigen views ", () => {
   });
 
   test("Rendering the antigen individual view", async () => {
-    renderWithProviders(<AntigenView />)
-    expect(await screen.findByRole("heading", { name: "5a0f1822" })).toBeTruthy();
+    renderWithProviders(<AntigenView />);
+    expect(
+      await screen.findByRole("heading", { name: "5a0f1822" })
+    ).toBeTruthy();
     expect(await screen.findAllByRole("table")).toBeTruthy();
     expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy();
     expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy();
     expect(screen.getByRole("row", { name: "Name: 5a0f1822" })).toBeTruthy();
-    expect(screen.getByRole("row", { name: "Sequence: AAAAAAAAAAAAAAAAA" }))
-    expect(screen.getByRole("row", { name: "Molecular Mass: 1" }))
-    expect(screen.getByRole("row", { name: "Creation Time: 2022-09-01T08:38:16.555199Z" }))
-  })
+    expect(screen.getByRole("row", { name: "Sequence: AAAAAAAAAAAAAAAAA" }));
+    expect(screen.getByRole("row", { name: "Molecular Mass: 1" }));
+    expect(
+      screen.getByRole("row", {
+        name: "Creation Time: 2022-09-01T08:38:16.555199Z",
+      })
+    );
+  });
 });

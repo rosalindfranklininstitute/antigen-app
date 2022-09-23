@@ -84,7 +84,7 @@ describe("Tests on project views ", () => {
   });
 
   test("Rendering the  individual project view ", async () => {
-    renderWithProviders(<ProjectView />)
+    renderWithProviders(<ProjectView />);
     // work needs to be done here test individual project view
-  })
+  });
 });

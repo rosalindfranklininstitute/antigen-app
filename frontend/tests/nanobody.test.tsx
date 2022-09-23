@@ -45,21 +45,18 @@ beforeAll(() => {
         creation_time: "2022-09-05T08:24:17.043847Z",
       },
     ])
-    .get("/api/nanobody/test:1/?format=json",
-      {
-        project: "test",
-        number: 1,
-        name: "6b6d9017",
-        elisawell_set: [],
-        sequence_set: [],
-        creation_time: "2022-09-05T08:24:17.043847Z",
-      },
-    );
+    .get("/api/nanobody/test:1/?format=json", {
+      project: "test",
+      number: 1,
+      name: "6b6d9017",
+      elisawell_set: [],
+      sequence_set: [],
+      creation_time: "2022-09-05T08:24:17.043847Z",
+    });
 });
 afterAll(() => fetchMock.reset());
 
 describe("Tests on Nanobody views", () => {
-
   test("Adding a new nanobody", async () => {
     renderWithProviders(<AddNanobodyView />);
     userEvent.click(await screen.findByRole("combobox", { name: "Project" }));
@@ -84,13 +81,17 @@ describe("Tests on Nanobody views", () => {
 
   test("Rendering the nanobody individual view", async () => {
     renderWithProviders(<NanobodyView />);
-    expect(await screen.findByRole("heading", { name: "6b6d9017" })).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { name: "6b6d9017" })
+    ).toBeTruthy();
     expect(screen.getAllByRole("table")).toBeTruthy();
-    expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy()
-    expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy()
-    expect(screen.getByRole("row", { name: "Name: 6b6d9017" })).toBeTruthy()
-    expect(screen.getByRole("row", {
-      name: "Creation Time: 2022-09-05T08:24:17.043847Z"
-    })).toBeTruthy()
+    expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Name: 6b6d9017" })).toBeTruthy();
+    expect(
+      screen.getByRole("row", {
+        name: "Creation Time: 2022-09-05T08:24:17.043847Z",
+      })
+    ).toBeTruthy();
   });
 });

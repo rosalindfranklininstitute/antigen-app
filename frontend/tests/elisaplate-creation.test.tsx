@@ -43,25 +43,28 @@ beforeAll(() => {
     .get("/api/nanobody/?project=test&plate=1&format=json", [])
     .get("/api/elisa_well/?project=test&plate=1&format=json", [])
 
-    .get("/api/antigen/?project=test&format=json", [{
-      project: "test",
-      number: 1,
-      name: "5a0f1822",
-      sequence: "AAAAAAAAAAAAAAAAA",
-      molecular_mass: 1,
-      uniprot_accession_number: null,
-      elisawell_set: [],
-      creation_time: "2022-09-01T08:38:16.555199Z"
-    }])
-    .get("/api/nanobody/?project=test&format=json", [{
-      project: "test",
-      number: 1,
-      name: "6b6d9017",
-      elisawell_set: [],
-      sequence_set: [],
-      creation_time: "2022-09-05T08:24:17.043847Z",
-    },
+    .get("/api/antigen/?project=test&format=json", [
+      {
+        project: "test",
+        number: 1,
+        name: "5a0f1822",
+        sequence: "AAAAAAAAAAAAAAAAA",
+        molecular_mass: 1,
+        uniprot_accession_number: null,
+        elisawell_set: [],
+        creation_time: "2022-09-01T08:38:16.555199Z",
+      },
     ])
+    .get("/api/nanobody/?project=test&format=json", [
+      {
+        project: "test",
+        number: 1,
+        name: "6b6d9017",
+        elisawell_set: [],
+        sequence_set: [],
+        creation_time: "2022-09-05T08:24:17.043847Z",
+      },
+    ]);
 });
 
 afterAll(() => {
@@ -94,11 +97,11 @@ describe("Create new elisa plate and populating it ", () => {
       await screen.findByRole("heading", { name: "test:1" });
     });
 
-    // Check the elisa plate map view 
+    // Check the elisa plate map view
     expect(screen.getByRole("tab", { name: "Map" })).toBeTruthy();
     expect(screen.getByRole("tab", { name: "Table" })).toBeTruthy();
     expect(screen.getByRole("tabpanel", { name: "Map" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Upload CSV" })).toBeTruthy()
+    expect(screen.getByRole("button", { name: "Upload CSV" })).toBeTruthy();
     expect(screen.getByRole("spinbutton", { name: "Threshold" })).toBeTruthy();
     expect(screen.getByRole("slider", { name: "" })).toBeTruthy();
 
@@ -109,11 +112,14 @@ describe("Create new elisa plate and populating it ", () => {
     userEvent.click(screen.getByRole("tab", { name: "Table" }));
     expect(screen.getByRole("tabpanel", { name: "Table" })).toBeTruthy();
     expect(screen.getAllByRole("table")).toBeTruthy();
-    expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy()
-    expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy()
-    expect(screen.getByRole("row", { name: "Elisa Wells:" })).toBeTruthy()
-    expect(screen.getByRole("row", { name: "Threshold:" })).toBeTruthy()
-    expect(screen.getByRole("row", { name: "Creation Time: 2022-09-05T14:44:41.025379Z" })).toBeTruthy()
+    expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Elisa Wells:" })).toBeTruthy();
+    expect(screen.getByRole("row", { name: "Threshold:" })).toBeTruthy();
+    expect(
+      screen.getByRole("row", {
+        name: "Creation Time: 2022-09-05T14:44:41.025379Z",
+      })
+    ).toBeTruthy();
   });
 });
-
