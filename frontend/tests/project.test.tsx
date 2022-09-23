@@ -51,7 +51,7 @@ beforeAll(() =>
 );
 afterAll(() => fetchMock.reset());
 
-describe("Tests for project views ", () => {
+describe("Tests on project views ", () => {
   test("Creating a new project", async () => {
     // Render and project view
     renderWithProviders(<AddProjectView />);
@@ -70,7 +70,7 @@ describe("Tests for project views ", () => {
     await waitFor(() => expect(mockUseNavigate).toHaveBeenCalled());
   });
 
-  test("Viewing aggregate projects", async () => {
+  test("Rendering the project aggregate view", async () => {
     // Use in memory router to allow useHref() to work
     renderWithProviders(
       <MemoryRouter>
@@ -83,7 +83,7 @@ describe("Tests for project views ", () => {
     expect(screen.getAllByRole("cell", { name: "test" })).toBeTruthy();
   });
 
-  test("Viewing individual project", async () => {
+  test("Rendering the  individual project view ", async () => {
     renderWithProviders(<ProjectView />)
     // work needs to be done here test individual project view
   })

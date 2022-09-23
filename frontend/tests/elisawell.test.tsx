@@ -67,9 +67,9 @@ beforeAll(() => {
         })
 })
 
-describe("Elisa well agreggate view and individual view ", () => {
+describe("Testing the Elisa well views", () => {
 
-    test("Viewing agreggate view", async () => {
+    test("Rendering the elisa_well agreggate view", async () => {
         renderWithProviders(
             <BrowserRouter>
                 <ElisaWellsView />
@@ -79,7 +79,7 @@ describe("Elisa well agreggate view and individual view ", () => {
         expect(screen.getByRole("cell", { name: "1" })).toBeTruthy();
     });
 
-    test("Viewing an individual elisawell", async () => {
+    test("Rendering the elisawell individual view ", async () => {
         renderWithProviders(<ElisaWellView />);
         expect(await screen.findAllByRole("heading")).toBeTruthy()
         expect(screen.getByRole("row", { name: "Project: test" })).toBeTruthy()

@@ -35,16 +35,6 @@ beforeAll(() => {
         creation_time: "2022-09-05T14:33:53.892643Z",
       },
     ])
-    .post("/api/nanobody/", [
-      {
-        project: "test",
-        number: "1",
-        name: "6b6d9017",
-        elisawell_set: [],
-        sequence_set: [],
-        creation_time: "2022-09-05T08:24:17.043847Z",
-      },
-    ])
     .get("/api/nanobody/test:1/?format=json",
       {
         project: "test",
@@ -58,7 +48,7 @@ beforeAll(() => {
 });
 afterAll(() => fetchMock.reset());
 
-describe("Nanobody adding", () => {
+describe("Tests on Nanobody views", () => {
 
   test("Adding a new nanobody", async () => {
     renderWithProviders(<AddNanobodyView />);
@@ -74,7 +64,7 @@ describe("Nanobody adding", () => {
     expect(screen.getAllByRole("table")).toBeTruthy();
   });
 
-  test(" Viewing the nanobody list screen", async () => {
+  test("Rendering the nanobody aggregate view ", async () => {
     renderWithProviders(
       <BrowserRouter>
         <NanobodiesView />
@@ -85,7 +75,7 @@ describe("Nanobody adding", () => {
     // expect(screen.getByRole('cell', { name: "6b6d9017" })).toBeTruthy();
   });
 
-  test("Viewing an individual nanobody", async () => {
+  test("Rendering the nanobody individual view", async () => {
     renderWithProviders(<NanobodyView />);
     expect(await screen.findByRole("heading", { name: "6b6d9017" })).toBeTruthy();
     expect(screen.getAllByRole("table")).toBeTruthy();

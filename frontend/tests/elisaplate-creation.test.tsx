@@ -95,5 +95,13 @@ describe("Create new elisa plate", () => {
     expect(screen.getByRole("row", { name: "Threshold:" })).toBeTruthy()
     expect(screen.getByRole("row", { name: "Creation Time: 2022-09-05T14:44:41.025379Z" })).toBeTruthy()
   });
+
+  test("Populating one individual well", () => {
+
+  });
+
+  test("Populating wells with drag selector", async () => {
+
+  });
 });
 

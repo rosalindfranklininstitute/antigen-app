@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 import React from "react";
 import { describe, expect, test } from "@jest/globals";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { renderWithProviders, elisaWellListGenerator } from "./test-utils";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Container } from "@mui/material";
@@ -68,22 +68,39 @@ beforeAll(() => {
         creation_time: "2022-09-09T14:35:06.741295Z",
       }),
     }]);
+  renderWithProviders(
+    <BrowserRouter>
+      <ElisaPlateView />
+    </BrowserRouter>
+  );
 })
 
 afterAll(() => fetchMock.reset())
 
-describe("Tests on the elisaplate view", () => {
-  test("Elisa plate view has ", async () => {
-    renderWithProviders(
-      <BrowserRouter>
-        <ElisaPlateView />
-      </BrowserRouter>
-    );
+describe("Tests on an existing loading an elisaplate", () => {
+  test("Data recieved and working popovers", async () => {
+
     expect(await screen.findByRole("heading", { name: "test:1" })).toBeTruthy();
     expect(screen.getByRole("tabpanel", { name: "Map" })).toBeTruthy();
     // elisawell button testid = elisawell location
-    userEvent.hover(screen.getByTestId(1))
-    console.log(screen.getAllByRole('input'))
+    userEvent.hover(screen.getByTestId(1));
+    expect(screen.getByRole("presentation", { name: "" })).toBeTruthy();
+    userEvent.unhover(screen.getByTestId(1));
+    fireEvent.click(screen.getByTestId(1));
 
+    // userEvent.click triggers mouseDown but fireEvent.click does not
+    expect(screen.getByRole("combobox", { name: "Antigen" }).getAttribute('value'))
+      .toBe("7e63f509")
+    expect(screen.getByRole("combobox", { name: "Nanobody" }).getAttribute('value'))
+      .toBe("6c10bf0c")
+    expect(screen.getByRole("spinbutton", { name: "Optical Density" }).getAttribute('value'))
+      .toBe("0")
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
+  });
+
+  test("Csv upload for frontend", () => {
+    // work on this
+    expect(1 + 1).toBe(2)
   });
 });
