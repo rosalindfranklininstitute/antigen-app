@@ -18,6 +18,7 @@ services:
     volumes:
       - ./backend:/antigenapp
       - api_data:/api_data
+      - ./db.sqlite3:/antigenapp/db.sqlite3
     environment:
       DJANGO_DEBUG: "true"
       DJANGO_ALLOWED_HOSTS: "localhost"
