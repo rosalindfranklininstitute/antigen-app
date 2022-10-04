@@ -1,5 +1,5 @@
-from typing import Dict
 import urllib.parse
+from typing import Dict
 
 from xmlschema import XMLSchema
 
