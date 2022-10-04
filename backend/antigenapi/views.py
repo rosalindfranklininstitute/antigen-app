@@ -201,7 +201,11 @@ class UniProtAntigenSerialzer(ModelSerializer):
                 raise
         data["sequence"] = protein_data["sequence"]["$"]
         data["molecular_mass"] = protein_data["sequence"]["@mass"]
-        data["name"] = protein_data["protein"]["recommendedName"]["fullName"]["$"]
+        try:
+            data["name"] = protein_data["protein"]["recommendedName"]["fullName"]["$"]
+        except KeyError:
+            # TODO: Further error checking that name list is set
+            data["name"] = protein_data["name"][0]
         return data
 
 
