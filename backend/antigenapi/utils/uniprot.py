@@ -1,4 +1,5 @@
 from typing import Dict
+import urllib.parse
 
 from xmlschema import XMLSchema
 
@@ -20,6 +21,6 @@ def get_protein(
     Returns:
         Dict: A key value mapping of protein data.
     """
-    data = SCHEMA.to_dict(URL_BASE + accession_number + ".xml")
+    data = SCHEMA.to_dict(URL_BASE + urllib.parse.quote(accession_number) + ".xml")
     assert isinstance(data, Dict)
     return data["entry"][0]
