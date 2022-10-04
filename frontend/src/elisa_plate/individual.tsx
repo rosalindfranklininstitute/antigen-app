@@ -6,6 +6,7 @@ import {
   Stack,
   Typography,
   Tab,
+  Button,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,6 +16,7 @@ import {
   getElisaPlate,
   selectElisaPlate,
   selectLoadingElisaPlate,
+  postElisaPlateCSV,
 } from "./slice";
 import { ElisaPlateInfo, ElisaPlateRef } from "./utils";
 import { ElisaPlateMapLegend } from "./well_map/legend";
@@ -45,6 +47,14 @@ export default function ElisaPlateView() {
     dispatch(getElisaPlate({ project, number }));
   }, [dispatch, project, number]);
 
+  const handleFileInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const data = new FormData();
+    data.append("plate", `${elisaPlate!.project}:${elisaPlate!.number}`);
+    data.append("csv_file", event!.target!.files![0]);
+    if (elisaPlate)
+      dispatch(postElisaPlateCSV({ ...elisaPlate, csvData: data }));
+  };
+
   if (loading)
     return <LoadingPaper text="Retrieving elisa plate from database." />;
   if (!elisaPlate)
@@ -71,7 +81,18 @@ export default function ElisaPlateView() {
             <TabPanel value="map" tabIndex={0}>
               <Stack gap={2} divider={<Divider />}>
                 <ElisaWellMap elisaPlateRef={elisaPlate} />
-                <ElisaPlateThresholdSlider elisaPlateRef={elisaPlate} />
+                <Stack direction="row" spacing={2}>
+                  <Button variant="outlined" component="label">
+                    Upload CSV
+                    <input
+                      accept=".csv"
+                      type="file"
+                      onChange={handleFileInput}
+                      hidden
+                    />
+                  </Button>
+                  <ElisaPlateThresholdSlider elisaPlateRef={elisaPlate} />
+                </Stack>
                 <ElisaPlateMapLegend elisaPlateRef={elisaPlate} />
               </Stack>
             </TabPanel>

@@ -37,3 +37,9 @@ you'll need to do this every time the backend container restarts)
 Then, to run the test suite:
 
     docker-compose exec api pipenv run tests
+
+### Tests - frontend 
+
+To run the test suite:
+    
+    docker-compose exec app npm test

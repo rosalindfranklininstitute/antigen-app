@@ -8,8 +8,8 @@ services:
     ports:
       - 3000:3000
     volumes:
-     - ./frontend/src:/antigenapp/src:ro
-     - ./frontend/public:/antigenapp/public:ro
+      - ./frontend/src:/antigenapp/src:ro
+      - ./frontend/public:/antigenapp/public:ro
   api:
     container_name: antigenapp_api
     build: backend/

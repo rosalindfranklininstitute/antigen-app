@@ -3,10 +3,12 @@ from itertools import product
 from typing import Iterable, Optional, Union
 from uuid import UUID, uuid4
 
+from django.core.files import File
 from django.core.validators import RegexValidator
 from django.db.models import (
     CASCADE,
     F,
+    FileField,
     ForeignKey,
     IntegerChoices,
     Manager,
@@ -133,7 +135,9 @@ class LocalAntigen(Antigen, Model):
 
     @property
     def name(self) -> str:
-        """A human readable antigen name, consisting of the first eight characters of the UUID.
+        """A human readable antigen name.
+
+        Consisting of the first eight characters of the UUID.
 
         Returns:
             str: A human readable antigen name.
@@ -198,6 +202,7 @@ class ElisaPlate(ProjectModelMixin, Model):
     uuid: UUID = UUIDField(primary_key=True, default=uuid4, editable=False)
     threshold: float = FloatField(null=True)
     creation_time: datetime = DateTimeField(editable=False, default=now)
+    csv_file: File = FileField(null=True, blank=True, upload_to="uploads/")
 
 
 PlateLocations = IntegerChoices(

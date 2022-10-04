@@ -1,18 +1,26 @@
+import os
 import urllib.error
 from typing import Generic, Optional, OrderedDict, TypeVar
 
+import pandas
+from django.core.exceptions import ObjectDoesNotExist
 from django_filters import CharFilter, FilterSet, NumberFilter
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.serializers import (
     CharField,
+    FileField,
     IntegerField,
     ModelSerializer,
     PrimaryKeyRelatedField,
     ReadOnlyField,
     RelatedField,
+    Serializer,
     SerializerMethodField,
     SlugRelatedField,
     ValidationError,
 )
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from antigenapi.models import (
@@ -350,12 +358,14 @@ class ElisaWellSerializer(ModelSerializer):
         queryset=Project.objects.all(),
         source="plate.project",
     )
-    plate = SlugRelatedField(slug_field="number", queryset=ElisaPlate.objects.all())
+    plate = SlugRelatedField(
+        slug_field="number",
+        queryset=ElisaPlate.objects.all(),
+    )
+
     functional = ReadOnlyField()
     antigen = ProjectModelRelatedField[Antigen](queryset=Antigen.objects.all())
-    nanobody = ProjectModelRelatedField[Nanobody](
-        queryset=Nanobody.objects.all(), default=None, required=False
-    )
+    nanobody = ProjectModelRelatedField[Nanobody](queryset=Nanobody.objects.all())
 
     class Meta:  # noqa: D106
         model = ElisaWell
@@ -407,3 +417,53 @@ class SequenceViewSet(ModelViewSet):
 
     create = create_possibly_multiple
     perform_create = perform_create_allow_creator_change_delete
+
+
+class FileUploadSerializer(Serializer):
+    """A serializer for elisa plate csv files."""
+
+    plate = SlugRelatedField(slug_field="key", queryset=ElisaPlate.objects.all())
+    csv_file = FileField()
+
+
+class FileUploadView(APIView):
+    """A view that provides and API end point for uploading csv files."""
+
+    serializer_class = FileUploadSerializer
+
+    def post(self, request, *args, **kwargs):
+        """Post method to uplaod a csv file."""
+        serializer = FileUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        file = serializer.validated_data["csv_file"]
+        plate_key = serializer.validated_data["plate"]
+
+        try:
+            csv_elisa_data = pandas.read_csv(file, dtype=(float, int), header=None)
+            assert csv_elisa_data.shape == (8, 12)
+        except AssertionError:
+            return Response("The CSV file is of the wrong format data not added")
+
+        try:
+            plate_object = ElisaPlate.objects.filter(
+                key=plate_key,
+            ).first()
+            elisawellobjects = ElisaWell.objects.filter(plate=plate_object.uuid)
+        except ObjectDoesNotExist:
+            return Response("Plate or wells do not exist data not added")
+
+        for well in elisawellobjects:
+            well.optical_density = csv_elisa_data.stack().values[well.location - 1]
+
+        ElisaWell.objects.bulk_update(elisawellobjects, ["optical_density"])
+        old_file_path = plate_object.csv_file.name
+
+        plate_object.csv_file = file
+        plate_object.save()
+
+        # Removing old file
+        if os.path.isfile(old_file_path):
+            os.remove(old_file_path)
+
+        return Response(plate_object.csv_file.name, status=status.HTTP_201_CREATED)

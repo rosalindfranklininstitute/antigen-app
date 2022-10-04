@@ -5,6 +5,7 @@ from antigenapi.views import (
     AntigenViewSet,
     ElisaPlateViewSet,
     ElisaWellViewSet,
+    FileUploadView,
     LocalAntigenViewSet,
     NanobodyViewSet,
     ProjectViewSet,
@@ -22,4 +23,8 @@ router.register("elisa_plate", ElisaPlateViewSet)
 router.register("elisa_well", ElisaWellViewSet)
 router.register("sequence", SequenceViewSet)
 
-urlpatterns = [path("", include(router.urls))]
+
+urlpatterns = [
+    path("", include(router.urls)),
+    path(r"upload_csv/", FileUploadView.as_view(), name="upload_csv"),
+]

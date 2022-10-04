@@ -1,6 +1,6 @@
 from django.test import Client, TestCase
 
-from .models import Project
+from antigenapi.models import Project
 
 
 class TestProjects(TestCase):

@@ -44,7 +44,7 @@ export function NanobodyInfo(params: { nanobodyRef: NanobodyRef }) {
     <TableContainer>
       <Table>
         <TableBody>
-          <TableRowPair name="Project" value={nanobody.name} />
+          <TableRowPair name="Project" value={nanobody.project} />
           <TableRowPair name="Number" value={nanobody.number} />
           <TableRowPair name="Name" value={nanobody.name} />
           <TableRowPair

@@ -46,7 +46,7 @@ export default function AddLocalAntigenView() {
   const loading = useSelector(selectLoadingAntigen);
   const projects = useSelector(selectProjects);
   const currentProject = useSelector(selectCurrentProject);
-  const [project, setProject] = useState<Project | undefined>(currentProject);
+  const [project, setProject] = useState<Project | null>(currentProject);
   const [sequence, setSequence] = useState<string>("");
   const [molecularMass, setMolecularMass] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState("");
@@ -90,9 +90,7 @@ export default function AddLocalAntigenView() {
               value={project}
               options={projects}
               getOptionLabel={(project) => project.short_title}
-              onChange={(_, project) =>
-                setProject(project ? project : undefined)
-              }
+              onChange={(_, project) => setProject(project ? project : null)}
             />
             <TextField
               required
@@ -123,7 +121,7 @@ export default function AddLocalAntigenView() {
           {errorMessage && <div className="error">{errorMessage}</div>}
 
           {antigens.map((antigen) => (
-            <div>
+            <div key={antigen.name}>
               <Divider />
               <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>

@@ -5,13 +5,9 @@ verify_ssl = true
 
 [packages]
 antigenapp = { editable = true, path = "." }
-psycopg2-binary = "*"
-sentry-sdk = "*"
 
 [dev-packages]
 antigenapp = { editable = true, extras = ["dev"], path = "." }
-pytest-black = "*"
-black = "==22.6.0"
 
 [scripts]
 tests = "python -m pytest"

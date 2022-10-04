@@ -36,7 +36,7 @@ export function ElisaPlateThresholdSlider(params: {
   }, [dispatch, params.elisaPlateRef]);
 
   return (
-    <Stack direction="row" spacing={2} alignItems="center">
+    <Stack direction="row" spacing={2} alignItems="center" flex={1}>
       <TextField
         label="Threshold"
         type="number"

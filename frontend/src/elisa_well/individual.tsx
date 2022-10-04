@@ -1,7 +1,7 @@
 import { Card, CardContent, Stack, Typography } from "@mui/material";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 import { getAntigen, selectAntigen } from "../antigen/slice";
 import { getNanobody, selectNanobody } from "../nanobody/slice";
 import { FailedRetrievalPaper, LoadingPaper } from "../utils/api";
