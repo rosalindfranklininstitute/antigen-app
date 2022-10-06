@@ -102,11 +102,11 @@ export default function AddLocalAntigenView() {
             />
             <TextField
               required
-              label="Molecular Mass"
+              label="Molecular Weight (kDa)"
               type="number"
-              value={molecularMass}
+              value={molecularMass / 1000}
               onChange={(evt) => {
-                setMolecularMass(Number(evt.target.value));
+                setMolecularMass(Number(evt.target.value) * 1000);
               }}
             />
             <LoadingButton
