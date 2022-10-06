@@ -46,7 +46,8 @@ export default function AntigensView() {
     },
     {
       field: "molecular_mass",
-      headerName: "Molecular Mass",
+      headerName: "Molecular Weight (kDa)",
+      valueFormatter: ({ value }) => Number(value) / 1000,
       flex: 1,
     },
     {
