@@ -91,7 +91,7 @@ describe("Tests on antigen views ", () => {
       "AAAAAAAAAAAAAAAAA"
     );
     userEvent.type(
-      screen.getByRole("spinbutton", { name: "Molecular Mass" }),
+      screen.getByRole("spinbutton", { name: "Molecular Weight (kDa)" }),
       "1"
     );
     // Submit new local antigen
