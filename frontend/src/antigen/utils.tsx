@@ -70,7 +70,7 @@ export function AntigenInfo(params: { antigenRef: AntigenRef }) {
           <TableRowPair name="Number" value={antigen.number} />
           <TableRowPair name="Name" value={antigen.name} />
           <TableRowPair name="Sequence" value={antigen.sequence} />
-          <TableRowPair name="Molecular Mass" value={antigen.molecular_mass} />
+          <TableRowPair name="Molecular Weight (kDa)" value={antigen.molecular_mass / 1000} />
           {"uniprot_accession_number" in antigen && (
             <TableRowPair
               name="Uniprot Accession Number"

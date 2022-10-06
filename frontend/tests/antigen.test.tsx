@@ -142,7 +142,7 @@ describe("Tests on antigen views ", () => {
     expect(screen.getByRole("row", { name: "Number: 1" })).toBeTruthy();
     expect(screen.getByRole("row", { name: "Name: 5a0f1822" })).toBeTruthy();
     expect(screen.getByRole("row", { name: "Sequence: AAAAAAAAAAAAAAAAA" }));
-    expect(screen.getByRole("row", { name: "Molecular Mass: 1" }));
+    expect(screen.getByRole("row", { name: "Molecular Weight (kDa): 0.001" }));
     expect(
       screen.getByRole("row", {
         name: "Creation Time: 2022-09-01T08:38:16.555199Z",
