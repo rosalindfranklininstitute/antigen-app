@@ -1,4 +1,5 @@
 import urllib.parse
+import urllib.error
 from typing import Dict
 
 from xmlschema import XMLSchema

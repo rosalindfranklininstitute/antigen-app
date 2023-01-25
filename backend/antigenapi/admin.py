@@ -4,11 +4,8 @@ from guardian.admin import GuardedModelAdmin
 from antigenapi.models import (
     ElisaPlate,
     ElisaWell,
-    LocalAntigen,
-    Nanobody,
     Project,
-    Sequence,
-    UniProtAntigen,
+    Antigen
 )
 
 
@@ -20,24 +17,6 @@ class ProjectAdmin(GuardedModelAdmin):
 
 class AntigenAdmin(GuardedModelAdmin):
     """A guarded model admin view for antigen objects."""
-
-    pass
-
-
-class LocalAntigenAdmin(GuardedModelAdmin):
-    """A guarded model admin view for local antigen objects."""
-
-    pass
-
-
-class UniProtAntigenAdmin(GuardedModelAdmin):
-    """A guarded model admin view for UniProt antigen objects."""
-
-    pass
-
-
-class NanobodyAdmin(GuardedModelAdmin):
-    """A guarded model admin view for nanobody objects."""
 
     pass
 
@@ -54,16 +33,8 @@ class ElisaWellAdmin(GuardedModelAdmin):
     pass
 
 
-class SequenceAdmin(GuardedModelAdmin):
-    """A guarded model admin view for sequence objects."""
-
-    pass
-
 
 site.register(Project, ProjectAdmin)
-site.register(LocalAntigen, LocalAntigenAdmin)
-site.register(UniProtAntigen, UniProtAntigenAdmin)
-site.register(Nanobody, NanobodyAdmin)
+site.register(Antigen, AntigenAdmin)
 site.register(ElisaPlate, ElisaPlateAdmin)
 site.register(ElisaWell, ElisaWellAdmin)
-site.register(Sequence, SequenceAdmin)
