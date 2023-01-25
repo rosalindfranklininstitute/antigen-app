@@ -40,16 +40,6 @@ from antigenapi.models import (
     QuerySet,
 )
 from antigenapi.utils.uniprot import get_protein
-# from antigenapi.utils.viewsets import (
-#     create_possibly_multiple,
-#     perform_create_allow_creator_change_delete,
-# )
-
-### Projects ###
-class ProjectFilterSet(FilterSet):
-    """A filterset which allows filtering by project short title."""
-
-    project = CharFilter(field_name="project__short_title")
 
 
 class ProjectSerializer(ModelSerializer):
@@ -67,7 +57,6 @@ class ProjectViewSet(ModelViewSet):
 
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    lookup_field = "short_title"
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)
@@ -233,7 +222,6 @@ class ElisaPlateViewSet(ModelViewSet):
 
     queryset = ElisaPlate.objects.all()
     serializer_class = ElisaPlateSerializer
-    filterset_class = ProjectFilterSet
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)
