@@ -122,17 +122,24 @@ const fetchTable = (table, apiUrl) => {
         body: JSON.stringify(formDataObj)
         })
         .then((res) => {
+          if(res.status >= 300 && res.status != 400) {
+            // TODO: Handle other classes of other
+            if(res.status == 500)
+              props.onSetError("Internal server error - probably a bug we'll have to fix!")
+            else
+              props.onSetError("Error code " + res.status + " - please report this to support!")
+          } else {
             res.json().then((data) => {
-            if(res.status == 400) {
+              if(res.status == 400) {
+                // form validation error
                 setFormErrors(data);
                 document.body.scrollTop = document.documentElement.scrollTop = 0;
-            } else if(res.status >= 300) {
-              // TODO: Handle other classes of other
-            } else {
+              } else {
                 // succeeded
                 redirectToRecordsPage(data.id);
-            }
+              }
             });
+          }
     });
   };
   

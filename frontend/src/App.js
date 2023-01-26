@@ -262,7 +262,7 @@ const App = () => {
             <Route exact path="/" element={<HeadedPage title="Dashboard"><span>Welcome to Antigen App! Please navigate using the menu at the top.</span></HeadedPage>} />
 
             <Route exact path="/projects" element={<HeadedPage title="Projects"><ListTable schema={schemas.project}></ListTable></HeadedPage>} />
-            <Route exact path="/projects/add" element={<HeadedPage title="Add Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/projects/add" element={<HeadedPage title="Add Project"><AddEditObjectPage onSetError={setError} schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             <Route exact path="/projects/:recordId" element={<HeadedPage title="View Project"><ViewObjectPage schema={schemas.project} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.library}></ListTable></HeadedPage>} />
             <Route exact path="/projects/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
