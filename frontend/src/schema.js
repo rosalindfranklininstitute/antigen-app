@@ -21,10 +21,26 @@ const llamaSchema = {
               ]
 }
 
+const antigenSchema = {
+    "apiUrl": "/antigen",
+    "viewUrl": "/antigens",
+    "objectName": "antigen",
+    "fields": [{"label": "Uniprot ID", "field": "uniprot_id", "type": "text", "showInTable": true},
+               {"label": "Preferred name", "field": "preferred_name", "type": "text", "showInTable": true},
+               {"label": "Sequence", "field": "sequence", "type": "text"},
+               {"label": "Molecular mass", "field": "molecular_mass", "type": "text"},
+               {"label": "Description", "field": "description", "type": "textarea"},
+               {"label": "Epitope", "field": "epitope", "type": "textarea"},
+               {"label": "Added by", "field": "added_by", "hideOnForm": true},
+               {"label": "Added date", "field": "added_date", "hideOnForm": true}
+              ]
+}
+
 
 const schemas = {
     "project": projectSchema,
-    "llama": llamaSchema
+    "llama": llamaSchema,
+    "antigen": antigenSchema
 }
 
 export default schemas;

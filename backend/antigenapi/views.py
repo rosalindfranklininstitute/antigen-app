@@ -140,7 +140,7 @@ class AntigenSerializer(ModelSerializer):
 
     def validate(self, data):
         """Check the antigen is a valid uniprot ID."""
-        if data["uniprot_id"]:
+        if data.get("uniprot_id"):
             try:
                 protein_data = get_protein(data["uniprot_id"])
             except urllib.error.HTTPError as e:

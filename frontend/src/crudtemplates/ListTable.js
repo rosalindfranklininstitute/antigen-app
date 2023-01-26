@@ -58,7 +58,7 @@ const ListTable = (props) => {
                         {props.schema.fields.slice(1).filter(field => field.showInTable).map((titleField) => (
                             <th key={props.schema.objectName + "_" + titleField.field} scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                               {titleField.label}
-                            </th>                            
+                            </th>
                         ))}
                       </tr>
                     </thead>
@@ -66,7 +66,7 @@ const ListTable = (props) => {
                       {records.map((record) => (
                         <tr key={props.schema.objectName + "_tablerow_" + record.id}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                            <NavLink to={props.schema.viewUrl+"/"+record.id}>{record[props.schema.fields[0].field]}</NavLink>
+                            <NavLink to={props.schema.viewUrl+"/"+record.id}>{record[props.schema.fields[0].field] || <em>None</em>}</NavLink>
                           </td>
                           {props.schema.fields.slice(1).filter(field => field.showInTable).map((dataField) => (
                             <td key={props.schema.objectName + "_tablefield_" + record.id + "_" + dataField.field} className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{record[dataField.field]}</td>   

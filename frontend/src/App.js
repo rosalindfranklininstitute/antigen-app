@@ -266,7 +266,10 @@ const App = () => {
             <Route exact path="/projects/:recordId" element={<HeadedPage title="View Project"><ViewObjectPage schema={schemas.project} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
             <Route exact path="/projects/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
-            <Route exact path="/antigens" element={<HeadedPage title="Antigens"><span>Coming soon</span></HeadedPage>} />
+            <Route exact path="/antigens" element={<HeadedPage title="Antigens"><ListTable schema={schemas.antigen}></ListTable></HeadedPage>} />
+            <Route exact path="/antigens/add" element={<HeadedPage title="Add Antigen"><AddEditObjectPage schema={schemas.antigen} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/antigens/:recordId" element={<HeadedPage title="View Antigen"><ViewObjectPage schema={schemas.antigen} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
+            <Route exact path="/antigens/:recordId/edit" element={<HeadedPage title="Edit Antigen"><AddEditObjectPage schema={schemas.antigen} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             
             <Route exact path="/llamas" element={<HeadedPage title="Llamas"><ListTable schema={schemas.llama}></ListTable></HeadedPage>} />
             <Route exact path="/llamas/add" element={<HeadedPage title="Add Llama"><AddEditObjectPage schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />

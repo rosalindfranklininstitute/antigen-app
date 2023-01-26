@@ -52,7 +52,11 @@ const AddEditObjectPage = (props) => {
     // Construct form data as object
     const formData = new URLSearchParams(new FormData(document.getElementById('recordForm')));
     const formDataObj = {};
-    formData.forEach((value, key) => (formDataObj[key] = value));
+    formData.forEach((value, key) => {
+        if (value !== "") {
+            formDataObj[key] = value
+        }
+    });
     if(recordId) {
       formDataObj['id'] = recordId;
     }
