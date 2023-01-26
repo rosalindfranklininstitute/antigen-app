@@ -9,6 +9,7 @@ module.exports = {
     },
 
     pluralise: (str) => {
-        return str + 's';
+        // TODO: Make less primitive!
+        return (str.endsWith("y")) ? str.slice(0, -1) + "ies" : str + "s";
     }
 }

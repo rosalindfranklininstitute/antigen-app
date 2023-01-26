@@ -10,6 +10,21 @@ const projectSchema = {
               ]
 }
 
+const librarySchema = {
+    "apiUrl": "/library",
+    "viewUrl": "/libraries",
+    "objectName": "library",
+    "parentObjectName": "project",
+    "fields": [{"label": "Cohort no.", "field": "cohort_num", "type": "text", "showInTable": true}, 
+               {"label": "Project", "field": "project", "type": "foreignkey", "apiUrl": "/project", "fkDisplayField": "short_title", "readOnlyOnEdit": true},
+               {"label": "Llama", "field": "llama", "type": "foreignkey", "apiUrl": "/llama", "fkDisplayField": "name", "showInTable": true},
+               {"label": "Immunisation date", "field": "immunisation_date", "type": "date"},
+               {"label": "Blood draw date", "field": "blood_draw_date", "type": "date"},
+               {"label": "Added by", "field": "added_by", "hideOnForm": true},
+               {"label": "Added date", "field": "added_date", "hideOnForm": true}
+              ]
+}
+
 const llamaSchema = {
     "apiUrl": "/llama",
     "viewUrl": "/llamas",
@@ -36,11 +51,24 @@ const antigenSchema = {
               ]
 }
 
+const elisaSchema = {
+    "apiUrl": "/elisa_plate",
+    "viewUrl": "/elisas",
+    "objectName": "elisa",
+    "fields": [{"label": "Added by", "field": "added_by", "hideOnForm": true, "showInTable": true},
+               {"label": "OD values", "field": "elisawell_set", type: "elisaplate"},
+               {"label": "Optical Density Threshold", "field": "optical_density_threshold", "type": "text"},
+               {"label": "Added date", "field": "added_date", "hideOnForm": true}
+              ]
+}
+
 
 const schemas = {
     "project": projectSchema,
+    "library": librarySchema,
     "llama": llamaSchema,
-    "antigen": antigenSchema
+    "antigen": antigenSchema,
+    "elisa": elisaSchema
 }
 
 export default schemas;

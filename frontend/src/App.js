@@ -263,8 +263,14 @@ const App = () => {
 
             <Route exact path="/projects" element={<HeadedPage title="Projects"><ListTable schema={schemas.project}></ListTable></HeadedPage>} />
             <Route exact path="/projects/add" element={<HeadedPage title="Add Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
-            <Route exact path="/projects/:recordId" element={<HeadedPage title="View Project"><ViewObjectPage schema={schemas.project} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
+            <Route exact path="/projects/:recordId" element={<HeadedPage title="View Project"><ViewObjectPage schema={schemas.project} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.library}></ListTable></HeadedPage>} />
             <Route exact path="/projects/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+
+            <Route exact path="/libraries/add" element={<HeadedPage title="Add Library"><AddEditObjectPage schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/libraries/:recordId" element={<HeadedPage title="View Library"><ViewObjectPage schema={schemas.library} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.elisa}></ListTable></HeadedPage>} />
+            <Route exact path="/libraries/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+
+            <Route exact path="/elisas/add" element={<HeadedPage title="Add ELISA"><AddEditObjectPage schema={schemas.elisa} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
             <Route exact path="/antigens" element={<HeadedPage title="Antigens"><ListTable schema={schemas.antigen}></ListTable></HeadedPage>} />
             <Route exact path="/antigens/add" element={<HeadedPage title="Add Antigen"><AddEditObjectPage schema={schemas.antigen} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />

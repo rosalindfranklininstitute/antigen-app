@@ -52,6 +52,7 @@ class Llama(Model):
         return self.name
 
 class Library(Model):
+    project = ForeignKey(Project, on_delete=PROTECT)
     cohort_num = CharField(max_length=32)
     llama = ForeignKey(Llama, on_delete=PROTECT)
     immunisation_date = DateField(null=True)

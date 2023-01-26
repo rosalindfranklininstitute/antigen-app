@@ -1,10 +1,16 @@
 import config from '../config.js';
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, redirect } from "react-router-dom";
+import { useParams, useNavigate, redirect, useLocation } from "react-router-dom";
 import { OkCancelDialog } from '../OkCancelDialog.js';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
+}
+
+function useQuery() {
+    const { search } = useLocation();
+
+    return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
 const AddEditObjectPage = (props) => {
@@ -12,10 +18,15 @@ const AddEditObjectPage = (props) => {
   const [record, setRecord] = useState([])
   const [loading, setLoading] = useState(true);  // used for edits only
   const [error, setError] = useState(null);
+  const [relatedTables, setRelatedTables] = useState({});
+
+  // TODO: Reactor this out
+  const [elisaData, setElisaData] = useState();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const navigate = useNavigate();
+  const query = useQuery();
 
   const getRecord = () => {
     fetch(config.url.API_URL + props.schema.apiUrl + "/" + recordId, {
@@ -26,21 +37,61 @@ const AddEditObjectPage = (props) => {
         }
       })
         .then((res) => {
-          res.json().then((data) => {
-            if(res.status === 404) {
-              setError(404);
+            if(res.status === 500) {
+                setError(500);
             } else {
-              setRecord(data)
+                res.json().then((data) => {
+                    if(res.status === 404) {
+                    setError(404);
+                    } else {
+                    setRecord(data)
+                    }
+                    setLoading(false);
+                });
             }
-            setLoading(false);
-          });
     });
   };
-  
+
+const fetchTable = (table, apiUrl) => {
+    fetch(config.url.API_URL + apiUrl, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": props.csrfToken,
+        }
+        })
+        .then((res) => {
+            res.json().then((data) => {
+                let tableUpdate = {};
+                tableUpdate[table] = data;
+                setRelatedTables((prev) => {
+                    return {
+                    ...prev,
+                    ...tableUpdate
+                }});
+            })
+            });
+}
+
   useEffect(() => {
     if(!recordId) setLoading(false);
     if(recordId) getRecord();
-  }, []);  
+    props.schema.fields.filter(field => field.type === "foreignkey").forEach((fkField) => {
+        fetchTable(fkField.field, fkField.apiUrl);
+    });
+  }, [props]);
+
+  const handleElisaPaste = (event) => {
+    //TODO: Make this more robust, test with Excel desktop app, windows etc.
+    let data = event.target.value.split(" ").map((line) => line.split('\t'));
+    // TODO: error checking
+    if(data.length != 8) { setElisaData(null); }
+    else setElisaData(data);
+    event.target.value = "";
+  }
+
+  const elisaHeader = ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+  const elisaRowNames = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
   const cancelForm = () => {
     setDialogOpen(true);
@@ -110,7 +161,7 @@ const AddEditObjectPage = (props) => {
                 <label htmlFor={field.field} className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                     {field.label}
                 </label>
-                <div className="mt-1">
+                <div className={"mt-1" + (field.type == "elisaplate" ? " col-span-2" : "")}>
                 {field.type == "text" && 
                 <input
                     type="text"
@@ -123,6 +174,68 @@ const AddEditObjectPage = (props) => {
                     defaultValue={record[field.field]}
                 />}
 
+                {field.type == "elisaplate" && 
+                <>
+                <input
+                    type="text"
+                    name={field.field}
+                    id={field.field + "Field"}
+                    autoComplete={field.field + "Field"}
+                    placeholder="Copy/paste from Excel to here"
+                    className={classNames(formErrors[field.field] ? 
+                    "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md" : 
+                    "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300")}
+                    onChange={handleElisaPaste}
+                />
+                <table className="w-full table-fixed border-collapse border border-slate-500 mt-4">
+                    <thead><tr>
+                        {elisaHeader.map((header) => <th key={"elisaheader_" + header} className="border border-slate-600">{header}</th>)}
+                    </tr></thead>
+                    <tbody>
+                        {elisaRowNames.map((rowName, rowIdx) => 
+                        <tr key={"elisarow_" + rowIdx}>
+                            {elisaHeader.map((header, colIdx) => 
+                                colIdx == 0 ? <th key={"elisarowname_"+rowIdx} className="border border-slate-600">{rowName}</th> : <td key={"elisaCell_" + rowIdx + "_" + colIdx} className="border border-slate-600">{elisaData ? elisaData[rowIdx][colIdx - 1] : ""}</td>
+                            )}
+                        </tr>
+                        )}
+                    </tbody>
+                </table>
+                </>}
+
+                {field.type == "foreignkey" && relatedTables[field.field] &&
+                ((recordId && field.readOnlyOnEdit) ?
+                // Field is  read only on edit
+                <>
+                <input
+                    type="text"
+                    name={field.field + "_display"}
+                    id={field.field + "Field"}
+                    readOnly
+                    disabled
+                    className={classNames(formErrors[field.field] ? 
+                    "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md" : 
+                    "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300")}
+                    defaultValue={relatedTables[field.field].find((obj) => obj.id == record[field.field])[field.fkDisplayField]}
+                />
+                <input type="hidden" name={field.field} defaultValue={record[field.field]}></input>
+                </>
+                :
+                // Field is chosen using select
+                <select
+                    name={field.field}
+                    id={field.field + "Field"}
+                    className={classNames(formErrors[field.field] ? 
+                    "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md" : 
+                    "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300")}
+                    defaultValue={record[field.field] || query.get(field.field + "_id")}
+                >
+                  {/* <option value="">Not specified</option> */}
+                {Object.values(relatedTables[field.field]).map((opt) => 
+                  <option key={field.field + "_" + opt.id} value={opt.id}>{opt[field.fkDisplayField]}</option>
+                )}
+              </select>)}
+
                 {field.type == "textarea" &&
                 <textarea
                   name={field.field}
@@ -132,6 +245,17 @@ const AddEditObjectPage = (props) => {
                     "max-w-lg shadow-sm block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500" :
                     "max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md")}
                   defaultValue={record[field.field]}
+                />}
+
+                {field.type == "date" &&
+                <input
+                    type="date"
+                    name={field.field}
+                    id={field.field + "Field"}
+                    className={classNames(formErrors[field.field] ? 
+                        "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md" : 
+                        "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300")}
+                    defaultValue={record[field.field]}
                 />}
                 </div>
                 {formErrors[field.field] && <p className="mt-2 ml-2 text-sm text-red-600" id={field.field + "Errors"}>{formErrors[field.field]}</p>}
