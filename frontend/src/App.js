@@ -1,9 +1,10 @@
 import config from './config.js';
 import './App.css';
 import HeadedPage from './HeadedPage.js'
-import Projects from './projects/Projects.js'
-import ViewProject from './projects/ViewProject.js'
-import AddEditProject from './projects/AddEditProject.js'
+import ListTable from './crudtemplates/ListTable.js'
+import ViewObjectPage from './crudtemplates/ViewObjectPage.js'
+import AddEditObjectPage from './crudtemplates/AddEditObjectPage.js';
+import schemas from './schema.js'
 import ErrorHandler from './ErrorHandler.js'
 import React, { Fragment, useState, useEffect } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
@@ -259,12 +260,18 @@ const App = () => {
           {error && <ErrorHandler error={error} onSetError={setError} />}
           <Routes>
             <Route exact path="/" element={<HeadedPage title="Dashboard"><span>Welcome to Antigen App! Please navigate using the menu at the top.</span></HeadedPage>} />
-            <Route exact path="/projects" element={<HeadedPage title="Projects"><Projects></Projects></HeadedPage>} />
-            <Route exact path="/projects/add" element={<HeadedPage title="Add Project"><AddEditProject csrfToken={csrfToken}></AddEditProject></HeadedPage>} />            
-            <Route exact path="/projects/:projectId" element={<HeadedPage title="View Project"><ViewProject></ViewProject></HeadedPage>} />
-            <Route exact path="/projects/:projectId/edit" element={<HeadedPage title="Edit Project"><AddEditProject csrfToken={csrfToken}></AddEditProject></HeadedPage>} />
-            <Route path="/antigens" element={<HeadedPage title="Antigens"><span>Coming soon</span></HeadedPage>} />
-            <Route path="/llamas" element={<HeadedPage title="Llamas"><span>Coming soon</span></HeadedPage>} />
+
+            <Route exact path="/projects" element={<HeadedPage title="Projects"><ListTable schema={schemas.project}></ListTable></HeadedPage>} />
+            <Route exact path="/projects/add" element={<HeadedPage title="Add Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/projects/:recordId" element={<HeadedPage title="View Project"><ViewObjectPage schema={schemas.project} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
+            <Route exact path="/projects/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+
+            <Route exact path="/antigens" element={<HeadedPage title="Antigens"><span>Coming soon</span></HeadedPage>} />
+            
+            <Route exact path="/llamas" element={<HeadedPage title="Llamas"><ListTable schema={schemas.llama}></ListTable></HeadedPage>} />
+            <Route exact path="/llamas/add" element={<HeadedPage title="Add Llama"><AddEditObjectPage schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/llamas/:recordId" element={<HeadedPage title="View Llama"><ViewObjectPage schema={schemas.llama} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
+            <Route exact path="/llamas/:recordId/edit" element={<HeadedPage title="Edit Llama"><AddEditObjectPage schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
           </Routes>
         </Router>
       </div>

@@ -1,12 +1,13 @@
 import config from '../config.js';
 import { useState, useEffect } from 'react';
 import { NavLink } from "react-router-dom";
+import { toTitleCase, pluralise } from './utils.js';
 
-const Projects = (props) => {
-    const [projects, setProjects] = useState([]);
+const ListTable = (props) => {
+    const [records, setRecords] = useState([]);
 
-    const refreshProjects = () => {
-        fetch(config.url.API_URL + "/project", {
+    const refreshRecords = () => {
+        fetch(config.url.API_URL + props.schema.apiUrl, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -15,31 +16,31 @@ const Projects = (props) => {
           })
             .then((res) => {
               res.json().then((data) => {
-                  setProjects(data)
+                  setRecords(data)
                 })
               });
     }
 
     useEffect(() => {
-        refreshProjects();
-    }, []);
+        refreshRecords();
+    }, [props]);
 
     return (
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="sm:flex sm:items-center">
             <div className="sm:flex-auto">
-              <h1 className="text-xl font-semibold text-gray-900">Projects</h1>
+              <h1 className="text-xl font-semibold text-gray-900">{pluralise(toTitleCase(props.schema.objectName))}</h1>
               <p className="mt-2 text-sm text-gray-700">
                 &nbsp;
               </p>
             </div>
             <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-              <NavLink to="/projects/add">
+              <NavLink to={props.schema.viewUrl + "/add"}>
               <button
                 type="button"
                 className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
               >
-                Add project
+                Add {props.schema.objectName}
               </button>
               </NavLink>
             </div>
@@ -52,24 +53,24 @@ const Projects = (props) => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                          Short name
+                          {props.schema.fields[0].label}
                         </th>
-                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Name
-                        </th>
-                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Added by
-                        </th>
+                        {props.schema.fields.slice(1).filter(field => field.showInTable).map((titleField) => (
+                            <th key={props.schema.objectName + "_" + titleField.field} scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                              {titleField.label}
+                            </th>                            
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 bg-white">
-                      {projects.map((project) => (
-                        <tr key={project.id}>
+                      {records.map((record) => (
+                        <tr key={props.schema.objectName + "_tablerow_" + record.id}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                            <NavLink key={project.id} to={"/projects/"+project.id}>{project.short_title}</NavLink>
+                            <NavLink to={props.schema.viewUrl+"/"+record.id}>{record[props.schema.fields[0].field]}</NavLink>
                           </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{project.title}</td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{project.added_by}</td>
+                          {props.schema.fields.slice(1).filter(field => field.showInTable).map((dataField) => (
+                            <td key={props.schema.objectName + "_tablefield_" + record.id + "_" + dataField.field} className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{record[dataField.field]}</td>   
+                          ))}
                         </tr>
                       ))}
                     </tbody>
@@ -82,4 +83,4 @@ const Projects = (props) => {
       )
 }
 
-export default Projects;
+export default ListTable;
