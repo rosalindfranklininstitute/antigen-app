@@ -16,6 +16,20 @@ import {
   Navigate,
   NavLink
 } from "react-router-dom";
+import * as Sentry from "@sentry/react";
+import { BrowserTracing } from "@sentry/tracing";
+
+if (process.env.REACT_APP_SENTRY_DSN !== undefined) {
+  Sentry.init({
+    dsn: process.env.REACT_APP_SENTRY_DSN,
+    integrations: [new BrowserTracing()],
+
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
+  });
+}
 
 const user = {
   name: 'Tom Cook',
@@ -266,19 +280,19 @@ const App = () => {
             <Route exact path="/projects/:recordId" element={<HeadedPage title="View Project"><ViewObjectPage schema={schemas.project} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.library}></ListTable></HeadedPage>} />
             <Route exact path="/projects/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
-            <Route exact path="/libraries/add" element={<HeadedPage title="Add Library"><AddEditObjectPage schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/libraries/add" element={<HeadedPage title="Add Library"><AddEditObjectPage onSetError={setError} schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             <Route exact path="/libraries/:recordId" element={<HeadedPage title="View Library"><ViewObjectPage schema={schemas.library} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.elisa}></ListTable></HeadedPage>} />
             <Route exact path="/libraries/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
-            <Route exact path="/elisas/add" element={<HeadedPage title="Add ELISA"><AddEditObjectPage schema={schemas.elisa} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/elisas/add" element={<HeadedPage title="Add ELISA"><AddEditObjectPage onSetError={setError} schema={schemas.elisa} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
             <Route exact path="/antigens" element={<HeadedPage title="Antigens"><ListTable schema={schemas.antigen}></ListTable></HeadedPage>} />
-            <Route exact path="/antigens/add" element={<HeadedPage title="Add Antigen"><AddEditObjectPage schema={schemas.antigen} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/antigens/add" element={<HeadedPage title="Add Antigen"><AddEditObjectPage onSetError={setError} schema={schemas.antigen} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             <Route exact path="/antigens/:recordId" element={<HeadedPage title="View Antigen"><ViewObjectPage schema={schemas.antigen} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
             <Route exact path="/antigens/:recordId/edit" element={<HeadedPage title="Edit Antigen"><AddEditObjectPage schema={schemas.antigen} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             
             <Route exact path="/llamas" element={<HeadedPage title="Llamas"><ListTable schema={schemas.llama}></ListTable></HeadedPage>} />
-            <Route exact path="/llamas/add" element={<HeadedPage title="Add Llama"><AddEditObjectPage schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/llamas/add" element={<HeadedPage title="Add Llama"><AddEditObjectPage onSetError={setError} schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             <Route exact path="/llamas/:recordId" element={<HeadedPage title="View Llama"><ViewObjectPage schema={schemas.llama} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
             <Route exact path="/llamas/:recordId/edit" element={<HeadedPage title="Edit Llama"><AddEditObjectPage schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
           </Routes>

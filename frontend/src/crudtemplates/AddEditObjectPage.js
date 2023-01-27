@@ -123,11 +123,12 @@ const fetchTable = (table, apiUrl) => {
         })
         .then((res) => {
           if(res.status >= 300 && res.status != 400) {
-            // TODO: Handle other classes of other
-            if(res.status == 500)
+            if(res.status == 500) {
+              // Sentry should capture this on the backend
               props.onSetError("Internal server error - probably a bug we'll have to fix!")
-            else
+            } else {
               props.onSetError("Error code " + res.status + " - please report this to support!")
+            }
           } else {
             res.json().then((data) => {
               if(res.status == 400) {
