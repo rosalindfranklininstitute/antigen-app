@@ -295,6 +295,7 @@ const App = () => {
             <Route exact path="/llamas/add" element={<HeadedPage title="Add Llama"><AddEditObjectPage onSetError={setError} schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             <Route exact path="/llamas/:recordId" element={<HeadedPage title="View Llama"><ViewObjectPage schema={schemas.llama} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
             <Route exact path="/llamas/:recordId/edit" element={<HeadedPage title="Edit Llama"><AddEditObjectPage schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route path='*' element={<HeadedPage title="404 Not Found">Page not found</HeadedPage>} />
           </Routes>
         </Router>
       </div>
