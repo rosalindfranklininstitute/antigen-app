@@ -15,10 +15,10 @@ const cohortSchema = {
     "viewUrl": "/cohorts",
     "objectName": "cohort",
     "parentObjectName": "llama",
-    "fields": [{"label": "Cohort no.", "field": "cohort_num", "type": "text", "showInTable": true}, 
+    "fields": [{"label": "Cohort no.", "field": "cohort_num", "type": "text", "showInTable": true},
                {"label": "Llama", "field": "llama", "type": "foreignkey", "apiUrl": "/llama", "fkDisplayField": "name", "showInTable": true},
-               {"label": "Immunisation date", "field": "immunisation_date", "type": "date"},
-               {"label": "Blood draw date", "field": "blood_draw_date", "type": "date"},
+               {"label": "Immunisation date", "field": "immunisation_date", "type": "date", showInTable: true},
+               {"label": "Blood draw date", "field": "blood_draw_date", "type": "date", showInTable: true},
                {"label": "Antigens", "field": "antigens", "type": "selectmulti", "apiUrl": "/antigen", "fkDisplayField": "preferred_name", "fkApiField": "antigen_details"},
                {"label": "Added by", "field": "added_by", "hideOnForm": true},
                {"label": "Added date", "field": "added_date", "hideOnForm": true}
@@ -68,9 +68,13 @@ const elisaSchema = {
     "viewUrl": "/elisas",
     "objectName": "elisa",
     "parentObjectName": "library",
-    "fields": [{"label": "Library", "field": "library", "type": "foreignkey", "apiUrl": "/library", "fkDisplayField": "cohort_cohort_num"},
+    "fields": [{"label": "Library", "field": "library", "type": "foreignkey", "apiUrl": "/library", "fkDisplayField": "cohort_cohort_num", showInTable: true},
+               {"label": "Antigen", "field": "antigen", "type": "foreignkey", "apiUrl": "/antigen", "fkDisplayField": "preferred_name", showInTable: false, showOnViewPage: false},
                {"label": "Plate file", "field": "plate_file", type: "file", showInTable: true},
+               {"label": "Plate OD Values", "field": "elisawell_set", type: "elisaplate", hideOnForm: true},
                {"label": "Optical Density Threshold", "field": "optical_density_threshold", "type": "text"},
+               {label: "Antibody", field: "antibody", type: "text"},
+               {label: "Pan round", field: "pan_round", type: "text"},
                {"label": "Added by", "field": "added_by", "hideOnForm": true},
                {"label": "Added date", "field": "added_date", "hideOnForm": true, showInTable: true}
               ]

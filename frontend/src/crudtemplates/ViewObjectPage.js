@@ -80,7 +80,7 @@ const ViewObjectPage = (props) => {
         </div>
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">
-            {props.schema.fields.map((field) => (
+            {props.schema.fields.filter(field => field.showOnViewPage !== false).map((field) => (
             <div key={props.objectName + "_" + field.field} className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">{field.label}</dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{displayField(field, record)}</dd>

@@ -6,6 +6,7 @@ verify_ssl = true
 [packages]
 antigenapp = { editable = true, path = "." }
 numpy = "*"
+openpyxl = "*"
 
 [dev-packages]
 antigenapp = { editable = true, extras = ["dev"], path = "." }

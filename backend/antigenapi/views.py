@@ -28,6 +28,7 @@ from rest_framework.serializers import (
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from django.contrib.auth import get_user_model
+from .parsers import parse_elisa_file
 
 from antigenapi.models import (
     Antigen,
@@ -220,30 +221,43 @@ class ElisaPlateSerializer(ModelSerializer):
     A serializer for elisa plates which serializes all internal fields and elisa wells
     contained within it.
     """
-    library_cohort_cohort_num = CharField(source='library.cohort.cohort_num')
+    library_cohort_cohort_num = CharField(source='library.cohort.cohort_num', required=False)
     added_by = StringRelatedField()
     elisawell_set = NestedElisaWellSerializer(many=True, required=False)
-    read_only_fields = ['elisawell_set', 'added_by', 'added_date']
+    antigen = PrimaryKeyRelatedField(queryset=Antigen.objects.all(), write_only=True)  # TODO: Filter by antigens in the library
+    read_only_fields = ['library_cohort_cohort_num', 'elisawell_set', 'added_by', 'added_date']
 
     class Meta:  # noqa: D106
         model = ElisaPlate
         fields = "__all__"
 
-    # def create(self, validated_data):
-    #     well_set = validated_data.pop('elisawell_set')
-    #     plate = super(ElisaPlateSerializer, self).create(validated_data)
-    #     ElisaWell.objects.bulk_create(ElisaWell(plate=plate, **w) for w in well_set)
-    #     return plate
+    def validate(self, data):
+        try:
+            data['elisawell_set'] = parse_elisa_file(data['plate_file'])
+        except Exception as e:
+            raise ValidationError(e)
+        return data
+    
+    def create(self, validated_data):
+        # For now, every well shares the same antigen
+        antigen = validated_data.pop('antigen')
+        well_set = validated_data.pop('elisawell_set')
+        plate = super(ElisaPlateSerializer, self).create(validated_data)
+        ElisaWell.objects.bulk_create(
+            ElisaWell(plate=plate, optical_density=od, location=loc, antigen=antigen)
+            for (od, loc) in zip(well_set, PlateLocations))
+        return plate
 
-    # def update(self, instance, validated_data):
-    #     well_set = validated_data.pop('elisawell_set')
-    #     plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
-    #     for w in well_set:
-    #         ElisaWell.objects.update_or_create(
-    #             plate=plate, location=w['location'],
-    #             defaults=w
-    #         )
-    #     return instance
+    def update(self, instance, validated_data):
+        antigen = validated_data['antigen']
+        well_set = validated_data.pop('elisawell_set')
+        plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
+        for od, loc in zip(well_set, PlateLocations):
+            ElisaWell.objects.update_or_create(
+                plate=plate, location=loc,
+                defaults={'optical_density': od, 'antigen': antigen}
+            )
+        return instance
 
 
 class ElisaPlateViewSet(ModelViewSet):

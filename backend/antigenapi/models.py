@@ -5,7 +5,7 @@ from uuid import UUID, uuid4
 
 from django.core.files import File
 from django.conf import settings
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, FileExtensionValidator
 from django.db.models import (
     CASCADE,
     PROTECT,
@@ -99,9 +99,11 @@ class Library(Model):
 class ElisaPlate(Model):
     optical_density_threshold: float = FloatField(null=True)
     library = ForeignKey(Library, on_delete=PROTECT)
+    antibody = TextField(blank=True)
+    pan_round = TextField(blank=True)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
-    plate_file: File = FileField(null=True, upload_to="uploads/elisaplates/")
+    plate_file: File = FileField(upload_to="uploads/elisaplates/", validators=[FileExtensionValidator(allowed_extensions=["xlsx"])])
 
 
 PlateLocations = IntegerChoices(
