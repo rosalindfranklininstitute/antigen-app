@@ -1,7 +1,7 @@
 import config from '../config.js';
 import { useState, useEffect } from 'react';
 import { NavLink, useParams } from "react-router-dom";
-import { toTitleCase, pluralise } from './utils.js';
+import { toTitleCase, pluralise, displayField } from './utils.js';
 
 const ListTable = (props) => {
     const [records, setRecords] = useState([]);
@@ -36,14 +36,14 @@ const ListTable = (props) => {
               </p>
             </div>
             <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-              <NavLink to={props.schema.viewUrl + "/add" + (recordId ? ("?" + props.schema.parentObjectName + "_id=" + recordId) : "")}>
+              {!props.readOnly && <NavLink to={props.schema.viewUrl + "/add" + (recordId ? ("?" + props.schema.parentObjectName + "_id=" + recordId) : "")}>
               <button
                 type="button"
                 className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
               >
                 Add {props.schema.objectName}
               </button>
-              </NavLink>
+              </NavLink>}
             </div>
           </div>
           <div className="mt-8 flex flex-col">
@@ -67,10 +67,11 @@ const ListTable = (props) => {
                       {records.map((record) => (
                         <tr key={props.schema.objectName + "_tablerow_" + record.id}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                            <NavLink to={props.schema.viewUrl+"/"+record.id}>{record[props.schema.fields[0].field] || <em>None</em>}</NavLink>
+                            <NavLink to={props.schema.viewUrl+"/"+record.id}>{displayField(props.schema.fields[0], record) || <em>None</em>}</NavLink>
                           </td>
                           {props.schema.fields.slice(1).filter(field => field.showInTable).map((dataField) => (
-                            <td key={props.schema.objectName + "_tablefield_" + record.id + "_" + dataField.field} className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{record[dataField.field]}</td> 
+                            // <td key={props.schema.objectName + "_tablefield_" + record.id + "_" + dataField.field} className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{record[dataField.field]}</td> 
+                            <td key={props.schema.objectName + "_tablefield_" + record.id + "_" + dataField.field} className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{displayField(dataField, record)}</td> 
                           ))}
                         </tr>
                       ))}

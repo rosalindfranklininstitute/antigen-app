@@ -3,14 +3,16 @@ from rest_framework.routers import DefaultRouter
 
 from antigenapi.views import (
     LlamaViewSet,
-    LibraryViewSet,
+    CohortViewSet,
     AntigenViewSet,
     ElisaPlateViewSet,
     ProjectViewSet,
+    LibraryViewSet
 )
 
 router = DefaultRouter()
 router.register("llama", LlamaViewSet)
+router.register("cohort", CohortViewSet)
 router.register("project", ProjectViewSet)
 router.register("library", LibraryViewSet)
 router.register("antigen", AntigenViewSet)

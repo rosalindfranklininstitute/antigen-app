@@ -10,16 +10,28 @@ const projectSchema = {
               ]
 }
 
+const cohortSchema = {
+    "apiUrl": "/cohort",
+    "viewUrl": "/cohorts",
+    "objectName": "cohort",
+    "parentObjectName": "llama",
+    "fields": [{"label": "Cohort no.", "field": "cohort_num", "type": "text", "showInTable": true}, 
+               {"label": "Llama", "field": "llama", "type": "foreignkey", "apiUrl": "/llama", "fkDisplayField": "name", "showInTable": true},
+               {"label": "Immunisation date", "field": "immunisation_date", "type": "date"},
+               {"label": "Blood draw date", "field": "blood_draw_date", "type": "date"},
+               {"label": "Antigens", "field": "antigens", "type": "selectmulti", "apiUrl": "/antigen", "fkDisplayField": "preferred_name", "fkApiField": "antigen_details"},
+               {"label": "Added by", "field": "added_by", "hideOnForm": true},
+               {"label": "Added date", "field": "added_date", "hideOnForm": true}
+              ]
+}
+
 const librarySchema = {
     "apiUrl": "/library",
     "viewUrl": "/libraries",
     "objectName": "library",
     "parentObjectName": "project",
-    "fields": [{"label": "Cohort no.", "field": "cohort_num", "type": "text", "showInTable": true}, 
+    "fields": [{"label": "Cohort no.", "field": "cohort", "type": "foreignkey", "apiUrl": "/cohort", "fkDisplayField": "cohort_num", "showInTable": true, "readOnlyOnEdit": true},
                {"label": "Project", "field": "project", "type": "foreignkey", "apiUrl": "/project", "fkDisplayField": "short_title", "readOnlyOnEdit": true},
-               {"label": "Llama", "field": "llama", "type": "foreignkey", "apiUrl": "/llama", "fkDisplayField": "name", "showInTable": true},
-               {"label": "Immunisation date", "field": "immunisation_date", "type": "date"},
-               {"label": "Blood draw date", "field": "blood_draw_date", "type": "date"},
                {"label": "Added by", "field": "added_by", "hideOnForm": true},
                {"label": "Added date", "field": "added_date", "hideOnForm": true}
               ]
@@ -55,20 +67,23 @@ const elisaSchema = {
     "apiUrl": "/elisa_plate",
     "viewUrl": "/elisas",
     "objectName": "elisa",
-    "fields": [{"label": "Added by", "field": "added_by", "hideOnForm": true, "showInTable": true},
-               {"label": "OD values", "field": "elisawell_set", type: "elisaplate"},
+    "parentObjectName": "library",
+    "fields": [{"label": "Library", "field": "library", "type": "foreignkey", "apiUrl": "/library", "fkDisplayField": "cohort_cohort_num"},
+               {"label": "Plate file", "field": "plate_file", type: "file", showInTable: true},
                {"label": "Optical Density Threshold", "field": "optical_density_threshold", "type": "text"},
-               {"label": "Added date", "field": "added_date", "hideOnForm": true}
+               {"label": "Added by", "field": "added_by", "hideOnForm": true},
+               {"label": "Added date", "field": "added_date", "hideOnForm": true, showInTable: true}
               ]
 }
 
 
 const schemas = {
     "project": projectSchema,
-    "library": librarySchema,
+    "cohort": cohortSchema,
     "llama": llamaSchema,
     "antigen": antigenSchema,
-    "elisa": elisaSchema
+    "elisa": elisaSchema,
+    "library": librarySchema
 }
 
 export default schemas;

@@ -280,11 +280,17 @@ const App = () => {
             <Route exact path="/projects/:recordId" element={<HeadedPage title="View Project"><ViewObjectPage schema={schemas.project} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.library}></ListTable></HeadedPage>} />
             <Route exact path="/projects/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.project} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
+            <Route exact path="/cohorts/add" element={<HeadedPage title="Add Cohort"><AddEditObjectPage onSetError={setError} schema={schemas.cohort} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/cohorts/:recordId" element={<HeadedPage title="View Cohort"><ViewObjectPage schema={schemas.cohort} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.elisa} readOnly={true}></ListTable></HeadedPage>} />
+            <Route exact path="/cohorts/:recordId/edit" element={<HeadedPage title="Edit Cohort"><AddEditObjectPage schema={schemas.cohort} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+
             <Route exact path="/libraries/add" element={<HeadedPage title="Add Library"><AddEditObjectPage onSetError={setError} schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             <Route exact path="/libraries/:recordId" element={<HeadedPage title="View Library"><ViewObjectPage schema={schemas.library} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.elisa}></ListTable></HeadedPage>} />
-            <Route exact path="/libraries/:recordId/edit" element={<HeadedPage title="Edit Project"><AddEditObjectPage schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/libraries/:recordId/edit" element={<HeadedPage title="Edit Library"><AddEditObjectPage schema={schemas.library} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
 
             <Route exact path="/elisas/add" element={<HeadedPage title="Add ELISA"><AddEditObjectPage onSetError={setError} schema={schemas.elisa} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
+            <Route exact path="/elisas/:recordId" element={<HeadedPage title="View ELISA"><ViewObjectPage schema={schemas.elisa} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
+            <Route exact path="/elisas/:recordId/edit" element={<HeadedPage title="Edit ELISA"><AddEditObjectPage schema={schemas.elisa} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />            
 
             <Route exact path="/antigens" element={<HeadedPage title="Antigens"><ListTable schema={schemas.antigen}></ListTable></HeadedPage>} />
             <Route exact path="/antigens/add" element={<HeadedPage title="Add Antigen"><AddEditObjectPage onSetError={setError} schema={schemas.antigen} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
@@ -293,7 +299,7 @@ const App = () => {
             
             <Route exact path="/llamas" element={<HeadedPage title="Llamas"><ListTable schema={schemas.llama}></ListTable></HeadedPage>} />
             <Route exact path="/llamas/add" element={<HeadedPage title="Add Llama"><AddEditObjectPage onSetError={setError} schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
-            <Route exact path="/llamas/:recordId" element={<HeadedPage title="View Llama"><ViewObjectPage schema={schemas.llama} csrfToken={csrfToken}></ViewObjectPage></HeadedPage>} />
+            <Route exact path="/llamas/:recordId" element={<HeadedPage title="View Llama"><ViewObjectPage schema={schemas.llama} csrfToken={csrfToken}></ViewObjectPage><ListTable schema={schemas.cohort}></ListTable></HeadedPage>} />
             <Route exact path="/llamas/:recordId/edit" element={<HeadedPage title="Edit Llama"><AddEditObjectPage schema={schemas.llama} csrfToken={csrfToken}></AddEditObjectPage></HeadedPage>} />
             <Route path='*' element={<HeadedPage title="404 Not Found">Page not found</HeadedPage>} />
           </Routes>

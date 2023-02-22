@@ -2,6 +2,8 @@ import config from '../config.js';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, redirect, useLocation } from "react-router-dom";
 import { OkCancelDialog } from '../OkCancelDialog.js';
+import ComboBox from './ComboBox.js';
+
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -20,13 +22,14 @@ const AddEditObjectPage = (props) => {
   const [error, setError] = useState(null);
   const [relatedTables, setRelatedTables] = useState({});
 
-  // TODO: Reactor this out
-  const [elisaData, setElisaData] = useState();
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({});
   const navigate = useNavigate();
   const query = useQuery();
+
+  const setFormValue = (field, value) => {
+    setRecord((rec) => ({...rec, [field]: value}));
+  }
 
   const getRecord = () => {
     fetch(config.url.API_URL + props.schema.apiUrl + "/" + recordId, {
@@ -62,36 +65,23 @@ const fetchTable = (table, apiUrl) => {
         })
         .then((res) => {
             res.json().then((data) => {
-                let tableUpdate = {};
-                tableUpdate[table] = data;
-                setRelatedTables((prev) => {
-                    return {
+                setRelatedTables((prev) => ({
                     ...prev,
-                    ...tableUpdate
-                }});
+                    [table]: data
+                }));
             })
             });
 }
 
+  const foreignKeyFields = ["foreignkey", "selectmulti"];
+
   useEffect(() => {
     if(!recordId) setLoading(false);
     if(recordId) getRecord();
-    props.schema.fields.filter(field => field.type === "foreignkey").forEach((fkField) => {
+    props.schema.fields.filter(field => foreignKeyFields.includes(field.type)).forEach((fkField) => {
         fetchTable(fkField.field, fkField.apiUrl);
     });
   }, [props]);
-
-  const handleElisaPaste = (event) => {
-    //TODO: Make this more robust, test with Excel desktop app, windows etc.
-    let data = event.target.value.split(" ").map((line) => line.split('\t'));
-    // TODO: error checking
-    if(data.length != 8) { setElisaData(null); }
-    else setElisaData(data);
-    event.target.value = "";
-  }
-
-  const elisaHeader = ["", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
-  const elisaRowNames = ["A", "B", "C", "D", "E", "F", "G", "H"]
 
   const cancelForm = () => {
     setDialogOpen(true);
@@ -101,25 +91,22 @@ const fetchTable = (table, apiUrl) => {
     e.preventDefault();
 
     // Construct form data as object
-    const formData = new URLSearchParams(new FormData(document.getElementById('recordForm')));
-    const formDataObj = {};
-    formData.forEach((value, key) => {
-        if (value !== "") {
-            formDataObj[key] = value
-        }
-    });
-    if(recordId) {
-      formDataObj['id'] = recordId;
-    }
+    const formData = new FormData(document.getElementById('recordForm'));
+    
+    // deal with selectmulti manually
+    props.schema.fields.filter(field => field.type == "selectmulti").map((field) => 
+      record[field.field].forEach(item => formData.append(field.field, item))
+    );
+
+    // console.log(formData);
 
     // Submit request
     fetch(config.url.API_URL + props.schema.apiUrl + "/" + (recordId ? recordId + "/" : ""), {
         method: recordId ? "PUT" : "POST",
         headers: {
-            "Content-Type": "application/json",
             "X-CSRFToken": props.csrfToken,
         },
-        body: JSON.stringify(formDataObj)
+        body: formData
         })
         .then((res) => {
           if(res.status >= 300 && res.status != 400) {
@@ -159,7 +146,7 @@ const fetchTable = (table, apiUrl) => {
       {recordId && error == 404 && <p>404 Not found</p>}
       {!loading && error !== 404 && <>
       <OkCancelDialog open={dialogOpen} setOpen={setDialogOpen} okAction={redirectToRecordsPage} cancelLabel="Return to Form" okLabel="Discard changes" dialogTitle="Discard changes" dialogMessage="Leave this page and discard any changes?" />
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      <div className="bg-white shadow overflow-y-visible sm:rounded-lg">
         <form id="recordForm">
       <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">
@@ -169,7 +156,7 @@ const fetchTable = (table, apiUrl) => {
                 <label htmlFor={field.field} className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                     {field.label}
                 </label>
-                <div className={"mt-1" + (field.type == "elisaplate" ? " col-span-2" : "")}>
+                <div className="mt-1">
                 {field.type == "text" && 
                 <input
                     type="text"
@@ -180,40 +167,20 @@ const fetchTable = (table, apiUrl) => {
                     "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md" : 
                     "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300")}
                     defaultValue={record[field.field]}
+                    // onChange={(e) => setFormValue(field.field, e.target.value)}
                 />}
 
-                {field.type == "elisaplate" && 
-                <>
-                <input
-                    type="text"
-                    name={field.field}
-                    id={field.field + "Field"}
-                    autoComplete={field.field + "Field"}
-                    placeholder="Copy/paste from Excel to here"
-                    className={classNames(formErrors[field.field] ? 
-                    "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md" : 
-                    "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300")}
-                    onChange={handleElisaPaste}
-                />
-                <table className="w-full table-fixed border-collapse border border-slate-500 mt-4">
-                    <thead><tr>
-                        {elisaHeader.map((header) => <th key={"elisaheader_" + header} className="border border-slate-600">{header}</th>)}
-                    </tr></thead>
-                    <tbody>
-                        {elisaRowNames.map((rowName, rowIdx) => 
-                        <tr key={"elisarow_" + rowIdx}>
-                            {elisaHeader.map((header, colIdx) => 
-                                colIdx == 0 ? <th key={"elisarowname_"+rowIdx} className="border border-slate-600">{rowName}</th> : <td key={"elisaCell_" + rowIdx + "_" + colIdx} className="border border-slate-600">{elisaData ? elisaData[rowIdx][colIdx - 1] : ""}</td>
-                            )}
-                        </tr>
-                        )}
-                    </tbody>
-                </table>
-                </>}
+                {field.type == "selectmulti" && relatedTables[field.field] &&
+                <ComboBox onChange={(val) => setFormValue(field.field, val)} multiple={true} options={relatedTables[field.field]} field={field.field} displayField={field.fkDisplayField} selected={record[field.field]} />
+                }
+
+                {field.type == "file" &&
+                <input type="file" name={field.field} onChange={(e) => setFormValue(field.field, e.target.files[0])} />
+                }
 
                 {field.type == "foreignkey" && relatedTables[field.field] &&
                 ((recordId && field.readOnlyOnEdit) ?
-                // Field is  read only on edit
+                // Field is read-only on edit
                 <>
                 <input
                     type="text"

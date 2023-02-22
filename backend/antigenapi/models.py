@@ -19,6 +19,7 @@ from django.db.models import (
     Model,
     QuerySet,
     UniqueConstraint,
+    ManyToManyField,
     Value,
 )
 from django.db.models.fields import (
@@ -28,6 +29,7 @@ from django.db.models.fields import (
     FloatField,
     IntegerField,
     PositiveSmallIntegerField,
+    PositiveIntegerField,
     TextField,
     UUIDField,
 )
@@ -42,6 +44,9 @@ class Project(Model):
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f'({self.id}) {self.short_title}'
+
 class Llama(Model):
     name = CharField(max_length=64)
     notes = TextField(null=True, blank=True)
@@ -50,15 +55,6 @@ class Llama(Model):
 
     def __str__(self):
         return self.name
-
-class Library(Model):
-    project = ForeignKey(Project, on_delete=PROTECT)
-    cohort_num = CharField(max_length=32)
-    llama = ForeignKey(Llama, on_delete=PROTECT)
-    immunisation_date = DateField(null=True)
-    blood_draw_date = DateField(null=True)
-    added_by =  ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
-    added_date = DateTimeField(auto_now_add=True)
 
 
 AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZX]*$")
@@ -77,11 +73,35 @@ class Antigen(Model):
         return self.preferred_name + f" [{self.uniprot_id}]" if self.uniprot_id else ""
 
 
+class Cohort(Model):
+    cohort_num = PositiveIntegerField(unique=True)
+    llama = ForeignKey(Llama, on_delete=PROTECT)
+    immunisation_date = DateField(null=True)
+    blood_draw_date = DateField(null=True)
+    projects = ManyToManyField(
+        Project, 
+        through='Library',
+        through_fields=('cohort', 'project'),
+        related_name='libraries', related_query_name='library'
+    )
+    antigens = ManyToManyField(Antigen)
+    added_by =  ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
+    added_date = DateTimeField(auto_now_add=True)
+
+
+class Library(Model):
+    project = ForeignKey(Project, on_delete=PROTECT)    
+    cohort = ForeignKey(Cohort, on_delete=PROTECT)
+    added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
+    added_date = DateTimeField(auto_now_add=True)    
+
+
 class ElisaPlate(Model):
     optical_density_threshold: float = FloatField(null=True)
+    library = ForeignKey(Library, on_delete=PROTECT)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
-#    csv_file: File = FileField(null=True, blank=True, upload_to="uploads/")
+    plate_file: File = FileField(null=True, upload_to="uploads/elisaplates/")
 
 
 PlateLocations = IntegerChoices(

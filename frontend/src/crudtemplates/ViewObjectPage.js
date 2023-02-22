@@ -1,7 +1,7 @@
 import config from '../config.js';
 import { useState, useEffect } from 'react';
 import { NavLink, useParams, useNavigate } from "react-router-dom";
-import { toTitleCase } from './utils.js';
+import { toTitleCase, displayField } from './utils.js';
 import { OkCancelDialog } from '../OkCancelDialog.js';
 
 const ViewObjectPage = (props) => {
@@ -47,7 +47,9 @@ const ViewObjectPage = (props) => {
                     alert('Error! ' + JSON.stringify(data));
                 });
             }
-    })};    
+    })};
+
+
 
     useEffect(() => {
         refreshRecord();
@@ -78,14 +80,10 @@ const ViewObjectPage = (props) => {
         </div>
         <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">
-            <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
-            <dt className="text-sm font-medium text-gray-500">{props.schema.fields[0].label}</dt>
-            <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{record[props.schema.fields[0].field]}</dd>
-            </div>
-            {props.schema.fields.slice(1).map((field) => (
+            {props.schema.fields.map((field) => (
             <div key={props.objectName + "_" + field.field} className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">{field.label}</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{record[field.field]}</dd>
+                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{displayField(field, record)}</dd>
             </div>
             ))}
         </dl>
