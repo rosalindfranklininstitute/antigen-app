@@ -19,7 +19,7 @@ const cohortSchema = {
                {"label": "Llama", "field": "llama", "type": "foreignkey", "apiUrl": "/llama", "fkDisplayField": "name", "showInTable": true},
                {"label": "Immunisation date", "field": "immunisation_date", "type": "date", showInTable: true},
                {"label": "Blood draw date", "field": "blood_draw_date", "type": "date", showInTable: true},
-               {"label": "Antigens", "field": "antigens", "type": "selectmulti", "apiUrl": "/antigen", "fkDisplayField": "preferred_name", "fkApiField": "antigen_details"},
+               {"label": "Antigens", "field": "antigens", "type": "selectmulti", "apiUrl": "/antigen", "fkDisplayField": "preferred_name", "fkApiField": "antigen_details", showInTable: true},
                {"label": "Added by", "field": "added_by", "hideOnForm": true},
                {"label": "Added date", "field": "added_date", "hideOnForm": true}
               ]
