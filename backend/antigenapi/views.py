@@ -6,6 +6,7 @@ import pandas
 import collections
 from django.core.exceptions import ObjectDoesNotExist
 from django_filters import CharFilter, FilterSet, NumberFilter
+import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.serializers import (
@@ -102,6 +103,7 @@ class LibraryViewSet(ModelViewSet):
 
     queryset = Library.objects.all().select_related('cohort').select_related('project')
     serializer_class = LibrarySerializer
+    filterset_fields = ('project', )
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)
@@ -200,6 +202,7 @@ class CohortViewSet(ModelViewSet):
 
     queryset = Cohort.objects.all().select_related('llama')
     serializer_class = CohortSerializer
+    filterset_fields = ('llama', 'cohort_num')
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)
@@ -269,6 +272,7 @@ class ElisaPlateViewSet(ModelViewSet):
 
     queryset = ElisaPlate.objects.all().select_related('library__cohort')
     serializer_class = ElisaPlateSerializer
+    filterset_fields = ('library', )
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)

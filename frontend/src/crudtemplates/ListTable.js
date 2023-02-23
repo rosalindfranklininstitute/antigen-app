@@ -8,7 +8,11 @@ const ListTable = (props) => {
     const { recordId } = useParams();
 
     const refreshRecords = () => {
-        fetch(config.url.API_URL + props.schema.apiUrl, {
+        let schemaUrl = config.url.API_URL + props.schema.apiUrl;
+        if(props.schema.parentObjectName) {
+          schemaUrl += "?" + props.schema.parentObjectName + "=" + recordId;
+        }
+        fetch(schemaUrl, {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
