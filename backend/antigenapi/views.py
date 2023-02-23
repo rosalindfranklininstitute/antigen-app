@@ -226,10 +226,14 @@ class ElisaPlateSerializer(ModelSerializer):
     elisawell_set = NestedElisaWellSerializer(many=True, required=False)
     antigen = PrimaryKeyRelatedField(queryset=Antigen.objects.all(), write_only=True)  # TODO: Filter by antigens in the library
     read_only_fields = ['library_cohort_cohort_num', 'elisawell_set', 'added_by', 'added_date']
+    plate_file = SerializerMethodField()
 
     class Meta:  # noqa: D106
         model = ElisaPlate
         fields = "__all__"
+
+    def get_plate_file(self, obj):
+        return os.path.basename(obj.plate_file.name)
 
     def validate(self, data):
         try:
