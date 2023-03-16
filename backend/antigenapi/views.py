@@ -45,6 +45,7 @@ class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
 
     def perform_create(self, serializer):
+        """Overload the perform_create method."""
         serializer.save(added_by=self.request.user)
         super(ProjectViewSet, self).perform_create(serializer)
 
@@ -55,7 +56,7 @@ class LlamaSerializer(ModelSerializer):
 
     added_by = StringRelatedField()
 
-    class Meta:
+    class Meta:  # noqa: D106
         model = Llama
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
@@ -67,7 +68,7 @@ class LlamaViewSet(ModelViewSet):
     queryset = Llama.objects.all()
     serializer_class = LlamaSerializer
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
         super(LlamaViewSet, self).perform_create(serializer)
 
@@ -81,7 +82,7 @@ class LibrarySerializer(ModelSerializer):
     cohort_cohort_num = CharField(source="cohort.cohort_num", read_only=True)
     project_short_title = CharField(source="project.short_title", read_only=True)
 
-    class Meta:
+    class Meta:  # noqa: D106
         model = Library
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
@@ -94,7 +95,7 @@ class LibraryViewSet(ModelViewSet):
     serializer_class = LibrarySerializer
     filterset_fields = ("project",)
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
         super(LibraryViewSet, self).perform_create(serializer)
 
@@ -172,7 +173,7 @@ class AntigenViewSet(ModelViewSet):
     queryset = Antigen.objects.all()
     serializer_class = AntigenSerializer
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
         super(AntigenViewSet, self).perform_create(serializer)
 
@@ -186,7 +187,7 @@ class CohortSerializer(ModelSerializer):
     antigen_details = AntigenSerializer(source="antigens", many=True, read_only=True)
     # project_short_title = CharField(source='project.short_title', read_only=True)
 
-    class Meta:
+    class Meta:  # noqa: D106
         model = Cohort
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
@@ -199,7 +200,7 @@ class CohortViewSet(ModelViewSet):
     serializer_class = CohortSerializer
     filterset_fields = ("llama", "cohort_num")
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
         super(CohortViewSet, self).perform_create(serializer)
 
@@ -241,9 +242,11 @@ class ElisaPlateSerializer(ModelSerializer):
         fields = "__all__"
 
     def get_plate_file(self, obj):
+        """Represent plate file by its filename."""
         return os.path.basename(obj.plate_file.name)
 
     def validate(self, data):
+        """Validate plate (load and parse file)."""
         try:
             data["elisawell_set"] = parse_elisa_file(data["plate_file"])
         except Exception as e:
@@ -251,7 +254,7 @@ class ElisaPlateSerializer(ModelSerializer):
         return data
 
     def create(self, validated_data):
-        # For now, every well shares the same antigen
+        """Create plate. For now, every well shares the same antigen."""
         antigen = validated_data.pop("antigen")
         well_set = validated_data.pop("elisawell_set")
         plate = super(ElisaPlateSerializer, self).create(validated_data)
@@ -262,6 +265,7 @@ class ElisaPlateSerializer(ModelSerializer):
         return plate
 
     def update(self, instance, validated_data):
+        """Update plate. For now, every well shares the same antigen."""
         antigen = validated_data["antigen"]
         well_set = validated_data.pop("elisawell_set")
         plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
@@ -281,6 +285,6 @@ class ElisaPlateViewSet(ModelViewSet):
     serializer_class = ElisaPlateSerializer
     filterset_fields = ("library",)
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
         super(ElisaPlateViewSet, self).perform_create(serializer)

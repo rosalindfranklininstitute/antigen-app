@@ -27,7 +27,7 @@ const ListTable = (props) => {
     };
 
     refreshRecords();
-  }, [props]);
+  }, [props, recordId]);
 
   return (
     <div>

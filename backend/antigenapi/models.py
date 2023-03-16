@@ -26,6 +26,8 @@ from django.db.models.fields import (
 
 
 class Project(Model):
+    """Project model."""
+
     title = CharField(max_length=256, unique=True)
     short_title = CharField(max_length=64, unique=True)
     description = TextField(null=True, blank=True)
@@ -33,16 +35,20 @@ class Project(Model):
     added_date = DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """String representation of project."""
         return f"({self.id}) {self.short_title}"
 
 
 class Llama(Model):
+    """Llama model."""
+
     name = CharField(max_length=64)
     notes = TextField(null=True, blank=True)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """String representation of llama (its name)."""
         return self.name
 
 
@@ -50,6 +56,8 @@ AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZX]*$")
 
 
 class Antigen(Model):
+    """Antigen model."""
+
     uniprot_id = CharField(max_length=16, null=True, unique=True)
     preferred_name = CharField(max_length=256)
     sequence: str = TextField(validators=[AminoCodeLetters], null=True)
@@ -62,10 +70,13 @@ class Antigen(Model):
     added_date = DateTimeField(auto_now_add=True)
 
     def __str__(self):
+        """String representation of antigen."""
         return self.preferred_name + f" [{self.uniprot_id}]" if self.uniprot_id else ""
 
 
 class Cohort(Model):
+    """Cohort model."""
+
     cohort_num = PositiveIntegerField(unique=True)
     llama = ForeignKey(Llama, on_delete=PROTECT)
     immunisation_date = DateField(null=True)
@@ -83,6 +94,8 @@ class Cohort(Model):
 
 
 class Library(Model):
+    """Library model."""
+
     project = ForeignKey(Project, on_delete=PROTECT)
     cohort = ForeignKey(Cohort, on_delete=PROTECT)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
@@ -90,6 +103,8 @@ class Library(Model):
 
 
 class ElisaPlate(Model):
+    """ELISA plate model."""
+
     optical_density_threshold: float = FloatField(null=True)
     library = ForeignKey(Library, on_delete=PROTECT)
     antibody = TextField(blank=True)
@@ -112,6 +127,8 @@ PlateLocations = IntegerChoices(
 
 
 class ElisaWell(Model):
+    """ELISA well model."""
+
     plate: ElisaPlate = ForeignKey(ElisaPlate, on_delete=CASCADE)
     location = PositiveSmallIntegerField(choices=PlateLocations.choices)
     antigen: Antigen = ForeignKey(Antigen, on_delete=PROTECT)
