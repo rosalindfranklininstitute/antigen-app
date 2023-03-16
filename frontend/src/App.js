@@ -134,7 +134,7 @@ const App = () => {
                         <img
                           className="h-8 w-8"
                           src="/antigen-llama.svg"
-                          alt="Your Company"
+                          alt="AntigenApp"
                         />
                       </div>
                       <div className="hidden md:block">
