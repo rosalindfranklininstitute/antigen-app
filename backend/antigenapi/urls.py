@@ -2,12 +2,12 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from antigenapi.views import (
-    LlamaViewSet,
-    CohortViewSet,
     AntigenViewSet,
+    CohortViewSet,
     ElisaPlateViewSet,
+    LibraryViewSet,
+    LlamaViewSet,
     ProjectViewSet,
-    LibraryViewSet
 )
 
 router = DefaultRouter()

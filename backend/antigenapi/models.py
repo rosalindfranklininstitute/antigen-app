@@ -1,40 +1,28 @@
-from datetime import datetime
 from itertools import product
-from typing import Iterable, Optional, Union
-from uuid import UUID, uuid4
 
-from django.core.files import File
 from django.conf import settings
-from django.core.validators import RegexValidator, FileExtensionValidator
+from django.core.files import File
+from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db.models import (
     CASCADE,
     PROTECT,
-    F,
     FileField,
     ForeignKey,
     IntegerChoices,
-    Index,
-    Manager,
-    Max,
-    Model,
-    QuerySet,
-    UniqueConstraint,
     ManyToManyField,
-    Value,
+    Model,
+    UniqueConstraint,
 )
 from django.db.models.fields import (
     CharField,
-    DateTimeField,
     DateField,
+    DateTimeField,
     FloatField,
     IntegerField,
-    PositiveSmallIntegerField,
     PositiveIntegerField,
+    PositiveSmallIntegerField,
     TextField,
-    UUIDField,
 )
-from django.db.models.functions import Concat
-from django.utils.timezone import now
 
 
 class Project(Model):
@@ -45,7 +33,8 @@ class Project(Model):
     added_date = DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'({self.id}) {self.short_title}'
+        return f"({self.id}) {self.short_title}"
+
 
 class Llama(Model):
     name = CharField(max_length=64)
@@ -59,12 +48,15 @@ class Llama(Model):
 
 AminoCodeLetters = RegexValidator(r"^[ARNDCHIQEGLKMFPSTWYVBZX]*$")
 
+
 class Antigen(Model):
     uniprot_id = CharField(max_length=16, null=True, unique=True)
     preferred_name = CharField(max_length=256)
     sequence: str = TextField(validators=[AminoCodeLetters], null=True)
     molecular_mass: int = IntegerField(null=True)
-    description = TextField(null=True, blank=True)  # Short desc of antigen (function, origin, ...)
+    description = TextField(
+        null=True, blank=True
+    )  # Short desc of antigen (function, origin, ...)
     epitope = TextField(null=True, blank=True)  # Short desc of binding epitope
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
@@ -79,21 +71,22 @@ class Cohort(Model):
     immunisation_date = DateField(null=True)
     blood_draw_date = DateField(null=True)
     projects = ManyToManyField(
-        Project, 
-        through='Library',
-        through_fields=('cohort', 'project'),
-        related_name='libraries', related_query_name='library'
+        Project,
+        through="Library",
+        through_fields=("cohort", "project"),
+        related_name="libraries",
+        related_query_name="library",
     )
     antigens = ManyToManyField(Antigen)
-    added_by =  ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
+    added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
 
 class Library(Model):
-    project = ForeignKey(Project, on_delete=PROTECT)    
+    project = ForeignKey(Project, on_delete=PROTECT)
     cohort = ForeignKey(Cohort, on_delete=PROTECT)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
-    added_date = DateTimeField(auto_now_add=True)    
+    added_date = DateTimeField(auto_now_add=True)
 
 
 class ElisaPlate(Model):
@@ -103,7 +96,10 @@ class ElisaPlate(Model):
     pan_round = TextField(blank=True)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
-    plate_file: File = FileField(upload_to="uploads/elisaplates/", validators=[FileExtensionValidator(allowed_extensions=["xlsx"])])
+    plate_file: File = FileField(
+        upload_to="uploads/elisaplates/",
+        validators=[FileExtensionValidator(allowed_extensions=["xlsx"])],
+    )
 
 
 PlateLocations = IntegerChoices(
@@ -125,7 +121,7 @@ class ElisaWell(Model):
         constraints = [
             UniqueConstraint(fields=["plate", "location"], name="unique_well")
         ]
-        ordering = ['location']
+        ordering = ["location"]
 
     @property
     def functional(self) -> bool:

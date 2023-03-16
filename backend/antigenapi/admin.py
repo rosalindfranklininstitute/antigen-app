@@ -1,12 +1,7 @@
 from django.contrib.admin import site
 from guardian.admin import GuardedModelAdmin
 
-from antigenapi.models import (
-    ElisaPlate,
-    ElisaWell,
-    Project,
-    Antigen
-)
+from antigenapi.models import Antigen, ElisaPlate, ElisaWell, Project
 
 
 class ProjectAdmin(GuardedModelAdmin):
@@ -31,7 +26,6 @@ class ElisaWellAdmin(GuardedModelAdmin):
     """A guarded model admin view for elisa well objects."""
 
     pass
-
 
 
 site.register(Project, ProjectAdmin)
