@@ -1,1 +1,3 @@
-/build/
+# Ignore artifacts:
+build
+coverage
