@@ -34,7 +34,7 @@ if (process.env.REACT_APP_SENTRY_DSN !== undefined) {
 const user = {
   name: "Tom Cook",
   email: "tom@example.com",
-  username: "TestUser",
+  username: "",
 };
 const navigation = [
   { name: "Dashboard", href: "/" },
