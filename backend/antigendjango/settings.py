@@ -81,6 +81,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "antigendjango.wsgi.application"
 
+# Storage
+if "AWS_STORAGE_BUCKET_NAME" in os.environ:
+    # Use S3 storage
+    AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME")
+    AWS_S3_REGION_NAME = os.environ.get("AWS_S3_REGION_NAME")
+    AWS_LOCATION = os.environ.get("AWS_S3_PREFIX", "")
+    AWS_S3_FILE_OVERWRITE = False
+    UPLOADED_FILES_USE_URL = False
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases

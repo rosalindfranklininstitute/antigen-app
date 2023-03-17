@@ -7,6 +7,8 @@ verify_ssl = true
 antigenapp = { editable = true, path = "." }
 numpy = "*"
 openpyxl = "*"
+django-storages = "*"
+boto3 = "*"
 
 [dev-packages]
 antigenapp = { editable = true, extras = ["dev"], path = "." }

@@ -1,12 +1,12 @@
 import collections
-import os
 import urllib.error
+import urllib.parse
 
 from rest_framework.serializers import (
     CharField,
+    FileField,
     ModelSerializer,
     PrimaryKeyRelatedField,
-    SerializerMethodField,
     StringRelatedField,
     ValidationError,
 )
@@ -235,28 +235,25 @@ class ElisaPlateSerializer(ModelSerializer):
         "added_by",
         "added_date",
     ]
-    plate_file = SerializerMethodField()
+    plate_file = FileField(use_url=False)
 
     class Meta:  # noqa: D106
         model = ElisaPlate
         fields = "__all__"
-
-    def get_plate_file(self, obj):
-        """Represent plate file by its filename."""
-        return os.path.basename(obj.plate_file.name)
 
     def validate(self, data):
         """Validate plate (load and parse file)."""
         try:
             data["elisawell_set"] = parse_elisa_file(data["plate_file"])
         except Exception as e:
-            raise ValidationError(e)
+            raise ValidationError({"plate_file": e})
         return data
 
     def create(self, validated_data):
         """Create plate. For now, every well shares the same antigen."""
         antigen = validated_data.pop("antigen")
         well_set = validated_data.pop("elisawell_set")
+        validated_data["plate_file"].seek(0)
         plate = super(ElisaPlateSerializer, self).create(validated_data)
         ElisaWell.objects.bulk_create(
             ElisaWell(plate=plate, optical_density=od, location=loc, antigen=antigen)
@@ -268,6 +265,11 @@ class ElisaPlateSerializer(ModelSerializer):
         """Update plate. For now, every well shares the same antigen."""
         antigen = validated_data["antigen"]
         well_set = validated_data.pop("elisawell_set")
+        try:
+            validated_data["plate_file"].seek(0)
+        except ValueError:
+            # File has already been read during create, so skip it
+            validated_data.pop("plate_file")
         plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
         for od, loc in zip(well_set, PlateLocations):
             ElisaWell.objects.update_or_create(
