@@ -1,5 +1,6 @@
 from itertools import product
 
+from auditlog.registry import auditlog
 from django.conf import settings
 from django.core.files import File
 from django.core.validators import FileExtensionValidator, RegexValidator
@@ -152,3 +153,11 @@ class ElisaWell(Model):
             if self.optical_density and self.plate.optical_density_threshold
             else False
         )
+
+
+auditlog.register(Project)
+auditlog.register(Llama)
+auditlog.register(Antigen)
+auditlog.register(Cohort, m2m_fields={"projects", "antigens"})
+auditlog.register(Library)
+auditlog.register(ElisaPlate)
