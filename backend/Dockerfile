@@ -1,22 +1,40 @@
-FROM registry.hub.docker.com/library/python:3.9 AS base
+FROM python:3.11-bullseye AS builder
 
-ENV ANTIGENAPP_DIR /antigenapp
+RUN pip install --user wheel pipenv
 
-RUN python3.9 -m pip install --upgrade pip
-RUN python3.9 -m pip install wheel pipenv
+# Tell pipenv to create venv in the current directory
+ENV PIPENV_VENV_IN_PROJECT=1
 
-COPY Pipfile ${ANTIGENAPP_DIR}/Pipfile
-COPY Pipfile.lock ${ANTIGENAPP_DIR}/Pipfile.lock
-COPY pyproject.toml ${ANTIGENAPP_DIR}/pyproject.toml
-COPY setup.cfg ${ANTIGENAPP_DIR}/setup.cfg
-WORKDIR ${ANTIGENAPP_DIR}
+COPY Pipfile Pipfile.lock pyproject.toml setup.cfg /usr/src/
+WORKDIR /usr/src
 
-RUN pipenv install --python python3.9 --system --deploy --verbose
+RUN /root/.local/bin/pipenv sync
 
-COPY . ${ANTIGENAPP_DIR}
+RUN .venv/bin/python --version
 
-RUN DJANGO_CI=true python3.9 manage.py collectstatic --noinput \
-    && mkdir /api_data/ \
-    && mv ./static/ /api_data/static/
+COPY manage.py /usr/src/
+COPY antigendjango /usr/src/antigendjango
+COPY antigenapi /usr/src/antigenapi
 
-CMD ["uwsgi", "--ini", "uwsgi.ini"]
+RUN DJANGO_CI=true .venv/bin/python manage.py collectstatic --noinput
+    # && mkdir /api_data/ \
+    # && mv ./static/ /api_data/static/
+
+FROM python:3.11-slim-bullseye
+
+RUN apt-get update && apt-get install -y \
+    libxml2 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -v /usr/src/.venv
+
+COPY --from=builder /usr/src/.venv/ /usr/src/.venv/
+COPY --from=builder /usr/src/static/ /api_data/static/
+COPY --from=builder /usr/src/manage.py /usr/src/
+COPY --from=builder /usr/src/antigenapi /usr/src/antigenapi
+COPY --from=builder /usr/src/antigendjango /usr/src/antigendjango
+COPY uwsgi.ini /usr/src
+
+WORKDIR /usr/src
+
+CMD [".venv/bin/uwsgi", "--ini", "uwsgi.ini"]

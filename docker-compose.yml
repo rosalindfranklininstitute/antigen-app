@@ -15,11 +15,13 @@ services:
     container_name: antigenapp_api
     build: backend/
     restart: always
-    entrypoint: python manage.py runserver 0.0.0.0:8080
+    entrypoint: .venv/bin/python manage.py runserver 0.0.0.0:8080
     volumes:
-      - ./backend:/antigenapp
+      - ./backend/manage.py:/usr/src/manage.py
+      - ./backend/antigenapi:/usr/src/antigenapi
+      - ./backend/antigendjango:/usr/src/antigendjango
       - api_data:/api_data
-      - ./db.sqlite3:/antigenapp/db.sqlite3
+      - ./db.sqlite3:/usr/src/db.sqlite3
     environment:
       DJANGO_DEBUG: "true"
       DJANGO_ALLOWED_HOSTS: "localhost"
