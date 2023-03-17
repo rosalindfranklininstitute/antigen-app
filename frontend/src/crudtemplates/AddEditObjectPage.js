@@ -1,4 +1,5 @@
 import config from "../config.js";
+import schemas from "../schema.js";
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { OkCancelDialog } from "../OkCancelDialog.js";
@@ -156,7 +157,19 @@ const AddEditObjectPage = (props) => {
     } else if (recordId) {
       navigate(props.schema.viewUrl + "/" + recordId);
     } else {
-      navigate(props.schema.viewUrl);
+      // Cancelled, so redirect to records page or parent object as appropriate
+      if (props.schema.parentObjectName !== undefined) {
+        let redirectUrl = schemas[props.schema.parentObjectName].viewUrl;
+        let parentObjectId = parseInt(
+          query.get(props.schema.parentObjectName + "_id")
+        );
+        if (!isNaN(parentObjectId)) {
+          redirectUrl += "/" + parentObjectId;
+        }
+        navigate(redirectUrl);
+      } else {
+        navigate(props.schema.viewUrl);
+      }
     }
   }
 

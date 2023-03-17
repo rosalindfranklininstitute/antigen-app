@@ -1,4 +1,5 @@
 import config from "../config.js";
+import schemas from "../schema.js";
 import { useState, useEffect } from "react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
 import { toTitleCase, displayField } from "./utils.js";
@@ -19,7 +20,16 @@ const ViewObjectPage = (props) => {
       },
     }).then((res) => {
       if (res.status >= 200 && res.status < 300) {
-        navigate(props.schema.viewUrl);
+        if (props.schema.parentObjectName !== undefined) {
+          let redirectUrl = schemas[props.schema.parentObjectName].viewUrl;
+          let parentObjectId = parseInt(record[props.schema.parentObjectName]);
+          if (!isNaN(parentObjectId)) {
+            redirectUrl += "/" + parentObjectId;
+          }
+          navigate(redirectUrl);
+        } else {
+          navigate(props.schema.viewUrl);
+        }
       } else {
         res.json().then((data) => {
           // TODO: Better error message
