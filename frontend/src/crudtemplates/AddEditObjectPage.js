@@ -75,11 +75,18 @@ const AddEditObjectPage = (props) => {
 
     if (!recordId) setLoading(false);
     if (recordId) getRecord();
+    // fetch foreign key fields
     props.schema.fields
       .filter((field) => foreignKeyFields.includes(field.type))
       .forEach((fkField) => {
         fetchTable(fkField.field, fkField.apiUrl);
       });
+    // init selectmulti when not loading record
+    if (!recordId) {
+      props.schema.fields
+        .filter((field) => field.type === "selectmulti")
+        .forEach((field) => setFormValue(field.field, []));
+    }
   }, [props, recordId]);
 
   const cancelForm = () => {
