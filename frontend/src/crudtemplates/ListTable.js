@@ -6,6 +6,7 @@ import { toTitleCase, pluralise, displayField } from "./utils.js";
 const ListTable = (props) => {
   const [records, setRecords] = useState([]);
   const { recordId } = useParams();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const refreshRecords = () => {
@@ -22,6 +23,8 @@ const ListTable = (props) => {
       }).then((res) => {
         res.json().then((data) => {
           setRecords(data);
+          // TODO: Error handling
+          setLoading(false);
         });
       });
     };
@@ -129,8 +132,17 @@ const ListTable = (props) => {
                         }
                         className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 text-center"
                       >
-                        No {pluralise(props.schema.objectName)} have been
-                        created yet
+                        {loading && (
+                          <span>
+                            <em>Loading...</em>
+                          </span>
+                        )}
+                        {!loading && (
+                          <span>
+                            No {pluralise(props.schema.objectName)} have been
+                            created yet
+                          </span>
+                        )}
                       </td>
                     </tr>
                   )}

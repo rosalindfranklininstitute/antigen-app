@@ -19,6 +19,8 @@ const AddEditObjectPage = (props) => {
   const { recordId } = useParams();
   const [record, setRecord] = useState([]);
   const [loading, setLoading] = useState(true); // used for edits only
+  const [saveInProgress, setSaveInProgress] = useState(false);
+  const [redirectInProgress, setRedirectInProgress] = useState(false);
   const [error, setError] = useState(null);
   const [relatedTables, setRelatedTables] = useState({});
 
@@ -96,6 +98,7 @@ const AddEditObjectPage = (props) => {
 
   const submitForm = (e) => {
     e.preventDefault();
+    setSaveInProgress(true);
 
     // Construct form data as object
     const formData = new FormData(document.getElementById("recordForm"));
@@ -126,6 +129,7 @@ const AddEditObjectPage = (props) => {
       }
     ).then((res) => {
       if (res.status >= 300 && res.status !== 400) {
+        setSaveInProgress(false);
         if (res.status === 500) {
           // Sentry should capture this on the backend
           props.onSetError(
@@ -142,6 +146,7 @@ const AddEditObjectPage = (props) => {
             // form validation error
             setFormErrors(data);
             document.body.scrollTop = document.documentElement.scrollTop = 0;
+            setSaveInProgress(false);
           } else {
             // succeeded
             redirectToRecordsPage(data.id);
@@ -152,6 +157,7 @@ const AddEditObjectPage = (props) => {
   };
 
   async function redirectToRecordsPage(record_id) {
+    setRedirectInProgress(true);
     if (record_id) {
       navigate(props.schema.viewUrl + "/" + record_id);
     } else if (recordId) {
@@ -181,6 +187,7 @@ const AddEditObjectPage = (props) => {
           <OkCancelDialog
             open={dialogOpen}
             setOpen={setDialogOpen}
+            locked={redirectInProgress}
             okAction={redirectToRecordsPage}
             cancelLabel="Return to Form"
             okLabel="Discard changes"
@@ -362,10 +369,11 @@ const AddEditObjectPage = (props) => {
               </button>
               <button
                 type="submit"
-                className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                disabled={saveInProgress}
+                className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 onClick={submitForm}
               >
-                Save
+                {saveInProgress ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

@@ -8,10 +8,12 @@ import { OkCancelDialog } from "../OkCancelDialog.js";
 const ViewObjectPage = (props) => {
   const [record, setRecord] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
   const { recordId } = useParams();
   const navigate = useNavigate();
 
   const deleteRecord = () => {
+    setDeleteInProgress(true);
     fetch(config.url.API_URL + props.schema.apiUrl + "/" + recordId + "/", {
       method: "DELETE",
       headers: {
@@ -33,6 +35,7 @@ const ViewObjectPage = (props) => {
       } else {
         res.json().then((data) => {
           // TODO: Better error message
+          setDeleteInProgress(false);
           alert("Error! " + JSON.stringify(data));
         });
       }
@@ -68,7 +71,12 @@ const ViewObjectPage = (props) => {
         open={dialogOpen}
         setOpen={setDialogOpen}
         okAction={deleteRecord}
-        okLabel={"Delete " + toTitleCase(props.schema.objectName)}
+        locked={deleteInProgress}
+        okLabel={
+          deleteInProgress
+            ? "Deleting..."
+            : "Delete " + toTitleCase(props.schema.objectName)
+        }
         dialogTitle={"Confirm Delete " + toTitleCase(props.schema.objectName)}
         dialogMessage={
           "Are you sure you want to delete this " +
