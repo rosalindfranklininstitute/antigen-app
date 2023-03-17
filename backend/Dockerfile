@@ -17,8 +17,6 @@ COPY antigendjango /usr/src/antigendjango
 COPY antigenapi /usr/src/antigenapi
 
 RUN DJANGO_CI=true .venv/bin/python manage.py collectstatic --noinput
-    # && mkdir /api_data/ \
-    # && mv ./static/ /api_data/static/
 
 FROM python:3.11-slim-bullseye
 
