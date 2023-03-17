@@ -4,6 +4,7 @@ import HeadedPage from "./HeadedPage.js";
 import ListTable from "./crudtemplates/ListTable.js";
 import ViewObjectPage from "./crudtemplates/ViewObjectPage.js";
 import AddEditObjectPage from "./crudtemplates/AddEditObjectPage.js";
+import Tabs from "./crudtemplates/Tabs.js";
 import schemas from "./schema.js";
 import ErrorHandler from "./ErrorHandler.js";
 import React, { Fragment, useState, useEffect } from "react";
@@ -333,11 +334,17 @@ const App = () => {
               path="/projects/:recordId"
               element={
                 <HeadedPage title="View Project">
-                  <ViewObjectPage
-                    schema={schemas.project}
-                    csrfToken={csrfToken}
-                  ></ViewObjectPage>
-                  <ListTable schema={schemas.library}></ListTable>
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="Project Information"
+                      schema={schemas.project}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <ListTable
+                      tabName="Libraries"
+                      schema={schemas.library}
+                    ></ListTable>
+                  </Tabs>
                 </HeadedPage>
               }
             />
@@ -372,11 +379,18 @@ const App = () => {
               path="/cohorts/:recordId"
               element={
                 <HeadedPage title="View Cohort">
-                  <ViewObjectPage
-                    schema={schemas.cohort}
-                    csrfToken={csrfToken}
-                  ></ViewObjectPage>
-                  <ListTable schema={schemas.elisa} readOnly={true}></ListTable>
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="Cohort Information"
+                      schema={schemas.cohort}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <ListTable
+                      tabName="Elisas"
+                      schema={schemas.elisa}
+                      readOnly={true}
+                    ></ListTable>
+                  </Tabs>
                 </HeadedPage>
               }
             />
@@ -411,11 +425,17 @@ const App = () => {
               path="/libraries/:recordId"
               element={
                 <HeadedPage title="View Library">
-                  <ViewObjectPage
-                    schema={schemas.library}
-                    csrfToken={csrfToken}
-                  ></ViewObjectPage>
-                  <ListTable schema={schemas.elisa}></ListTable>
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="Library Information"
+                      schema={schemas.library}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <ListTable
+                      tabName="Elisas"
+                      schema={schemas.elisa}
+                    ></ListTable>
+                  </Tabs>
                 </HeadedPage>
               }
             />
@@ -544,11 +564,17 @@ const App = () => {
               path="/llamas/:recordId"
               element={
                 <HeadedPage title="View Llama">
-                  <ViewObjectPage
-                    schema={schemas.llama}
-                    csrfToken={csrfToken}
-                  ></ViewObjectPage>
-                  <ListTable schema={schemas.cohort}></ListTable>
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="Llama Information"
+                      schema={schemas.llama}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <ListTable
+                      tabName="Cohorts"
+                      schema={schemas.cohort}
+                    ></ListTable>
+                  </Tabs>
                 </HeadedPage>
               }
             />
