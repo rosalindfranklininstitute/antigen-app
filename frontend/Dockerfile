@@ -1,4 +1,4 @@
-FROM registry.hub.docker.com/library/node:16-alpine as base
+FROM registry.hub.docker.com/library/node:16-alpine as build-stage
 
 ENV ANTIGENAPP_DIR /antigenapp
 
@@ -10,4 +10,9 @@ RUN npm install
 
 COPY . ${ANTIGENAPP_DIR}
 
-CMD ["npm", "start"]
+RUN npm run build
+
+FROM nginx:stable-alpine as prod
+
+COPY --from=build-stage /antigenapp/build/ /usr/share/nginx/html
+COPY nginx-prod.conf /etc/nginx/conf.d/default.conf

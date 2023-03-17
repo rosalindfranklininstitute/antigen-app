@@ -3,7 +3,9 @@ version: "3.8"
 services:
   app:
     container_name: antigenapp_app
-    build: frontend/
+    build:
+      context: frontend
+      dockerfile: Dockerfile-dev
     restart: always
     ports:
       - 3000:3000
