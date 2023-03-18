@@ -361,6 +361,7 @@ const App = () => {
                   <AddEditObjectPage
                     schema={schemas.project}
                     csrfToken={csrfToken}
+                    onSetError={setError}
                   ></AddEditObjectPage>
                 </HeadedPage>
               }
@@ -409,6 +410,7 @@ const App = () => {
                   <AddEditObjectPage
                     schema={schemas.cohort}
                     csrfToken={csrfToken}
+                    onSetError={setError}
                   ></AddEditObjectPage>
                 </HeadedPage>
               }
@@ -456,6 +458,7 @@ const App = () => {
                   <AddEditObjectPage
                     schema={schemas.library}
                     csrfToken={csrfToken}
+                    onSetError={setError}
                   ></AddEditObjectPage>
                 </HeadedPage>
               }
@@ -495,6 +498,7 @@ const App = () => {
                   <AddEditObjectPage
                     schema={schemas.elisa}
                     csrfToken={csrfToken}
+                    onSetError={setError}
                   ></AddEditObjectPage>
                 </HeadedPage>
               }
@@ -546,6 +550,7 @@ const App = () => {
                   <AddEditObjectPage
                     schema={schemas.antigen}
                     csrfToken={csrfToken}
+                    onSetError={setError}
                   ></AddEditObjectPage>
                 </HeadedPage>
               }
@@ -605,6 +610,7 @@ const App = () => {
                   <AddEditObjectPage
                     schema={schemas.llama}
                     csrfToken={csrfToken}
+                    onSetError={setError}
                   ></AddEditObjectPage>
                 </HeadedPage>
               }
