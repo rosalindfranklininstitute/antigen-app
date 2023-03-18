@@ -58,7 +58,7 @@ const ViewObjectPage = (props) => {
 
   useEffect(() => {
     const refreshRecord = () => {
-      fetch(config.url.API_URL + props.schema.apiUrl + "/" + recordId, {
+      fetch(config.url.API_URL + props.schema.apiUrl + "/" + recordId + "/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

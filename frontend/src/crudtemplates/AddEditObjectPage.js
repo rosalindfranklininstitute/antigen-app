@@ -38,7 +38,7 @@ const AddEditObjectPage = (props) => {
     const foreignKeyFields = ["foreignkey", "selectmulti"];
 
     const getRecord = () => {
-      fetch(config.url.API_URL + props.schema.apiUrl + "/" + recordId, {
+      fetch(config.url.API_URL + props.schema.apiUrl + "/" + recordId + "/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -72,7 +72,7 @@ const AddEditObjectPage = (props) => {
     };
 
     const fetchTable = (table, apiUrl) => {
-      fetch(config.url.API_URL + apiUrl, {
+      fetch(config.url.API_URL + apiUrl + "/", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

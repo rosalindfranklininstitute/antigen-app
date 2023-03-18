@@ -11,7 +11,7 @@ const ListTable = (props) => {
 
   useEffect(() => {
     const refreshRecords = () => {
-      let schemaUrl = config.url.API_URL + props.schema.apiUrl;
+      let schemaUrl = config.url.API_URL + props.schema.apiUrl + "/";
       if (props.schema.parentObjectName) {
         schemaUrl += "?" + props.schema.parentObjectName + "=" + recordId;
       }
