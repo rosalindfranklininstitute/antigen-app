@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"] # can add windows-latest, macos-latest
-        python: ["3.9"]
+        python: ["3.11"]
 
     name: build/${{ matrix.python }}/${{ matrix.os }}/${{ matrix.pipenv }}
     runs-on: ${{ matrix.os }}
