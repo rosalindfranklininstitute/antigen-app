@@ -15,13 +15,12 @@ services:
       - ./frontend/public:/antigenapp/public:ro
   api:
     container_name: antigenapp_api
-    build: backend/
+    build:
+      context: backend
+      dockerfile: Dockerfile-dev
     restart: always
-    entrypoint: .venv/bin/python manage.py runserver 0.0.0.0:8080
     volumes:
-      - ./backend/manage.py:/usr/src/manage.py
-      - ./backend/antigenapi:/usr/src/antigenapi
-      - ./backend/antigendjango:/usr/src/antigendjango
+      - ./backend:/usr/src
       - api_data:/api_data
       - ./db.sqlite3:/usr/src/db.sqlite3
     environment:

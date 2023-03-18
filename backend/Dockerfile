@@ -10,8 +10,6 @@ WORKDIR /usr/src
 
 RUN /root/.local/bin/pipenv sync
 
-RUN .venv/bin/python --version
-
 COPY manage.py /usr/src/
 COPY antigendjango /usr/src/antigendjango
 COPY antigenapi /usr/src/antigenapi

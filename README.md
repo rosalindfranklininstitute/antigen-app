@@ -29,12 +29,7 @@ The API will be available at http://localhost:8000/api/
 
 ### Tests - backend
 
-To run the backend (Python+Django) test suite, you'll first need to install dev requirements (currently,
-you'll need to do this every time the backend container restarts)
-
-    docker-compose exec api pipenv install --dev
-
-Then, to run the test suite:
+To run the backend (Python+Django) test suite:
 
     docker-compose exec api pipenv run tests
 
