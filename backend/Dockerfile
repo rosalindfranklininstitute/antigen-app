@@ -20,6 +20,7 @@ FROM python:3.11-slim-bullseye
 
 RUN apt-get update && apt-get install -y \
     libxml2 \
+    media-types \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -v /usr/src/.venv
