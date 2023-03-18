@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { OkCancelDialog } from "../OkCancelDialog.js";
 import ComboBox from "./ComboBox.js";
+import * as Sentry from "@sentry/browser";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -43,20 +44,25 @@ const AddEditObjectPage = (props) => {
           "Content-Type": "application/json",
           "X-CSRFToken": props.csrfToken,
         },
-      }).then((res) => {
-        if (res.status === 500) {
-          setError(500);
-        } else {
-          res.json().then((data) => {
-            if (res.status === 404) {
-              setError(404);
-            } else {
-              setRecord(data);
-            }
-            setLoading(false);
-          });
-        }
-      });
+      })
+        .then((res) => {
+          if (res.status === 500) {
+            setError(500);
+          } else {
+            res.json().then((data) => {
+              if (res.status === 404) {
+                setError(404);
+              } else {
+                setRecord(data);
+              }
+            });
+          }
+        })
+        .catch((err) => {
+          Sentry.captureException(err);
+          props.onSetError(err);
+        })
+        .finally(() => setLoading(false));
     };
 
     const fetchTable = (table, apiUrl) => {
@@ -66,14 +72,19 @@ const AddEditObjectPage = (props) => {
           "Content-Type": "application/json",
           "X-CSRFToken": props.csrfToken,
         },
-      }).then((res) => {
-        res.json().then((data) => {
-          setRelatedTables((prev) => ({
-            ...prev,
-            [table]: data,
-          }));
+      })
+        .then((res) => {
+          res.json().then((data) => {
+            setRelatedTables((prev) => ({
+              ...prev,
+              [table]: data,
+            }));
+          });
+        })
+        .catch((err) => {
+          Sentry.captureException(err);
+          props.onSetError(err);
         });
-      });
     };
 
     if (!recordId) setLoading(false);
@@ -127,33 +138,37 @@ const AddEditObjectPage = (props) => {
         },
         body: formData,
       }
-    ).then((res) => {
-      if (res.status >= 300 && res.status !== 400) {
-        setSaveInProgress(false);
-        if (res.status === 500) {
-          // Sentry should capture this on the backend
-          props.onSetError(
-            "Internal server error - probably a bug we'll have to fix!"
-          );
-        } else {
-          props.onSetError(
-            "Error code " + res.status + " - please report this to support!"
-          );
-        }
-      } else {
-        res.json().then((data) => {
-          if (res.status === 400) {
-            // form validation error
-            setFormErrors(data);
-            document.body.scrollTop = document.documentElement.scrollTop = 0;
-            setSaveInProgress(false);
+    )
+      .then((res) => {
+        if (res.status >= 300 && res.status !== 400) {
+          if (res.status === 500) {
+            // Sentry should capture this on the backend
+            props.onSetError(
+              "Internal server error - probably a bug we'll have to fix!"
+            );
           } else {
-            // succeeded
-            redirectToRecordsPage(data.id);
+            props.onSetError(
+              "Error code " + res.status + " - please report this to support!"
+            );
           }
-        });
-      }
-    });
+        } else {
+          res.json().then((data) => {
+            if (res.status === 400) {
+              // form validation error
+              setFormErrors(data);
+              document.body.scrollTop = document.documentElement.scrollTop = 0;
+            } else {
+              // succeeded
+              redirectToRecordsPage(data.id);
+            }
+          });
+        }
+      })
+      .catch((err) => {
+        Sentry.captureException(err);
+        props.onSetError(err);
+      })
+      .finally(() => setSaveInProgress(false));
   };
 
   async function redirectToRecordsPage(record_id) {

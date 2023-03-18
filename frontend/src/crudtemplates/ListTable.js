@@ -2,6 +2,7 @@ import config from "../config.js";
 import { useState, useEffect } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import { toTitleCase, pluralise, displayField } from "./utils.js";
+import * as Sentry from "@sentry/browser";
 
 const ListTable = (props) => {
   const [records, setRecords] = useState([]);
@@ -20,13 +21,22 @@ const ListTable = (props) => {
           "Content-Type": "application/json",
           "X-CSRFToken": props.csrfToken,
         },
-      }).then((res) => {
-        res.json().then((data) => {
-          setRecords(data);
-          // TODO: Error handling
-          setLoading(false);
-        });
-      });
+      })
+        .then((res) => {
+          res.json().then(
+            (data) => {
+              setRecords(data);
+            },
+            () => {
+              props.onSetError("HTTP response code " + res.status);
+            }
+          );
+        })
+        .catch((err) => {
+          Sentry.captureException(err);
+          props.onSetError(err);
+        })
+        .finally(() => setLoading(false));
     };
 
     refreshRecords();

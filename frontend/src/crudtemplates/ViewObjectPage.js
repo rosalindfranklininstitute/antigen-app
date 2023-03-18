@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { NavLink, useParams, useNavigate } from "react-router-dom";
 import { toTitleCase, displayField } from "./utils.js";
 import { OkCancelDialog } from "../OkCancelDialog.js";
+import * as Sentry from "@sentry/browser";
 
 const ViewObjectPage = (props) => {
   const [record, setRecord] = useState([]);
@@ -20,26 +21,35 @@ const ViewObjectPage = (props) => {
         "Content-Type": "application/json",
         "X-CSRFToken": props.csrfToken,
       },
-    }).then((res) => {
-      if (res.status >= 200 && res.status < 300) {
-        if (props.schema.parentObjectName !== undefined) {
-          let redirectUrl = schemas[props.schema.parentObjectName].viewUrl;
-          let parentObjectId = parseInt(record[props.schema.parentObjectName]);
-          if (!isNaN(parentObjectId)) {
-            redirectUrl += "/" + parentObjectId;
+    })
+      .then((res) => {
+        if (res.status >= 200 && res.status < 300) {
+          if (props.schema.parentObjectName !== undefined) {
+            let redirectUrl = schemas[props.schema.parentObjectName].viewUrl;
+            let parentObjectId = parseInt(
+              record[props.schema.parentObjectName]
+            );
+            if (!isNaN(parentObjectId)) {
+              redirectUrl += "/" + parentObjectId;
+            }
+            navigate(redirectUrl);
+          } else {
+            navigate(props.schema.viewUrl);
           }
-          navigate(redirectUrl);
         } else {
-          navigate(props.schema.viewUrl);
+          setDialogOpen(false);
+          res.json().then(
+            (data) => {
+              props.onSetError(JSON.stringify(data));
+            },
+            () => {
+              props.onSetError("HTTP response code " + res.status);
+            }
+          );
         }
-      } else {
-        res.json().then((data) => {
-          // TODO: Better error message
-          setDeleteInProgress(false);
-          alert("Error! " + JSON.stringify(data));
-        });
-      }
-    });
+      })
+      .catch((err) => props.onSetError(err))
+      .finally(() => setDeleteInProgress(false));
   };
 
   useEffect(() => {
@@ -50,16 +60,21 @@ const ViewObjectPage = (props) => {
           "Content-Type": "application/json",
           "X-CSRFToken": props.csrfToken,
         },
-      }).then((res) => {
-        res.json().then((data) => {
-          if (res.status === 404) {
-            //TODO: Error handling
-            alert("404 object not found");
-          } else {
-            setRecord(data);
-          }
-        });
-      });
+      })
+        .then((res) => {
+          res.json().then((data) => {
+            if (res.status === 404) {
+              props.onSetError("404 object not found");
+            } else {
+              setRecord(data);
+            }
+          });
+        })
+        .catch((err) => {
+          Sentry.captureException(err);
+          props.onSetError(err);
+        })
+        .finally(() => setDeleteInProgress(false));
     };
 
     refreshRecord();

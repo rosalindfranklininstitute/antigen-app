@@ -312,7 +312,10 @@ const App = () => {
               path="/projects"
               element={
                 <HeadedPage title="Projects">
-                  <ListTable schema={schemas.project}></ListTable>
+                  <ListTable
+                    schema={schemas.project}
+                    onSetError={setError}
+                  ></ListTable>
                 </HeadedPage>
               }
             />
@@ -338,11 +341,13 @@ const App = () => {
                     <ViewObjectPage
                       tabName="Project Information"
                       schema={schemas.project}
+                      onSetError={setError}
                       csrfToken={csrfToken}
                     ></ViewObjectPage>
                     <ListTable
                       tabName="Libraries"
                       schema={schemas.library}
+                      onSetError={setError}
                     ></ListTable>
                   </Tabs>
                 </HeadedPage>
@@ -383,11 +388,13 @@ const App = () => {
                     <ViewObjectPage
                       tabName="Cohort Information"
                       schema={schemas.cohort}
+                      onSetError={setError}
                       csrfToken={csrfToken}
                     ></ViewObjectPage>
                     <ListTable
                       tabName="Elisas"
                       schema={schemas.elisa}
+                      onSetError={setError}
                       readOnly={true}
                     ></ListTable>
                   </Tabs>
@@ -429,11 +436,13 @@ const App = () => {
                     <ViewObjectPage
                       tabName="Library Information"
                       schema={schemas.library}
+                      onSetError={setError}
                       csrfToken={csrfToken}
                     ></ViewObjectPage>
                     <ListTable
                       tabName="Elisas"
                       schema={schemas.elisa}
+                      onSetError={setError}
                     ></ListTable>
                   </Tabs>
                 </HeadedPage>
@@ -472,6 +481,7 @@ const App = () => {
                 <HeadedPage title="View ELISA">
                   <ViewObjectPage
                     schema={schemas.elisa}
+                    onSetError={setError}
                     csrfToken={csrfToken}
                   ></ViewObjectPage>
                 </HeadedPage>
@@ -495,7 +505,10 @@ const App = () => {
               path="/antigens"
               element={
                 <HeadedPage title="Antigens">
-                  <ListTable schema={schemas.antigen}></ListTable>
+                  <ListTable
+                    schema={schemas.antigen}
+                    onSetError={setError}
+                  ></ListTable>
                 </HeadedPage>
               }
             />
@@ -519,6 +532,7 @@ const App = () => {
                 <HeadedPage title="View Antigen">
                   <ViewObjectPage
                     schema={schemas.antigen}
+                    onSetError={setError}
                     csrfToken={csrfToken}
                   ></ViewObjectPage>
                 </HeadedPage>
@@ -542,7 +556,10 @@ const App = () => {
               path="/llamas"
               element={
                 <HeadedPage title="Llamas">
-                  <ListTable schema={schemas.llama}></ListTable>
+                  <ListTable
+                    schema={schemas.llama}
+                    onSetError={setError}
+                  ></ListTable>
                 </HeadedPage>
               }
             />
@@ -568,11 +585,13 @@ const App = () => {
                     <ViewObjectPage
                       tabName="Llama Information"
                       schema={schemas.llama}
+                      onSetError={setError}
                       csrfToken={csrfToken}
                     ></ViewObjectPage>
                     <ListTable
                       tabName="Cohorts"
                       schema={schemas.cohort}
+                      onSetError={setError}
                     ></ListTable>
                   </Tabs>
                 </HeadedPage>
