@@ -34,7 +34,7 @@ const ListTable = (props) => {
         })
         .catch((err) => {
           Sentry.captureException(err);
-          props.onSetError(err);
+          props.onSetError(err.toString());
         })
         .finally(() => setLoading(false));
     };

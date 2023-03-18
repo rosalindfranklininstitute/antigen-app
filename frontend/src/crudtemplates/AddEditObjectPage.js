@@ -66,7 +66,7 @@ const AddEditObjectPage = (props) => {
         })
         .catch((err) => {
           Sentry.captureException(err);
-          props.onSetError(err);
+          props.onSetError(err.toString());
         })
         .finally(() => setLoading(false));
     };
@@ -94,7 +94,7 @@ const AddEditObjectPage = (props) => {
         })
         .catch((err) => {
           Sentry.captureException(err);
-          props.onSetError(err);
+          props.onSetError(err.toString());
         });
     };
 
@@ -177,7 +177,7 @@ const AddEditObjectPage = (props) => {
       })
       .catch((err) => {
         Sentry.captureException(err);
-        props.onSetError(err);
+        props.onSetError(err.toString());
       })
       .finally(() => setSaveInProgress(false));
   };

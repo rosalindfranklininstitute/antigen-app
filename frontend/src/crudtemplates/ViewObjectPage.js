@@ -52,7 +52,7 @@ const ViewObjectPage = (props) => {
           );
         }
       })
-      .catch((err) => props.onSetError(err))
+      .catch((err) => props.onSetError(err.toString()))
       .finally(() => setDeleteInProgress(false));
   };
 
@@ -76,7 +76,7 @@ const ViewObjectPage = (props) => {
         })
         .catch((err) => {
           Sentry.captureException(err);
-          props.onSetError(err);
+          props.onSetError(err.toString());
         })
         .finally(() => setDeleteInProgress(false));
     };
