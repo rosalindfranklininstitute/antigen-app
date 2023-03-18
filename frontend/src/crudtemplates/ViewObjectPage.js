@@ -40,7 +40,11 @@ const ViewObjectPage = (props) => {
           setDialogOpen(false);
           res.json().then(
             (data) => {
-              props.onSetError(JSON.stringify(data));
+              if (data.message !== undefined) {
+                props.onSetError(data.message);
+              } else {
+                props.onSetError(JSON.stringify(data));
+              }
             },
             () => {
               props.onSetError("HTTP response code " + res.status);

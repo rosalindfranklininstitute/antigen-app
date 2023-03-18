@@ -2,6 +2,9 @@ import collections
 import urllib.error
 import urllib.parse
 
+from django.db.models.deletion import ProtectedError
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.serializers import (
     CharField,
     FileField,
@@ -27,6 +30,33 @@ from antigenapi.utils.uniprot import get_protein
 from .parsers import parse_elisa_file
 
 
+# Mixins #
+class DeleteProtectionMixin(object):
+    """Show helpful error when delete protection is in place (on_delete=PROTECT)."""
+
+    def destroy(self, request, *args, **kwargs):
+        """Override destroy method to catch Django's ProtectedError, return HTTP 400."""
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError as protected_error:
+            protected_elements = set()
+            print(protected_error)
+            for obj in protected_error.protected_objects:
+                if isinstance(obj, ElisaWell):
+                    protected_elements.add(str(obj.plate))
+                else:
+                    protected_elements.add(str(obj))
+            protected_elements = tuple(protected_elements)
+            msg = f"DeleteProtection: Object in use by {protected_elements[0]}"
+            if len(protected_elements) > 1:
+                msg += f" and {len(protected_elements) - 1} other object"
+                if len(protected_elements) > 2:
+                    msg += "s"
+            response_data = {"message": msg, "protected_elements": protected_elements}
+            return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
+
+
+# Projects #
 class ProjectSerializer(ModelSerializer):
     """A serializer for project data which serializes all internal fields."""
 
@@ -38,7 +68,7 @@ class ProjectSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class ProjectViewSet(ModelViewSet):
+class ProjectViewSet(DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded projects."""
 
     queryset = Project.objects.all()
@@ -62,7 +92,7 @@ class LlamaSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class LlamaViewSet(ModelViewSet):
+class LlamaViewSet(DeleteProtectionMixin, ModelViewSet):
     """A view set for llamas."""
 
     queryset = Llama.objects.all()
@@ -88,7 +118,7 @@ class LibrarySerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class LibraryViewSet(ModelViewSet):
+class LibraryViewSet(DeleteProtectionMixin, ModelViewSet):
     """A view set for libraries."""
 
     queryset = Library.objects.all().select_related("cohort").select_related("project")
@@ -98,25 +128,6 @@ class LibraryViewSet(ModelViewSet):
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
         super(LibraryViewSet, self).perform_create(serializer)
-
-
-# class UniProtAntigenSerialzer(ModelSerializer):
-#     """A serializer for UniProt antigen data which serializes all internal fields."""
-
-#     project = SlugRelatedField(slug_field="short_title",
-#                                queryset=Project.objects.all())
-
-#     class Meta:  # noqa: D106
-#         model = UniProtAntigen
-#         fields = [
-#             "project",
-#             "number",
-#             "name",
-#             "sequence",
-#             "molecular_mass",
-#             "uniprot_accession_number",
-#             "creation_time",
-#         ]
 
 
 class AntigenSerializer(ModelSerializer):
@@ -167,7 +178,7 @@ class AntigenSerializer(ModelSerializer):
         return data
 
 
-class AntigenViewSet(ModelViewSet):
+class AntigenViewSet(DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded antigens."""
 
     queryset = Antigen.objects.all()
@@ -193,7 +204,7 @@ class CohortSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class CohortViewSet(ModelViewSet):
+class CohortViewSet(DeleteProtectionMixin, ModelViewSet):
     """A view set for cohorts."""
 
     queryset = Cohort.objects.all().select_related("llama")
@@ -280,7 +291,7 @@ class ElisaPlateSerializer(ModelSerializer):
         return instance
 
 
-class ElisaPlateViewSet(ModelViewSet):
+class ElisaPlateViewSet(DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded elisa plates."""
 
     queryset = ElisaPlate.objects.all().select_related("library__cohort")

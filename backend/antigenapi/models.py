@@ -35,8 +35,7 @@ class Project(Model):
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        """String representation of project."""
+    def __str__(self):  # noqa: D105
         return f"({self.id}) {self.short_title}"
 
 
@@ -48,8 +47,7 @@ class Llama(Model):
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        """String representation of llama (its name)."""
+    def __str__(self):  # noqa: D105
         return self.name
 
 
@@ -70,8 +68,7 @@ class Antigen(Model):
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
-    def __str__(self):
-        """String representation of antigen."""
+    def __str__(self):  # noqa: D105
         return self.preferred_name + f" [{self.uniprot_id}]" if self.uniprot_id else ""
 
 
@@ -93,6 +90,9 @@ class Cohort(Model):
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
+    def __str__(self):  # noqa: D105
+        return f"Cohort No. {self.cohort_num}"
+
 
 class Library(Model):
     """Library model."""
@@ -101,6 +101,9 @@ class Library(Model):
     cohort = ForeignKey(Cohort, on_delete=PROTECT)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
+
+    def __str__(self):  # noqa: D105
+        return f"Library {self.id}"
 
 
 class ElisaPlate(Model):
@@ -116,6 +119,9 @@ class ElisaPlate(Model):
         upload_to="uploads/elisaplates/",
         validators=[FileExtensionValidator(allowed_extensions=["xlsx"])],
     )
+
+    def __str__(self):  # noqa: D105
+        return f"ElisaPlate {self.id}"
 
 
 PlateLocations = IntegerChoices(
