@@ -262,10 +262,11 @@ class ElisaPlateSerializer(ModelSerializer):
 
     def validate(self, data):
         """Validate plate (load and parse file)."""
-        try:
-            data["elisawell_set"] = parse_elisa_file(data["plate_file"])
-        except Exception as e:
-            raise ValidationError({"plate_file": e})
+        if "plate_file" in data:
+            try:
+                data["elisawell_set"] = parse_elisa_file(data["plate_file"])
+            except Exception as e:
+                raise ValidationError({"plate_file": e})
         return data
 
     def create(self, validated_data):
@@ -283,19 +284,24 @@ class ElisaPlateSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         """Update plate. For now, every well shares the same antigen."""
         antigen = validated_data["antigen"]
-        well_set = validated_data.pop("elisawell_set")
-        try:
-            validated_data["plate_file"].seek(0)
-        except ValueError:
-            # File has already been read during create, so skip it
-            validated_data.pop("plate_file")
+        if "elisawell_set" in validated_data:
+            well_set = validated_data.pop("elisawell_set")
+        else:
+            well_set = None
+        if "plate_file" in validated_data:
+            try:
+                validated_data["plate_file"].seek(0)
+            except ValueError:
+                # File has already been read during create, so skip it
+                validated_data.pop("plate_file")
         plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
-        for od, loc in zip(well_set, PlateLocations):
-            ElisaWell.objects.update_or_create(
-                plate=plate,
-                location=loc,
-                defaults={"optical_density": od, "antigen": antigen},
-            )
+        if well_set is not None:
+            for od, loc in zip(well_set, PlateLocations):
+                ElisaWell.objects.update_or_create(
+                    plate=plate,
+                    location=loc,
+                    defaults={"optical_density": od, "antigen": antigen},
+                )
         return instance
 
 

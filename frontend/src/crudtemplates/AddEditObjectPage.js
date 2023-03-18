@@ -143,7 +143,7 @@ const AddEditObjectPage = (props) => {
         "/" +
         (recordId ? recordId + "/" : ""),
       {
-        method: recordId ? "PUT" : "POST",
+        method: recordId ? "PATCH" : "POST",
         headers: {
           "X-CSRFToken": props.csrfToken,
         },
@@ -280,13 +280,38 @@ const AddEditObjectPage = (props) => {
                             )}
 
                           {field.type === "file" && (
-                            <input
-                              type="file"
-                              name={field.field}
-                              onChange={(e) =>
-                                setFormValue(field.field, e.target.files[0])
-                              }
-                            />
+                            <>
+                              {recordId &&
+                                record[field.field] &&
+                                (typeof record[field.field] === "string" ||
+                                  record[field.field] instanceof String) && (
+                                  <>
+                                    <p>{record[field.field].toString()}</p>
+                                    <button
+                                      type="button"
+                                      className="inline-flex my-2 justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                      onClick={() =>
+                                        setFormValue(field.field, null)
+                                      }
+                                    >
+                                      Replace
+                                    </button>
+                                  </>
+                                )}
+                              {(!recordId ||
+                                (typeof record[field.field] !== "string" &&
+                                  !(
+                                    record[field.field] instanceof String
+                                  ))) && (
+                                <input
+                                  type="file"
+                                  name={field.field}
+                                  onChange={(e) =>
+                                    setFormValue(field.field, e.target.files[0])
+                                  }
+                                />
+                              )}
+                            </>
                           )}
 
                           {field.type === "foreignkey" &&
