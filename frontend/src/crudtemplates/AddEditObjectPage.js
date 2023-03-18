@@ -49,13 +49,19 @@ const AddEditObjectPage = (props) => {
           if (res.status === 500) {
             setError(500);
           } else {
-            res.json().then((data) => {
-              if (res.status === 404) {
-                setError(404);
-              } else {
-                setRecord(data);
+            res.json().then(
+              (data) => {
+                if (res.status === 404) {
+                  setError(404);
+                } else {
+                  setRecord(data);
+                }
+              },
+              () => {
+                setError(res.status);
+                props.onSetError("HTTP code " + res.status);
               }
-            });
+            );
           }
         })
         .catch((err) => {
@@ -74,12 +80,17 @@ const AddEditObjectPage = (props) => {
         },
       })
         .then((res) => {
-          res.json().then((data) => {
-            setRelatedTables((prev) => ({
-              ...prev,
-              [table]: data,
-            }));
-          });
+          res.json().then(
+            (data) => {
+              setRelatedTables((prev) => ({
+                ...prev,
+                [table]: data,
+              }));
+            },
+            () => {
+              props.setError("HTTP code " + res.status);
+            }
+          );
         })
         .catch((err) => {
           Sentry.captureException(err);
@@ -389,7 +400,7 @@ const AddEditObjectPage = (props) => {
               </button>
               <button
                 type="submit"
-                disabled={saveInProgress}
+                disabled={saveInProgress || loading}
                 className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 onClick={submitForm}
               >
