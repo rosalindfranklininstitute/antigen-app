@@ -296,12 +296,15 @@ class ElisaPlateSerializer(ModelSerializer):
                 validated_data.pop("plate_file")
         plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
         if well_set is not None:
-            for od, loc in zip(well_set, PlateLocations):
-                ElisaWell.objects.update_or_create(
-                    plate=plate,
-                    location=loc,
-                    defaults={"optical_density": od, "antigen": antigen},
+            # Faster, fewer DB queries to bulk delete & re-insert
+            # than conditionally update
+            ElisaWell.objects.filter(plate=plate).delete()
+            ElisaWell.objects.bulk_create(
+                ElisaWell(
+                    plate=plate, optical_density=od, location=loc, antigen=antigen
                 )
+                for (od, loc) in zip(well_set, PlateLocations)
+            )
         return instance
 
 
