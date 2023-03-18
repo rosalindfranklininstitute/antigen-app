@@ -31,11 +31,6 @@ if (process.env.REACT_APP_SENTRY_DSN !== undefined) {
   });
 }
 
-const user = {
-  name: "Tom Cook",
-  email: "tom@example.com",
-  username: "",
-};
 const navigation = [
   { name: "Dashboard", href: "/" },
   { name: "Projects", href: "/projects" },
@@ -57,6 +52,11 @@ const App = () => {
   const [csrfToken, setCsrfToken] = useState(null);
   // const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState({
+    name: "",
+    email: "",
+    username: "",
+  });
 
   const getCookie = (name) => {
     if (!document.cookie) {
@@ -110,19 +110,51 @@ const App = () => {
         });
     };
 
+    const refreshUserInfo = () => {
+      fetch("/oauth2/userinfo").then((res) => {
+        if (res.status === 401) {
+          // session has expired, reload
+          window.location.reload();
+        } else if (res.status === 200) {
+          res.json().then((data) => {
+            if (
+              user.username !== "" &&
+              user.username !== data.preferredUsername
+            ) {
+              // User ID has changed, do a reload
+              window.location.reload();
+            }
+            setUser({
+              name: "",
+              email: data.email,
+              username: data.preferredUsername,
+            });
+          });
+        }
+      });
+    };
+
     getCSRF();
-  }, []);
+    refreshUserInfo();
+
+    document.onvisibilitychange = () => {
+      // Check the auth session is still valid
+      if (document.visibilityState === "visible") {
+        refreshUserInfo();
+      }
+    };
+
+    // Next line disables eslint warning about deps - we only
+    // want to run this hook on page load rather than when
+    // anything is updated
+
+    // When editing anything in this useEffect, you might
+    // want to run eslint manually with the pragma removed
+    // to check that "user" is the only missing dependency
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
       <div className="min-h-full">
         <Router>
           <Disclosure as="nav" className="bg-gray-800">
