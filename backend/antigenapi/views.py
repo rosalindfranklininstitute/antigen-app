@@ -1,4 +1,4 @@
-import collections
+import collections.abc
 import urllib.error
 import urllib.parse
 
@@ -170,7 +170,7 @@ class AntigenSerializer(ModelSerializer):
                 data["preferred_name"] = protein_data["protein"]["recommendedName"][
                     "fullName"
                 ]
-                if isinstance(data["preferred_name"], collections.Mapping):
+                if isinstance(data["preferred_name"], collections.abc.Mapping):
                     data["preferred_name"] = data["preferred_name"]["$"]
             except KeyError:
                 # TODO: Further error checking that name list is set
