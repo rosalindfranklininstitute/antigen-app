@@ -33,4 +33,8 @@ COPY uwsgi.ini /usr/src
 
 WORKDIR /usr/src
 
+RUN addgroup --gid 10191 nonroot
+RUN adduser --uid 10191 --gid 10191 --system --no-create-home nonroot
+USER nonroot
+
 CMD [".venv/bin/uwsgi", "--ini", "uwsgi.ini"]
