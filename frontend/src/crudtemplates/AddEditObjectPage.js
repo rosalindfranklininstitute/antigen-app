@@ -231,6 +231,11 @@ const AddEditObjectPage = (props) => {
                           className="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
                         >
                           {field.label}
+                          {field.formHint && (
+                            <p className="mt-1 max-w-2xl text-sm text-gray-400">
+                              {field.formHint}
+                            </p>
+                          )}
                         </label>
                         <div className="mt-1">
                           {field.type === "text" && (

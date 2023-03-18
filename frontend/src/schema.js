@@ -113,7 +113,7 @@ const antigenSchema = {
   objectName: "antigen",
   fields: [
     {
-      label: "Uniprot ID",
+      label: "UniProt ID",
       field: "uniprot_id",
       type: "text",
       showInTable: true,
@@ -122,10 +122,21 @@ const antigenSchema = {
       label: "Preferred name",
       field: "preferred_name",
       type: "text",
+      formHint: "Leave blank to populate from UniProt",
       showInTable: true,
     },
-    { label: "Sequence", field: "sequence", type: "text" },
-    { label: "Molecular mass", field: "molecular_mass", type: "text" },
+    {
+      label: "Sequence",
+      field: "sequence",
+      type: "text",
+      formHint: "Leave blank to populate from UniProt",
+    },
+    {
+      label: "Molecular mass",
+      field: "molecular_mass",
+      type: "text",
+      formHint: "Leave blank to populate from UniProt",
+    },
     { label: "Description", field: "description", type: "textarea" },
     { label: "Epitope", field: "epitope", type: "textarea" },
     { label: "Added by", field: "added_by", hideOnForm: true },

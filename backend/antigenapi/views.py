@@ -164,17 +164,25 @@ class AntigenSerializer(ModelSerializer):
                     )
                 else:
                     raise
-            data["sequence"] = protein_data["sequence"]["$"]
-            data["molecular_mass"] = protein_data["sequence"]["@mass"]
-            try:
-                data["preferred_name"] = protein_data["protein"]["recommendedName"][
-                    "fullName"
-                ]
-                if isinstance(data["preferred_name"], collections.abc.Mapping):
-                    data["preferred_name"] = data["preferred_name"]["$"]
-            except KeyError:
-                # TODO: Further error checking that name list is set
-                data["preferred_name"] = protein_data["name"][0]
+            if data.get("sequence", "").strip() == "":
+                data["sequence"] = protein_data["sequence"]["$"]
+            if data.get("molecular_mass") is None:
+                data["molecular_mass"] = protein_data["sequence"]["@mass"]
+            if data.get("preferred_name", "").strip() == "":
+                try:
+                    data["preferred_name"] = protein_data["protein"]["recommendedName"][
+                        "fullName"
+                    ]
+                    if isinstance(data["preferred_name"], collections.abc.Mapping):
+                        data["preferred_name"] = data["preferred_name"]["$"]
+                except KeyError:
+                    # TODO: Further error checking that name list is set
+                    data["preferred_name"] = protein_data["name"][0]
+        else:
+            if not data.get("preferred_name", "").strip():
+                raise ValidationError(
+                    {"preferred_name": "Need either a UniProt ID or a preferred name"}
+                )
         return data
 
 
