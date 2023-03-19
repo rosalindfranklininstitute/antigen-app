@@ -171,7 +171,7 @@ REST_FRAMEWORK = {
 }
 
 AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.RemoteUserBackend",
+    "antigendjango.auth.RFIRemoteUserBackend",
     "guardian.backends.ObjectPermissionBackend",
 )
 
