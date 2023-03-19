@@ -103,18 +103,18 @@ const ViewObjectPage = (props) => {
           "?"
         }
       />
-      <div className="px-4 py-5 sm:px-6">
+      <div className="px-4 py-5 sm:px-6 sm:mb-3">
         <NavLink to={props.schema.viewUrl + "/" + recordId + "/edit"}>
           <button
             type="button"
-            className="relative float-right inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="w-full sm:w-auto mb-2 sm:mb-0 relative float-right inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Edit {props.schema.objectName}
           </button>
         </NavLink>
         <button
           type="button"
-          className="float-right mr-2 inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:w-auto"
+          className="w-full sm:w-auto float-right mb-4 sm:mb-0 sm:mr-2 inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           onClick={() => setDialogOpen(true)}
         >
           Delete {props.schema.objectName}
@@ -122,7 +122,7 @@ const ViewObjectPage = (props) => {
         <h3 className="text-lg font-medium leading-6 text-gray-900">
           {toTitleCase(props.schema.objectName)} Information
         </h3>
-        <p className="mt-1 max-w-2xl text-sm text-gray-500">&nbsp;</p>
+        {/* <p className="mt-1 max-w-2xl text-sm text-gray-500">&nbsp;</p> */}
       </div>
       <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">

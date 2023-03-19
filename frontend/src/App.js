@@ -264,20 +264,20 @@ const App = () => {
                 <Disclosure.Panel className="md:hidden">
                   <div className="space-y-1 px-2 pt-2 pb-3 sm:px-3">
                     {navigation.map((item) => (
-                      <Disclosure.Button
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className={classNames(
-                          item.current
-                            ? "bg-gray-900 text-white"
-                            : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                          "block px-3 py-2 rounded-md text-base font-medium"
-                        )}
-                        aria-current={item.current ? "page" : undefined}
-                      >
-                        {item.name}
-                      </Disclosure.Button>
+                      <NavLink key={item.name} to={item.href}>
+                        <Disclosure.Button
+                          href="#"
+                          className={classNames(
+                            item.current
+                              ? "bg-gray-900 text-white"
+                              : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                            "block px-3 py-2 rounded-md text-base font-medium"
+                          )}
+                          aria-current={item.current ? "page" : undefined}
+                        >
+                          {item.name}
+                        </Disclosure.Button>
+                      </NavLink>
                     ))}
                   </div>
                   <div className="border-t border-gray-700 pt-4 pb-3">

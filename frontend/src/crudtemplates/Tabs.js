@@ -20,7 +20,7 @@ const Tabs = (props) => {
         <select
           id="tabs"
           name="tabs"
-          className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          className="block mb-2 w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
           value={activeTab}
           onChange={(e) => {
             e.preventDefault();
@@ -28,7 +28,7 @@ const Tabs = (props) => {
           }}
         >
           {props.children.map((child) => (
-            <option key={child.props.tabName}>{child.props.TabName}</option>
+            <option key={child.props.tabName}>{child.props.tabName}</option>
           ))}
         </select>
       </div>
