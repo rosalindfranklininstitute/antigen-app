@@ -1,15 +1,35 @@
 import { useState, useEffect } from "react";
+import { usePrevious } from "./utils.js";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 
+function arraysEqual(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  if (a.length !== b.length) return false;
+
+  for (var i = 0; i < a.length; ++i) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
 const Tabs = (props) => {
   const [activeTab, setActiveTab] = useState();
+  const [tabNames, setTabNames] = useState([]);
+  const prevTabNames = usePrevious(tabNames);
 
   useEffect(() => {
-    setActiveTab(props.children[0].props.tabName);
+    setTabNames(props.children.map((child) => child.props.tabName));
   }, [props.children]);
+
+  useEffect(() => {
+    if (!arraysEqual(prevTabNames, tabNames)) {
+      setActiveTab(tabNames[0]);
+    }
+  }, [prevTabNames, tabNames]);
 
   return (
     <div>
