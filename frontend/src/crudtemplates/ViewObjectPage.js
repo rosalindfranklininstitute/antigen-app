@@ -77,8 +77,7 @@ const ViewObjectPage = (props) => {
         .catch((err) => {
           Sentry.captureException(err);
           props.onSetError(err.toString());
-        })
-        .finally(() => setDeleteInProgress(false));
+        });
     };
 
     refreshRecord();
