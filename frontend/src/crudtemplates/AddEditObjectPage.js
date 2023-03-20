@@ -266,7 +266,8 @@ const AddEditObjectPage = (props) => {
                           )}
 
                           {field.type === "selectmulti" &&
-                            relatedTables[field.field] && (
+                            relatedTables[field.field] &&
+                            record[field.field] && (
                               <ComboBox
                                 onChange={(val) =>
                                   setFormValue(field.field, val)

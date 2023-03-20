@@ -2,8 +2,11 @@ import collections.abc
 import urllib.error
 import urllib.parse
 
+from auditlog.models import LogEntry
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.deletion import ProtectedError
 from rest_framework import status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.serializers import (
     CharField,
@@ -28,6 +31,26 @@ from antigenapi.models import (
 from antigenapi.utils.uniprot import get_protein
 
 from .parsers import parse_elisa_file
+
+
+# Audit logs #
+class AuditLogSerializer(ModelSerializer):
+    """A serializer for object audit logs."""
+
+    actor_username = StringRelatedField(source="actor.username", read_only=True)
+    actor_email = StringRelatedField(source="actor.email", read_only=True)
+
+    class Meta:  # noqa: D106
+        model = LogEntry
+        fields = [
+            "timestamp",
+            "object_id",
+            "action",
+            "changes_dict",
+            "actor",
+            "actor_username",
+            "actor_email",
+        ]
 
 
 # Mixins #
@@ -56,6 +79,21 @@ class DeleteProtectionMixin(object):
             return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
 
 
+class AuditLogMixin(object):
+    """Allow fetching audit logs on individual objects."""
+
+    @action(detail=True, methods=["GET"], name="Get audit log")
+    def auditlog(self, request, pk):
+        """Get audit logs for an object."""
+        queryset = LogEntry.objects.filter(
+            content_type=ContentType.objects.get_for_model(self.queryset.model),
+            object_id=pk,
+        ).select_related("actor")
+
+        serializer = AuditLogSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+
 # Projects #
 class ProjectSerializer(ModelSerializer):
     """A serializer for project data which serializes all internal fields."""
@@ -68,7 +106,7 @@ class ProjectSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class ProjectViewSet(DeleteProtectionMixin, ModelViewSet):
+class ProjectViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded projects."""
 
     queryset = Project.objects.all()
@@ -92,7 +130,7 @@ class LlamaSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class LlamaViewSet(DeleteProtectionMixin, ModelViewSet):
+class LlamaViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for llamas."""
 
     queryset = Llama.objects.all()
@@ -118,7 +156,7 @@ class LibrarySerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class LibraryViewSet(DeleteProtectionMixin, ModelViewSet):
+class LibraryViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for libraries."""
 
     queryset = Library.objects.all().select_related("cohort").select_related("project")
@@ -186,7 +224,7 @@ class AntigenSerializer(ModelSerializer):
         return data
 
 
-class AntigenViewSet(DeleteProtectionMixin, ModelViewSet):
+class AntigenViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded antigens."""
 
     queryset = Antigen.objects.all()
@@ -212,7 +250,7 @@ class CohortSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-class CohortViewSet(DeleteProtectionMixin, ModelViewSet):
+class CohortViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for cohorts."""
 
     queryset = Cohort.objects.all().select_related("llama")
@@ -308,7 +346,7 @@ class ElisaPlateSerializer(ModelSerializer):
         return instance
 
 
-class ElisaPlateViewSet(DeleteProtectionMixin, ModelViewSet):
+class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded elisa plates."""
 
     queryset = ElisaPlate.objects.all().select_related("library__cohort")

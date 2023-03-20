@@ -5,6 +5,7 @@ import ListTable from "./crudtemplates/ListTable.js";
 import ViewObjectPage from "./crudtemplates/ViewObjectPage.js";
 import AddEditObjectPage from "./crudtemplates/AddEditObjectPage.js";
 import Tabs from "./crudtemplates/Tabs.js";
+import AuditLog from "./crudtemplates/AuditLog.js";
 import schemas from "./schema.js";
 import ErrorHandler from "./ErrorHandler.js";
 import React, { Fragment, useState, useEffect } from "react";
@@ -381,6 +382,11 @@ const App = () => {
                       schema={schemas.library}
                       onSetError={setError}
                     ></ListTable>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.project}
+                      onSetError={setError}
+                    ></AuditLog>
                   </Tabs>
                 </HeadedPage>
               }
@@ -430,6 +436,11 @@ const App = () => {
                       onSetError={setError}
                       readOnly={true}
                     ></ListTable>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.cohort}
+                      onSetError={setError}
+                    ></AuditLog>
                   </Tabs>
                 </HeadedPage>
               }
@@ -478,6 +489,11 @@ const App = () => {
                       schema={schemas.elisa}
                       onSetError={setError}
                     ></ListTable>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.library}
+                      onSetError={setError}
+                    ></AuditLog>
                   </Tabs>
                 </HeadedPage>
               }
@@ -514,11 +530,19 @@ const App = () => {
               path="/elisas/:recordId"
               element={
                 <HeadedPage title="View ELISA">
-                  <ViewObjectPage
-                    schema={schemas.elisa}
-                    onSetError={setError}
-                    csrfToken={csrfToken}
-                  ></ViewObjectPage>
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="ELISA"
+                      schema={schemas.elisa}
+                      onSetError={setError}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.elisa}
+                      onSetError={setError}
+                    ></AuditLog>
+                  </Tabs>
                 </HeadedPage>
               }
             />
@@ -566,11 +590,19 @@ const App = () => {
               path="/antigens/:recordId"
               element={
                 <HeadedPage title="View Antigen">
-                  <ViewObjectPage
-                    schema={schemas.antigen}
-                    onSetError={setError}
-                    csrfToken={csrfToken}
-                  ></ViewObjectPage>
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="Antigen"
+                      schema={schemas.antigen}
+                      onSetError={setError}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.antigen}
+                      onSetError={setError}
+                    ></AuditLog>
+                  </Tabs>
                 </HeadedPage>
               }
             />
@@ -630,6 +662,11 @@ const App = () => {
                       schema={schemas.cohort}
                       onSetError={setError}
                     ></ListTable>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.llama}
+                      onSetError={setError}
+                    ></AuditLog>
                   </Tabs>
                 </HeadedPage>
               }

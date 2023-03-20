@@ -1,3 +1,5 @@
+import { useRef, useEffect } from "react";
+
 const elisaHeader = [
   "",
   "1",
@@ -108,4 +110,53 @@ export const toTitleCase = (str) => {
 export const pluralise = (str) => {
   // TODO: Make less primitive!
   return str.endsWith("y") ? str.slice(0, -1) + "ies" : str + "s";
+};
+
+const formatTimeInterval = (timeInterval, label) => {
+  // helper function to pluralise a time interval when required
+  return timeInterval + " " + label + (timeInterval !== 1 ? "s" : "") + " ago";
+};
+
+export const timeSince = (date) => {
+  // show relative time since a date e.g. "8 seconds ago"
+
+  var seconds = Math.floor((new Date() - date) / 1000);
+
+  var interval = seconds / 31536000;
+
+  if (interval > 1) {
+    return formatTimeInterval(Math.floor(interval), "year");
+  }
+  interval = seconds / 2592000;
+  if (interval > 1) {
+    return formatTimeInterval(Math.floor(interval), "month");
+  }
+  interval = seconds / 86400;
+  if (interval > 1) {
+    return formatTimeInterval(Math.floor(interval), "day");
+  }
+  interval = seconds / 3600;
+  if (interval > 1) {
+    return formatTimeInterval(Math.floor(interval), "hour");
+  }
+  interval = seconds / 60;
+  if (interval > 1) {
+    return formatTimeInterval(Math.floor(interval), "minute");
+  }
+  interval = seconds;
+  return formatTimeInterval(interval, "second");
+};
+
+export const usePrevious = (value) => {
+  // The ref object is a generic container whose current property is mutable ...
+  // ... and can hold any value, similar to an instance property on a class
+  const ref = useRef();
+
+  // Store current value in ref
+  useEffect(() => {
+    ref.current = value;
+  }, [value]); // Only re-run if value changes
+
+  // Return previous value (happens before update in useEffect above)
+  return ref.current;
 };
