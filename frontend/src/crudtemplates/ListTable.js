@@ -4,8 +4,15 @@ import { NavLink, useParams } from "react-router-dom";
 import { toTitleCase, pluralise, displayField } from "./utils.js";
 import * as Sentry from "@sentry/browser";
 
+// Use three table rows for loading skeleton
+const loadingSkeleton = [
+  { showInTable: true, id: "-1" },
+  { showInTable: true, id: "-2" },
+  { showInTable: true, id: "-3" },
+];
+
 const ListTable = (props) => {
-  const [records, setRecords] = useState([]);
+  const [records, setRecords] = useState(loadingSkeleton);
   const { recordId } = useParams();
   const [loading, setLoading] = useState(true);
 
@@ -26,19 +33,23 @@ const ListTable = (props) => {
           res.json().then(
             (data) => {
               setRecords(data);
+              setLoading(false);
             },
             () => {
               props.onSetError("HTTP response code " + res.status);
+              setLoading(false);
             }
           );
         })
         .catch((err) => {
           Sentry.captureException(err);
           props.onSetError(err.toString());
-        })
-        .finally(() => setLoading(false));
+          setLoading(false);
+        });
     };
 
+    setLoading(true);
+    setRecords(loadingSkeleton);
     refreshRecords();
   }, [props, recordId]);
 
@@ -76,12 +87,15 @@ const ListTable = (props) => {
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
             <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table className="min-w-full divide-y divide-gray-300">
+              <table className="min-w-full divide-y divide-gray-300 table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
                     <th
                       scope="col"
-                      className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                      className={
+                        props.schema.fields[0].tableColWidth +
+                        " py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
+                      }
                     >
                       {props.schema.fields[0].label}
                     </th>
@@ -92,7 +106,10 @@ const ListTable = (props) => {
                         <th
                           key={props.schema.objectName + "_" + titleField.field}
                           scope="col"
-                          className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          className={
+                            titleField.tableColWidth +
+                            " px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                          }
                         >
                           {titleField.label}
                         </th>
@@ -106,11 +123,18 @@ const ListTable = (props) => {
                         key={props.schema.objectName + "_tablerow_" + record.id}
                       >
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                          <NavLink to={props.schema.viewUrl + "/" + record.id}>
-                            {displayField(props.schema.fields[0], record) || (
-                              <em>None</em>
-                            )}
-                          </NavLink>
+                          {!loading && (
+                            <NavLink
+                              to={props.schema.viewUrl + "/" + record.id}
+                            >
+                              {displayField(props.schema.fields[0], record) || (
+                                <em>None</em>
+                              )}
+                            </NavLink>
+                          )}
+                          {loading && (
+                            <div className="h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                          )}
                         </td>
                         {props.schema.fields
                           .slice(1)
@@ -127,12 +151,16 @@ const ListTable = (props) => {
                               }
                               className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
                             >
-                              {displayField(dataField, record)}
+                              {!loading && displayField(dataField, record)}
+                              {loading && (
+                                <div class="h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                              )}
                             </td>
                           ))}
                       </tr>
                     ))}
-                  {!records.length && (
+                  {/* Table empty case */}
+                  {!loading && !records.length && (
                     <tr>
                       <td
                         colSpan={
@@ -142,17 +170,10 @@ const ListTable = (props) => {
                         }
                         className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 text-center"
                       >
-                        {loading && (
-                          <span>
-                            <em>Loading...</em>
-                          </span>
-                        )}
-                        {!loading && (
-                          <span>
-                            No {pluralise(props.schema.objectName)} have been
-                            created yet
-                          </span>
-                        )}
+                        <span>
+                          No {pluralise(props.schema.objectName)} have been
+                          created yet
+                        </span>
                       </td>
                     </tr>
                   )}
