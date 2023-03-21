@@ -16,6 +16,10 @@ function useQuery() {
   return React.useMemo(() => new URLSearchParams(search), [search]);
 }
 
+const LoadingSkeleton = () => (
+  <div className="h-7 w-full bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+);
+
 const AddEditObjectPage = (props) => {
   const { recordId } = useParams();
   const [record, setRecord] = useState([]);
@@ -56,10 +60,12 @@ const AddEditObjectPage = (props) => {
                 } else {
                   setRecord(data);
                 }
+                setLoading(false);
               },
               () => {
                 setError(res.status);
                 props.onSetError("HTTP code " + res.status);
+                setLoading(false);
               }
             );
           }
@@ -67,8 +73,8 @@ const AddEditObjectPage = (props) => {
         .catch((err) => {
           Sentry.captureException(err);
           props.onSetError(err.toString());
-        })
-        .finally(() => setLoading(false));
+          setLoading(false);
+        });
     };
 
     const fetchTable = (table, apiUrl) => {
@@ -106,13 +112,21 @@ const AddEditObjectPage = (props) => {
       .forEach((fkField) => {
         fetchTable(fkField.field, fkField.apiUrl);
       });
-    // init selectmulti when not loading record
+    // init foreignkey and selectmulti when not loading record
     if (!recordId) {
       props.schema.fields
         .filter((field) => field.type === "selectmulti")
         .forEach((field) => setFormValue(field.field, []));
+      props.schema.fields
+        .filter((field) => field.type === "foreignkey")
+        .forEach((field) =>
+          setFormValue(
+            field.field,
+            parseInt(query.get(field.field + "_id")) || null
+          )
+        );
     }
-  }, [props, recordId]);
+  }, [props, recordId, query]);
 
   const cancelForm = () => {
     setDialogOpen(true);
@@ -134,7 +148,10 @@ const AddEditObjectPage = (props) => {
         )
       );
 
-    // console.log(formData);
+    // deal with foreignkey manually
+    props.schema.fields
+      .filter((field) => field.type === "foreignkey")
+      .map((field) => formData.append(field.field, record[field.field]));
 
     // Submit request
     fetch(
@@ -208,7 +225,7 @@ const AddEditObjectPage = (props) => {
   return (
     <div>
       {recordId && error === 404 && <p>404 Not found</p>}
-      {!loading && error !== 404 && (
+      {error !== 404 && (
         <>
           <OkCancelDialog
             open={dialogOpen}
@@ -249,155 +266,183 @@ const AddEditObjectPage = (props) => {
                           )}
                         </label>
                         <div className="mt-1">
-                          {field.type === "text" && (
-                            <input
-                              type="text"
-                              name={field.field}
-                              id={field.field + "Field"}
-                              autoComplete={field.field + "Field"}
-                              className={classNames(
-                                formErrors[field.field]
-                                  ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                                  : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                              )}
-                              defaultValue={record[field.field]}
-                              // onChange={(e) => setFormValue(field.field, e.target.value)}
-                            />
-                          )}
-
-                          {field.type === "selectmulti" &&
-                            relatedTables[field.field] &&
-                            record[field.field] && (
-                              <ComboBox
-                                onChange={(val) =>
-                                  setFormValue(field.field, val)
-                                }
-                                multiple={true}
-                                options={relatedTables[field.field]}
-                                field={field.field}
-                                displayField={field.fkDisplayField}
-                                selected={record[field.field]}
-                              />
-                            )}
-
-                          {field.type === "file" && (
+                          {loading && <LoadingSkeleton />}
+                          {!loading && (
                             <>
-                              {recordId &&
-                                record[field.field] &&
-                                (typeof record[field.field] === "string" ||
-                                  record[field.field] instanceof String) && (
-                                  <>
-                                    <p>{record[field.field].toString()}</p>
-                                    <button
-                                      type="button"
-                                      className="inline-flex my-2 justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                                      onClick={() =>
-                                        setFormValue(field.field, null)
-                                      }
-                                    >
-                                      Replace
-                                    </button>
-                                  </>
-                                )}
-                              {(!recordId ||
-                                (typeof record[field.field] !== "string" &&
-                                  !(
-                                    record[field.field] instanceof String
-                                  ))) && (
-                                <input
-                                  type="file"
-                                  name={field.field}
-                                  onChange={(e) =>
-                                    setFormValue(field.field, e.target.files[0])
-                                  }
-                                />
-                              )}
-                            </>
-                          )}
-
-                          {field.type === "foreignkey" &&
-                            relatedTables[field.field] &&
-                            (recordId && field.readOnlyOnEdit ? (
-                              // Field is read-only on edit
-                              <>
+                              {field.type === "text" && (
                                 <input
                                   type="text"
-                                  name={field.field + "_display"}
+                                  name={field.field}
                                   id={field.field + "Field"}
-                                  readOnly
-                                  disabled
+                                  autoComplete={field.field + "Field"}
                                   className={classNames(
                                     formErrors[field.field]
                                       ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
                                       : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
                                   )}
-                                  defaultValue={
-                                    relatedTables[field.field].find(
-                                      (obj) => obj.id === record[field.field]
-                                    )[field.fkDisplayField]
-                                  }
-                                />
-                                <input
-                                  type="hidden"
-                                  name={field.field}
                                   defaultValue={record[field.field]}
-                                ></input>
-                              </>
-                            ) : (
-                              // Field is chosen using select
-                              <select
-                                name={field.field}
-                                id={field.field + "Field"}
-                                className={classNames(
-                                  formErrors[field.field]
-                                    ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                                    : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                                )}
-                                defaultValue={
-                                  record[field.field] ||
-                                  query.get(field.field + "_id")
-                                }
-                              >
-                                {/* <option value="">Not specified</option> */}
-                                {Object.values(relatedTables[field.field]).map(
-                                  (opt) => (
-                                    <option
-                                      key={field.field + "_" + opt.id}
-                                      value={opt.id}
-                                    >
-                                      {opt[field.fkDisplayField]}
-                                    </option>
-                                  )
-                                )}
-                              </select>
-                            ))}
-
-                          {field.type === "textarea" && (
-                            <textarea
-                              name={field.field}
-                              id={field.field + "Field"}
-                              rows={3}
-                              className={classNames(
-                                formErrors[field.field]
-                                  ? "max-w-lg shadow-sm block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                                  : "max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md"
+                                  // onChange={(e) => setFormValue(field.field, e.target.value)}
+                                />
                               )}
-                              defaultValue={record[field.field]}
-                            />
-                          )}
 
-                          {field.type === "date" && (
-                            <input
-                              type="date"
-                              name={field.field}
-                              id={field.field + "Field"}
-                              className={classNames(
-                                formErrors[field.field]
-                                  ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                                  : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                              {field.type === "selectmulti" &&
+                                !relatedTables[field.field] && (
+                                  <LoadingSkeleton />
+                                )}
+                              {field.type === "selectmulti" &&
+                                relatedTables[field.field] &&
+                                record[field.field] && (
+                                  <ComboBox
+                                    onChange={(val) =>
+                                      setFormValue(field.field, val)
+                                    }
+                                    multiple={true}
+                                    options={relatedTables[field.field]}
+                                    field={field.field}
+                                    displayField={field.fkDisplayField}
+                                    selected={record[field.field]}
+                                  />
+                                )}
+
+                              {field.type === "file" && (
+                                <>
+                                  {recordId &&
+                                    record[field.field] &&
+                                    (typeof record[field.field] === "string" ||
+                                      record[field.field] instanceof
+                                        String) && (
+                                      <>
+                                        <p>{record[field.field].toString()}</p>
+                                        <button
+                                          type="button"
+                                          className="inline-flex my-2 justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                          onClick={() =>
+                                            setFormValue(field.field, null)
+                                          }
+                                        >
+                                          Replace
+                                        </button>
+                                      </>
+                                    )}
+                                  {(!recordId ||
+                                    (typeof record[field.field] !== "string" &&
+                                      !(
+                                        record[field.field] instanceof String
+                                      ))) && (
+                                    <input
+                                      type="file"
+                                      name={field.field}
+                                      onChange={(e) =>
+                                        setFormValue(
+                                          field.field,
+                                          e.target.files[0]
+                                        )
+                                      }
+                                    />
+                                  )}
+                                </>
                               )}
-                              defaultValue={record[field.field]}
-                            />
+
+                              {field.type === "foreignkey" &&
+                                !relatedTables[field.field] && (
+                                  <LoadingSkeleton />
+                                )}
+                              {field.type === "foreignkey" &&
+                                relatedTables[field.field] &&
+                                (recordId && field.readOnlyOnEdit ? (
+                                  // Field is read-only on edit
+                                  <>
+                                    <input
+                                      type="text"
+                                      name={field.field + "_display"}
+                                      id={field.field + "Field"}
+                                      readOnly
+                                      disabled
+                                      className={classNames(
+                                        formErrors[field.field]
+                                          ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                                          : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                      )}
+                                      defaultValue={
+                                        relatedTables[field.field].find(
+                                          (obj) =>
+                                            obj.id === record[field.field]
+                                        )[field.fkDisplayField]
+                                      }
+                                    />
+                                    <input
+                                      type="hidden"
+                                      name={field.field}
+                                      defaultValue={record[field.field]}
+                                    ></input>
+                                  </>
+                                ) : (
+                                  // Field is chosen using select
+                                  <ComboBox
+                                    onChange={(val) =>
+                                      setFormValue(field.field, val)
+                                    }
+                                    multiple={false}
+                                    options={relatedTables[field.field]}
+                                    field={field.field}
+                                    displayField={field.fkDisplayField}
+                                    selected={record[field.field]}
+                                  />
+                                  // <select
+                                  //   name={field.field}
+                                  //   id={field.field + "Field"}
+                                  //   className={classNames(
+                                  //     formErrors[field.field]
+                                  //       ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                                  //       : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                  //   )}
+                                  //   defaultValue={
+                                  //     record[field.field] ||
+                                  //     query.get(field.field + "_id")
+                                  //   }
+                                  // >
+                                  //   {/* <option value="">Not specified</option> */}
+                                  //   {Object.values(relatedTables[field.field]).map(
+                                  //     (opt) => (
+                                  //       <option
+                                  //         key={field.field + "_" + opt.id}
+                                  //         value={opt.id}
+                                  //       >
+                                  //         {opt[field.fkDisplayField]}
+                                  //       </option>
+                                  //     )
+                                  //   )}
+                                  // </select>
+                                ))}
+
+                              {field.type === "textarea" && (
+                                <textarea
+                                  name={field.field}
+                                  id={field.field + "Field"}
+                                  rows={3}
+                                  className={classNames(
+                                    formErrors[field.field]
+                                      ? "max-w-lg shadow-sm block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"
+                                      : "max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md"
+                                  )}
+                                  defaultValue={record[field.field]}
+                                />
+                              )}
+
+                              {field.type === "date" && (
+                                <input
+                                  type="date"
+                                  name={field.field}
+                                  id={field.field + "Field"}
+                                  className={classNames(
+                                    formErrors[field.field]
+                                      ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                                      : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                  )}
+                                  defaultValue={record[field.field]}
+                                />
+                              )}
+                            </>
                           )}
                         </div>
                         {formErrors[field.field] && (
