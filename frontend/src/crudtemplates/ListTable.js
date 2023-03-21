@@ -11,6 +11,13 @@ const loadingSkeleton = [
   { showInTable: true, id: "-3" },
 ];
 
+const randomWidth = () => {
+  let choices = [12, 16, 24, 32];
+  var index = Math.floor(Math.random() * choices.length);
+  console.log("w-" + choices[index]);
+  return "w-" + choices[index];
+};
+
 const ListTable = (props) => {
   const [records, setRecords] = useState(loadingSkeleton);
   const { recordId } = useParams();
@@ -133,7 +140,12 @@ const ListTable = (props) => {
                             </NavLink>
                           )}
                           {loading && (
-                            <div className="h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                            <div
+                              className={
+                                randomWidth() +
+                                " h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"
+                              }
+                            ></div>
                           )}
                         </td>
                         {props.schema.fields
@@ -153,7 +165,12 @@ const ListTable = (props) => {
                             >
                               {!loading && displayField(dataField, record)}
                               {loading && (
-                                <div className="h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                                <div
+                                  className={
+                                    randomWidth() +
+                                    " h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"
+                                  }
+                                ></div>
                               )}
                             </td>
                           ))}
