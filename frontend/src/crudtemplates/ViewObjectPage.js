@@ -10,6 +10,7 @@ const ViewObjectPage = (props) => {
   const [record, setRecord] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteInProgress, setDeleteInProgress] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { recordId } = useParams();
   const navigate = useNavigate();
 
@@ -66,20 +67,26 @@ const ViewObjectPage = (props) => {
         },
       })
         .then((res) => {
-          res.json().then((data) => {
-            if (res.status === 404) {
-              props.onSetError("404 object not found");
-            } else {
-              setRecord(data);
-            }
-          });
+          res.json().then(
+            (data) => {
+              if (res.status === 404) {
+                props.onSetError("404 object not found");
+              } else {
+                setRecord(data);
+              }
+              setLoading(false);
+            },
+            () => setLoading(false)
+          );
         })
         .catch((err) => {
           Sentry.captureException(err);
           props.onSetError(err.toString());
+          setLoading(false);
         });
     };
 
+    setLoading(true);
     refreshRecord();
   }, [props, recordId]);
 
@@ -136,7 +143,10 @@ const ViewObjectPage = (props) => {
                   {field.label}
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                  {displayField(field, record)}
+                  {!loading && displayField(field, record)}
+                  {loading && (
+                    <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                  )}
                 </dd>
               </div>
             ))}
