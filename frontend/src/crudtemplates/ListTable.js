@@ -153,7 +153,7 @@ const ListTable = (props) => {
                             >
                               {!loading && displayField(dataField, record)}
                               {loading && (
-                                <div class="h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                                <div className="h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
                               )}
                             </td>
                           ))}
