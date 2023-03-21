@@ -1,4 +1,5 @@
 import {
+  DocumentIcon,
   DocumentPlusIcon,
   DocumentTextIcon,
   DocumentMinusIcon,
@@ -36,11 +37,20 @@ const formatDate = (dateString) => {
   );
 };
 
+const loadingSkeleton = [
+  { action: -1, object_id: -1 },
+  { action: -1, object_id: -2 },
+];
+
 const AuditLog = (props) => {
   const [auditLog, setAuditLog] = useState();
+  const [loading, setLoading] = useState(true);
   const { recordId } = useParams();
 
   useEffect(() => {
+    setLoading(true);
+    setAuditLog(loadingSkeleton);
+
     fetch(
       config.url.API_URL + props.schema.apiUrl + "/" + recordId + "/auditlog/",
       {
@@ -51,19 +61,28 @@ const AuditLog = (props) => {
       }
     )
       .then((res) => {
-        res.json().then((data) => {
-          if (res.status === 404) {
-            props.onSetError("404 object not found");
-          } else {
-            // Put logs in chronological order
-            data = data.reverse();
-            setAuditLog(data);
+        res.json().then(
+          (data) => {
+            if (res.status === 404) {
+              props.onSetError("404 object not found");
+            } else {
+              // Put logs in chronological order
+              data = data.reverse();
+              setAuditLog(data);
+              setLoading(false);
+            }
+          },
+          () => {
+            setAuditLog([]);
+            setLoading(false);
           }
-        });
+        );
       })
       .catch((err) => {
         Sentry.captureException(err);
         props.onSetError(err.toString());
+        setAuditLog([]);
+        setLoading(false);
       });
   }, [props, recordId]);
 
@@ -96,10 +115,17 @@ const AuditLog = (props) => {
                     <div>
                       <span
                         className={classNames(
-                          auditLogIconColours[logEntry.action],
+                          auditLogIconColours[logEntry.action] ||
+                            "bg-gray-300 shadow animate-pulse",
                           "h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white"
                         )}
                       >
+                        {logEntry.action === -1 && (
+                          <DocumentIcon
+                            className="h-5 w-5 text-white"
+                            aria-hidden="true"
+                          />
+                        )}
                         {logEntry.action === 0 && (
                           <DocumentPlusIcon
                             className="h-5 w-5 text-white"
@@ -128,20 +154,29 @@ const AuditLog = (props) => {
                     </div>
                     <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1">
                       <div>
-                        <p className="text-gray-500">
-                          {capitaliseFirstLetter(props.schema.objectName)}{" "}
-                          <span className="font-medium text-gray-900">
-                            {auditLogActions[logEntry.action]}
-                          </span>
-                          {" by "}
-                          <span className="font-medium text-gray-900">
-                            {logEntry.actor_username}
-                            {" ("}
-                            {logEntry.actor_email}
-                            {")"}
-                          </span>
-                          <br className="mb-2" />
-                        </p>
+                        {loading && (
+                          <>
+                            <div className="mt-2 h-2.5 bg-gray-300 w-96 rounded-full rounded shadow animate-pulse"></div>
+                            <br />
+                            <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                          </>
+                        )}
+                        {!loading && (
+                          <p className="text-gray-500">
+                            {capitaliseFirstLetter(props.schema.objectName)}{" "}
+                            <span className="font-medium text-gray-900">
+                              {auditLogActions[logEntry.action]}
+                            </span>
+                            {" by "}
+                            <span className="font-medium text-gray-900">
+                              {logEntry.actor_username}
+                              {" ("}
+                              {logEntry.actor_email}
+                              {")"}
+                            </span>
+                            <br className="mb-2" />
+                          </p>
+                        )}
                         {(logEntry.action === 0 || logEntry.action === 1) &&
                           Object.keys(logEntry.changes_dict)
                             .filter((field) => !skipFields.includes(field))
@@ -210,9 +245,17 @@ const AuditLog = (props) => {
                               </p>
                             ))}
                       </div>
+
                       <div className="whitespace-nowrap text-right text-sm text-gray-500">
                         <time dateTime={logEntry.timestamp}>
-                          {formatDate(logEntry.timestamp)}
+                          {loading && (
+                            <>
+                              <div className="h-2.5 mt-1 bg-gray-300 w-36 rounded-full rounded shadow animate-pulse"></div>
+                              <br />
+                              <div className="h-2.5 bg-gray-300 w-18 rounded-full -mt-2 ml-12 mb-2.5 rounded shadow animate-pulse"></div>
+                            </>
+                          )}
+                          {!loading && formatDate(logEntry.timestamp)}
                         </time>
                       </div>
                     </div>
