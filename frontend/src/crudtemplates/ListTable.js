@@ -133,9 +133,11 @@ const ListTable = (props) => {
                             <NavLink
                               to={props.schema.viewUrl + "/" + record.id}
                             >
-                              {displayField(props.schema.fields[0], record) || (
-                                <em>None</em>
-                              )}
+                              {displayField(
+                                props.schema.fields[0],
+                                record,
+                                "ListTable"
+                              ) || <em>None</em>}
                             </NavLink>
                           )}
                           {loading && (
@@ -162,7 +164,8 @@ const ListTable = (props) => {
                               }
                               className="whitespace-nowrap px-3 py-4 text-sm text-gray-500"
                             >
-                              {!loading && displayField(dataField, record)}
+                              {!loading &&
+                                displayField(dataField, record, "ListTable")}
                               {loading && (
                                 <div
                                   className={

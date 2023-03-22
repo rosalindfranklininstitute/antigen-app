@@ -144,6 +144,10 @@ const antigenSchema = {
       field: "uniprot_id",
       type: "text",
       showInTable: true,
+      viewPageExtLink: {
+        template: "https://www.uniprot.org/uniprotkb/{value}/entry",
+        contexts: ["ViewObjectPage"],
+      },
       tableColWidth: "w-1/5",
     },
     {

@@ -1,4 +1,5 @@
 import { useRef, useEffect } from "react";
+import { LinkIcon } from "@heroicons/react/20/solid";
 
 const elisaHeader = [
   "",
@@ -59,7 +60,30 @@ const elisaPlateOpticalDensityMap = (elisaValues) => {
   );
 };
 
-export const displayFieldSingle = (field, record) => {
+const makeExtLink = (value, linkTemplate, context) => {
+  if (
+    linkTemplate.contexts.includes(context) &&
+    value !== null &&
+    value !== ""
+  ) {
+    return (
+      <>
+        {value}{" "}
+        <a
+          target="_blank"
+          rel="noreferrer"
+          href={linkTemplate.template.replace("{value}", value)}
+        >
+          <LinkIcon className="inline ml-1 -mt-0.5 h-4 w-4 text-indigo-600" />
+        </a>
+      </>
+    );
+  } else {
+    return value;
+  }
+};
+
+export const displayFieldSingle = (field, record, context) => {
   if (field.fkApiField) {
     if (!Array.isArray(record[field.fkApiField])) {
       return record[field.field];
@@ -74,16 +98,22 @@ export const displayFieldSingle = (field, record) => {
     return elisaPlateOpticalDensityMap(
       record[field.field].map((well) => well["optical_density"])
     );
+  } else if (field.viewPageExtLink) {
+    return makeExtLink(record[field.field], field.viewPageExtLink, context);
   } else {
     return record[field.field];
   }
 };
 
-export const displayField = (field, record) => {
+export const displayField = (field, record, context) => {
   if (field.type !== "elisaplate" && Array.isArray(record[field.field])) {
     return record[field.field]
       .map((valEach) =>
-        displayFieldSingle(field, { ...record, [field.field]: valEach })
+        displayFieldSingle(
+          field,
+          { ...record, [field.field]: valEach },
+          context
+        )
       )
       .reduce(
         (acc, x) =>
@@ -97,7 +127,7 @@ export const displayField = (field, record) => {
         null
       );
   } else {
-    return displayFieldSingle(field, record);
+    return displayFieldSingle(field, record, context);
   }
 };
 
