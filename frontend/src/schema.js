@@ -210,11 +210,6 @@ const elisaSchema = {
       type: "elisaplate",
       hideOnForm: true,
     },
-    {
-      label: "Optical Density Threshold",
-      field: "optical_density_threshold",
-      type: "text",
-    },
     { label: "Antibody", field: "antibody", type: "text" },
     { label: "Pan round", field: "pan_round", type: "text" },
     { label: "Added by", field: "added_by", hideOnForm: true },

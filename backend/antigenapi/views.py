@@ -4,7 +4,9 @@ import urllib.parse
 
 from auditlog.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
+from django.db import transaction
 from django.db.models.deletion import ProtectedError
+from django.db.utils import IntegrityError
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -27,6 +29,9 @@ from antigenapi.models import (
     Llama,
     PlateLocations,
     Project,
+    SequencingRun,
+    SequencingRunPlateThreshold,
+    SequencingRunWell,
 )
 from antigenapi.utils.uniprot import get_protein
 
@@ -63,7 +68,6 @@ class DeleteProtectionMixin(object):
             return super().destroy(request, *args, **kwargs)
         except ProtectedError as protected_error:
             protected_elements = set()
-            print(protected_error)
             for obj in protected_error.protected_objects:
                 if isinstance(obj, ElisaWell):
                     protected_elements.add(str(obj.plate))
@@ -115,7 +119,6 @@ class ProjectViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     def perform_create(self, serializer):
         """Overload the perform_create method."""
         serializer.save(added_by=self.request.user)
-        super(ProjectViewSet, self).perform_create(serializer)
 
 
 # Llamas #
@@ -138,7 +141,6 @@ class LlamaViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
-        super(LlamaViewSet, self).perform_create(serializer)
 
 
 # Library #
@@ -164,8 +166,10 @@ class LibraryViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     filterset_fields = ("project",)
 
     def perform_create(self, serializer):  # noqa: D102
-        serializer.save(added_by=self.request.user)
-        super(LibraryViewSet, self).perform_create(serializer)
+        try:
+            serializer.save(added_by=self.request.user)
+        except IntegrityError as e:
+            raise ValidationError({"non_field_errors": [str(e)]})
 
 
 class AntigenSerializer(ModelSerializer):
@@ -202,11 +206,14 @@ class AntigenSerializer(ModelSerializer):
                     )
                 else:
                     raise
-            if data.get("sequence", "").strip() == "":
+            if not data.get("sequence") or data.get("sequence").strip() == "":
                 data["sequence"] = protein_data["sequence"]["$"]
             if data.get("molecular_mass") is None:
                 data["molecular_mass"] = protein_data["sequence"]["@mass"]
-            if data.get("preferred_name", "").strip() == "":
+            if (
+                not data.get("preferred_name")
+                or data.get("preferred_name").strip() == ""
+            ):
                 try:
                     data["preferred_name"] = protein_data["protein"]["recommendedName"][
                         "fullName"
@@ -217,7 +224,10 @@ class AntigenSerializer(ModelSerializer):
                     # TODO: Further error checking that name list is set
                     data["preferred_name"] = protein_data["name"][0]
         else:
-            if not data.get("preferred_name", "").strip():
+            if (
+                not data.get("preferred_name")
+                or data.get("preferred_name", "").strip() == ""
+            ):
                 raise ValidationError(
                     {"preferred_name": "Need either a UniProt ID or a preferred name"}
                 )
@@ -232,7 +242,6 @@ class AntigenViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
-        super(AntigenViewSet, self).perform_create(serializer)
 
 
 # Cohort #
@@ -259,7 +268,6 @@ class CohortViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
-        super(CohortViewSet, self).perform_create(serializer)
 
 
 # ELISA plates #
@@ -283,9 +291,7 @@ class ElisaPlateSerializer(ModelSerializer):
     )
     added_by = StringRelatedField()
     elisawell_set = NestedElisaWellSerializer(many=True, required=False)
-    antigen = PrimaryKeyRelatedField(
-        queryset=Antigen.objects.all(), write_only=True
-    )  # TODO: Filter by antigens in the library
+    antigen = PrimaryKeyRelatedField(queryset=Antigen.objects.all(), write_only=True)
     read_only_fields = [
         "library_cohort_cohort_num",
         "elisawell_set",
@@ -307,18 +313,24 @@ class ElisaPlateSerializer(ModelSerializer):
                 raise ValidationError({"plate_file": e})
         return data
 
+    @staticmethod
+    def _create_wells(plate, antigen, well_set):
+        ElisaWell.objects.bulk_create(
+            ElisaWell(plate=plate, optical_density=od, location=loc, antigen=antigen)
+            for (od, loc) in zip(well_set, PlateLocations)
+        )
+
+    @transaction.atomic
     def create(self, validated_data):
         """Create plate. For now, every well shares the same antigen."""
         antigen = validated_data.pop("antigen")
         well_set = validated_data.pop("elisawell_set")
         validated_data["plate_file"].seek(0)
         plate = super(ElisaPlateSerializer, self).create(validated_data)
-        ElisaWell.objects.bulk_create(
-            ElisaWell(plate=plate, optical_density=od, location=loc, antigen=antigen)
-            for (od, loc) in zip(well_set, PlateLocations)
-        )
+        self._create_wells(plate, antigen, well_set)
         return plate
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         """Update plate. For now, every well shares the same antigen."""
         antigen = validated_data["antigen"]
@@ -332,17 +344,13 @@ class ElisaPlateSerializer(ModelSerializer):
             except ValueError:
                 # File has already been read during create, so skip it
                 validated_data.pop("plate_file")
+                well_set = None
         plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
         if well_set is not None:
             # Faster, fewer DB queries to bulk delete & re-insert
             # than conditionally update
             ElisaWell.objects.filter(plate=plate).delete()
-            ElisaWell.objects.bulk_create(
-                ElisaWell(
-                    plate=plate, optical_density=od, location=loc, antigen=antigen
-                )
-                for (od, loc) in zip(well_set, PlateLocations)
-            )
+            self._create_wells(plate, antigen, well_set)
         return instance
 
 
@@ -355,4 +363,116 @@ class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
-        super(ElisaPlateViewSet, self).perform_create(serializer)
+
+
+# Sequencing runs #
+class SequencingRunPlateSerializer(ModelSerializer):
+    """A serializer for elisa plate thresholds within a sequencing run."""
+
+    class Meta:  # noqa: D106
+        model = SequencingRunPlateThreshold
+        exclude = ("id", "sequencing_run")
+
+
+class ElisaWellInlineSerializer(ModelSerializer):
+    """A serializer to represent elisa wells by plate id and location."""
+
+    class Meta:  # noqa: D106
+        model = ElisaWell
+        fields = ("plate", "location")
+
+
+class SequencingRunWellSerializer(ModelSerializer):
+    """A serializer for wells on a sequencing run plate."""
+
+    elisa_well = ElisaWellInlineSerializer()
+
+    class Meta:  # noqa: D106
+        model = SequencingRunWell
+        exclude = ("id", "sequencing_run")
+
+
+class SequencingRunSerializer(ModelSerializer):
+    """A serializer for sequencing runs."""
+
+    added_by = StringRelatedField()
+    plate_thresholds = SequencingRunPlateSerializer(
+        source="sequencingrunplatethreshold_set", many=True
+    )
+    wells = SequencingRunWellSerializer(source="sequencingrunwell_set", many=True)
+
+    class Meta:  # noqa: D106
+        model = SequencingRun
+        fields = "__all__"
+        read_only_fields = ["added_by", "added_date"]
+
+    @staticmethod
+    def _create_plate_thresholds(seq_run, plate_thresholds):
+        SequencingRunPlateThreshold.objects.bulk_create(
+            SequencingRunPlateThreshold(
+                sequencing_run=seq_run,
+                elisa_plate=plate_thresh["elisa_plate"],
+                optical_density_threshold=plate_thresh["optical_density_threshold"],
+            )
+            for plate_thresh in plate_thresholds
+        )
+
+    @staticmethod
+    def _create_wells(seq_run, wells):
+        # TODO: Multiple plate support
+        if any(w["plate"] != 0 for w in wells):
+            raise ValidationError({"wells": {"plate": "Plate must be 0"}})
+
+        SequencingRunWell.objects.bulk_create(
+            SequencingRunWell(
+                sequencing_run=seq_run,
+                plate=well["plate"],
+                location=well["location"],
+                elisa_well=ElisaWell.objects.get(
+                    plate=well["elisa_well"]["plate"],
+                    location=well["elisa_well"]["location"],
+                ),
+            )
+            for well in wells
+        )
+
+    @transaction.atomic
+    def create(self, validated_data):
+        """Create sequencing run."""
+        plate_thresholds = validated_data.pop("plate_thresholds")
+        wells = validated_data.pop("wells")
+        seq_run = super(SequencingRunSerializer, self).create(validated_data)
+        if plate_thresholds is not None:
+            self._create_plate_thresholds(seq_run, plate_thresholds)
+        if wells is not None:
+            self._create_wells(seq_run, wells)
+
+        return seq_run
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        """Update sequencing run."""
+        plate_thresholds = validated_data.pop("plate_thresholds", None)
+        wells = validated_data.pop("wells", None)
+        instance = super(SequencingRunSerializer, self).update(instance, validated_data)
+        if plate_thresholds is not None:
+            # Faster, fewer DB queries to bulk delete & re-insert
+            # than conditionally update
+            SequencingRunPlateThreshold.objects.filter(sequencing_run=instance).delete()
+            self._create_plate_thresholds(instance, plate_thresholds)
+        if wells is not None:
+            # Faster, fewer DB queries to bulk delete & re-insert
+            # than conditionally update
+            SequencingRunWell.objects.filter(sequencing_run=instance).delete()
+            self._create_wells(instance, wells)
+        return instance
+
+
+class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
+    """A view set for sequencing runs."""
+
+    queryset = SequencingRun.objects.all()
+    serializer_class = SequencingRunSerializer
+
+    def perform_create(self, serializer):  # noqa: D102
+        serializer.save(added_by=self.request.user)

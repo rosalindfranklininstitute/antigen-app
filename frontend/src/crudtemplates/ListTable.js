@@ -14,7 +14,6 @@ const loadingSkeleton = [
 const randomWidth = () => {
   let choices = [12, 16, 24, 32];
   var index = Math.floor(Math.random() * choices.length);
-  console.log("w-" + choices[index]);
   return "w-" + choices[index];
 };
 

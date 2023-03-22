@@ -8,6 +8,7 @@ from antigenapi.views import (
     LibraryViewSet,
     LlamaViewSet,
     ProjectViewSet,
+    SequencingRunViewSet,
 )
 
 router = DefaultRouter()
@@ -17,6 +18,7 @@ router.register("project", ProjectViewSet)
 router.register("library", LibraryViewSet)
 router.register("antigen", AntigenViewSet)
 router.register("elisa_plate", ElisaPlateViewSet)
+router.register("sequencingrun", SequencingRunViewSet)
 
 
 urlpatterns = [
