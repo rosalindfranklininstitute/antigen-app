@@ -161,7 +161,7 @@ const antigenSchema = {
       formHint: "Leave blank to populate from UniProt",
     },
     {
-      label: "Molecular mass",
+      label: "Molecular mass (Da)",
       field: "molecular_mass",
       type: "text",
       formHint: "Leave blank to populate from UniProt",
