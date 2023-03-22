@@ -224,7 +224,7 @@ const AddEditObjectPage = (props) => {
 
   return (
     <div>
-      {recordId && error === 404 && <p>404 Not found</p>}
+      {error === 404 && <p>404 Not found</p>}
       {error !== 404 && (
         <>
           <OkCancelDialog
@@ -237,6 +237,13 @@ const AddEditObjectPage = (props) => {
             dialogTitle="Discard changes"
             dialogMessage="Leave this page and discard any changes?"
           />
+          {formErrors["non_field_errors"] && (
+            <ul className="p-4 mb-4 block w-full bg-red-100 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md">
+              {formErrors["non_field_errors"].map((err) => (
+                <li key={err}>{err}</li>
+              ))}
+            </ul>
+          )}
           <div className="bg-white shadow overflow-y-visible sm:rounded-lg">
             <form id="recordForm">
               <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
@@ -388,31 +395,6 @@ const AddEditObjectPage = (props) => {
                                     displayField={field.fkDisplayField}
                                     selected={record[field.field]}
                                   />
-                                  // <select
-                                  //   name={field.field}
-                                  //   id={field.field + "Field"}
-                                  //   className={classNames(
-                                  //     formErrors[field.field]
-                                  //       ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                                  //       : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                                  //   )}
-                                  //   defaultValue={
-                                  //     record[field.field] ||
-                                  //     query.get(field.field + "_id")
-                                  //   }
-                                  // >
-                                  //   {/* <option value="">Not specified</option> */}
-                                  //   {Object.values(relatedTables[field.field]).map(
-                                  //     (opt) => (
-                                  //       <option
-                                  //         key={field.field + "_" + opt.id}
-                                  //         value={opt.id}
-                                  //       >
-                                  //         {opt[field.fkDisplayField]}
-                                  //       </option>
-                                  //     )
-                                  //   )}
-                                  // </select>
                                 ))}
 
                               {field.type === "textarea" && (
