@@ -39,12 +39,12 @@ const ComboBox = (props) => {
               optIds = [optIds];
             }
             return optIds
-              .map(
-                (optId) =>
-                  props.options.find((availOpt) => availOpt.id === optId)[
-                    props.displayField
-                  ]
-              )
+              .map((optId) => {
+                let opt = props.options.find(
+                  (availOpt) => availOpt.id === optId
+                );
+                return opt !== undefined ? opt[props.displayField] : "";
+              })
               .join(", ");
           }}
         />
