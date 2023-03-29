@@ -286,6 +286,9 @@ class ElisaPlateSerializer(ModelSerializer):
     contained within it.
     """
 
+    project_short_title = CharField(
+        source="library.project.short_title", read_only=True
+    )
     library_cohort_cohort_num = CharField(
         source="library.cohort.cohort_num", required=False
     )
@@ -400,6 +403,7 @@ class SequencingRunSerializer(ModelSerializer):
         source="sequencingrunplatethreshold_set", many=True
     )
     wells = SequencingRunWellSerializer(source="sequencingrunwell_set", many=True)
+    results_file = FileField(use_url=False)
 
     class Meta:  # noqa: D106
         model = SequencingRun

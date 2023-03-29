@@ -424,6 +424,8 @@ const AddEditObjectPage = (props) => {
                                   defaultValue={record[field.field]}
                                 />
                               )}
+
+                              {field.type === "sequencingplate" && <b>Test</b>}
                             </>
                           )}
                         </div>

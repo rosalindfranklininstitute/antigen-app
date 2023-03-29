@@ -227,6 +227,55 @@ const elisaSchema = {
   ],
 };
 
+const sequencingRuns = {
+  apiUrl: "/sequencingrun",
+  viewUrl: "/sequencing",
+  objectName: "sequencing run",
+  fields: [
+    {
+      label: "Added date",
+      field: "added_date",
+      hideOnForm: true,
+      showInTable: true,
+      tableColWidth: "w-1/5",
+    },
+    { label: "Added by", field: "added_by", hideOnForm: true },
+    {
+      label: "Plate thresholds",
+      field: "plate_thresholds",
+      type: "platethreshold",
+      hideOnForm: true,
+    },
+    {
+      label: "Plate layout",
+      field: "wells",
+      type: "sequencingplate",
+    },
+    {
+      label: "Notes",
+      field: "notes",
+      type: "textarea",
+      showInTable: true,
+      tableColWidth: "w-4/5",
+    },
+    {
+      label: "Sent out date",
+      field: "sent_date",
+      type: "date",
+    },
+    {
+      label: "Results received date",
+      field: "results_date",
+      type: "date",
+    },
+    {
+      label: "Results file",
+      field: "results_file",
+      type: "file",
+    },
+  ],
+};
+
 const schemas = {
   project: projectSchema,
   cohort: cohortSchema,
@@ -234,6 +283,7 @@ const schemas = {
   antigen: antigenSchema,
   elisa: elisaSchema,
   library: librarySchema,
+  sequencing: sequencingRuns,
 };
 
 export default schemas;

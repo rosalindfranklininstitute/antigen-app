@@ -37,6 +37,7 @@ const navigation = [
   { name: "Projects", href: "/projects" },
   { name: "Antigens", href: "/antigens" },
   { name: "Llamas", href: "/llamas" },
+  { name: "Sequencing", href: "/sequencing" },
 ];
 const userNavigation = [
   // { name: 'Your Profile', href: '#' },
@@ -684,6 +685,68 @@ const App = () => {
                 </HeadedPage>
               }
             />
+
+            {/* Sequencing */}
+            <Route
+              exact
+              path="/sequencing"
+              element={
+                <HeadedPage title="Sequencing Runs">
+                  <ListTable
+                    schema={schemas.sequencing}
+                    onSetError={setError}
+                  ></ListTable>
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/sequencing/add"
+              element={
+                <HeadedPage title="Add Sequencing Run">
+                  <AddEditObjectPage
+                    onSetError={setError}
+                    schema={schemas.sequencing}
+                    csrfToken={csrfToken}
+                  ></AddEditObjectPage>
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/sequencing/:recordId"
+              element={
+                <HeadedPage title="View Sequencing Run">
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="Sequencing Run Information"
+                      schema={schemas.sequencing}
+                      onSetError={setError}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.sequencing}
+                      onSetError={setError}
+                    ></AuditLog>
+                  </Tabs>
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/sequencing/:recordId/edit"
+              element={
+                <HeadedPage title="Edit Sequencing Run">
+                  <AddEditObjectPage
+                    schema={schemas.sequencing}
+                    csrfToken={csrfToken}
+                    onSetError={setError}
+                  ></AddEditObjectPage>
+                </HeadedPage>
+              }
+            />
+
             <Route
               path="*"
               element={
