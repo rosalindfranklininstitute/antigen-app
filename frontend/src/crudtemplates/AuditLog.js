@@ -181,7 +181,7 @@ const AuditLog = (props) => {
                           Object.keys(logEntry.changes_dict)
                             .filter((field) => !skipFields.includes(field))
                             .map((fieldName, index) => (
-                              <p className="text-sm text-gray-500" key={index}>
+                              <p className="text-sm text-gray-500 break-all" key={index}>
                                 <span className="text-black">{fieldName}</span>{" "}
                                 {logEntry.action === 0 && "set "}
                                 {logEntry.action === 1 &&
