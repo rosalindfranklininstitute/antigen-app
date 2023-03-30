@@ -1,4 +1,4 @@
-FROM registry.hub.docker.com/library/node:16-alpine as build-stage
+FROM registry.hub.docker.com/library/node:18-alpine as build-stage
 
 ENV ANTIGENAPP_DIR /antigenapp
 
