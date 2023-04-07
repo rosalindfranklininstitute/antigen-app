@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 from pathlib import Path
 from typing import List
+from urllib.parse import urlparse
 
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -178,12 +179,34 @@ AUTHENTICATION_BACKENDS = (
 # Allow cross origin requests
 CORS_ORIGIN_ALLOW_ALL = True
 
+
+def filter_transactions(event, hint):
+    """Sentry should ignore kubernetes probes."""
+    try:
+        user_agent = event["request"]["headers"]["User-Agent"]
+    except KeyError:
+        return event
+
+    url_string = event["request"]["url"]
+    parsed_url = urlparse(url_string)
+
+    if (
+        user_agent
+        and user_agent.startswith("kube-probe")
+        and parsed_url.path == "/api/"
+    ):
+        return None
+
+    return event
+
+
 if "SENTRY_DSN" in os.environ:
     sentry_sdk.init(
         dsn=os.environ["SENTRY_DSN"],
         integrations=[
             DjangoIntegration(),
         ],
+        before_send_transaction=filter_transactions,
         # Set traces_sample_rate to 1.0 to capture 100%
         # of transactions for performance monitoring.
         # We recommend adjusting this value in production.
