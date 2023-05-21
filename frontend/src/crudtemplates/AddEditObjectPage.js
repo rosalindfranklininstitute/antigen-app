@@ -5,6 +5,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { OkCancelDialog } from "../OkCancelDialog.js";
 import ComboBox from "./ComboBox.js";
 import * as Sentry from "@sentry/browser";
+import SequencingPlateLayout from "./SequencingPlateLayout.js";
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
@@ -153,6 +154,15 @@ const AddEditObjectPage = (props) => {
       .filter((field) => field.type === "foreignkey")
       .map((field) => formData.append(field.field, record[field.field]));
 
+    // deal with plate thresholds manually
+    if (props.schema.viewUrl === "/sequencing") {
+      formData.append(
+        "plate_thresholds",
+        JSON.stringify(record["plate_thresholds"])
+      );
+      formData.append("wells", JSON.stringify(record["wells"]));
+    }
+
     // Submit request
     fetch(
       config.url.API_URL +
@@ -259,7 +269,7 @@ const AddEditObjectPage = (props) => {
                           "_" +
                           recordId
                         }
-                        className="py-2 sm:py-2 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
+                        className="py-2 sm:py-2 sm:grid sm:grid-cols-5 sm:gap-4 sm:px-6"
                       >
                         <label
                           htmlFor={field.field}
@@ -272,7 +282,7 @@ const AddEditObjectPage = (props) => {
                             </p>
                           )}
                         </label>
-                        <div className="mt-1">
+                        <div className="mt-1 col-span-3">
                           {loading && <LoadingSkeleton />}
                           {!loading && (
                             <>
@@ -404,8 +414,8 @@ const AddEditObjectPage = (props) => {
                                   rows={3}
                                   className={classNames(
                                     formErrors[field.field]
-                                      ? "max-w-lg shadow-sm block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                                      : "max-w-lg shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md"
+                                      ? "max-w shadow-sm block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"
+                                      : "max-w shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md"
                                   )}
                                   defaultValue={record[field.field]}
                                 />
@@ -425,7 +435,21 @@ const AddEditObjectPage = (props) => {
                                 />
                               )}
 
-                              {field.type === "sequencingplate" && <b>Test</b>}
+                              {field.type === "sequencingplate" && (
+                                <SequencingPlateLayout
+                                  setError={props.onSetError}
+                                  plateThresholds={
+                                    record ? record["plate_thresholds"] : []
+                                  }
+                                  setPlateThresholds={(thr) =>
+                                    setFormValue("plate_thresholds", thr)
+                                  }
+                                  wells={record ? record["wells"] : []}
+                                  setWells={(wells) =>
+                                    setFormValue("wells", wells)
+                                  }
+                                />
+                              )}
                             </>
                           )}
                         </div>

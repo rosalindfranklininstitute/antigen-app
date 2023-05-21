@@ -33,7 +33,7 @@ const displayTogetherFieldTypes = [
   "platethreshold",
 ];
 
-const plateMapOfValues = (elisaValues) => {
+export const plateMapOfValues = (elisaValues, colors) => {
   return (
     <table className="w-full table-fixed border-collapse border border-slate-500 mt-4">
       <thead>
@@ -62,7 +62,12 @@ const plateMapOfValues = (elisaValues) => {
               ) : (
                 <td
                   key={"elisaCell_" + rowIdx + "_" + colIdx}
-                  className="border border-slate-600"
+                  className={
+                    "border border-slate-600" +
+                    (typeof colors !== "undefined"
+                      ? " " + colors[rowIdx * 12 + colIdx - 1]
+                      : "")
+                  }
                 >
                   {elisaValues ? elisaValues[rowIdx * 12 + colIdx - 1] : ""}
                 </td>

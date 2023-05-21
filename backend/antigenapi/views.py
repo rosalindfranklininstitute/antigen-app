@@ -1,4 +1,5 @@
 import collections.abc
+import json
 import urllib.error
 import urllib.parse
 
@@ -410,12 +411,33 @@ class SequencingRunSerializer(ModelSerializer):
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
 
+    def to_internal_value(self, data):
+        new_data = super(SequencingRunSerializer, self).to_internal_value(data)
+
+        if "plate_thresholds" in data:
+            try:
+                new_data["plate_thresholds"] = json.loads(data.get("plate_thresholds"))
+            except ValueError:
+                raise ValidationError("Error parsing plate thresholds")
+
+        if "wells" in data:
+            try:
+                new_data["wells"] = json.loads(data.get("wells"))
+            except ValueError:
+                raise ValidationError("Error parsing wells")
+
+        return new_data
+
     @staticmethod
     def _create_plate_thresholds(seq_run, plate_thresholds):
         SequencingRunPlateThreshold.objects.bulk_create(
             SequencingRunPlateThreshold(
                 sequencing_run=seq_run,
-                elisa_plate=plate_thresh["elisa_plate"],
+                elisa_plate_id=(
+                    plate_thresh["elisa_plate"].id
+                    if isinstance(plate_thresh["elisa_plate"], ElisaPlate)
+                    else plate_thresh["elisa_plate"]
+                ),
                 optical_density_threshold=plate_thresh["optical_density_threshold"],
             )
             for plate_thresh in plate_thresholds
