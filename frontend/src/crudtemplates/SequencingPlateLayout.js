@@ -56,6 +56,34 @@ const SequencingPlateLayout = (props) => {
     return colors;
   };
 
+  const setWells = (newPlateThresholds) => {
+    let wells = [];
+    let pos = 1;
+    let plateIdx = 0;
+    for (let i = 0; i < newPlateThresholds.length; i++) {
+      let plateId = newPlateThresholds[i].elisa_plate;
+      let thresh = newPlateThresholds[i].optical_density_threshold;
+      let plate = elisaPlates.find((plate) => (plate.id = plateId));
+      for (let w = 0; w < plate.elisawell_set.length; w++) {
+        if (plate.elisawell_set[w].optical_density < thresh) continue;
+        wells.push({
+          elisa_well: {
+            plate: plateId,
+            location: w + 1,
+          },
+          plate: plateIdx,
+          location: pos,
+        });
+        pos++;
+        if (pos > 96) {
+          pos = 1;
+          plateIdx++;
+        }
+      }
+    }
+    props.setWells(wells);
+  };
+
   useEffect(() => {
     fetchElisaPlates();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -75,6 +103,7 @@ const SequencingPlateLayout = (props) => {
                   elisa_plate: val,
                 });
                 props.setPlateThresholds(newVal);
+                setWells(newVal);
               }}
               multiple={false}
               options={elisaPlates}
@@ -123,35 +152,7 @@ const SequencingPlateLayout = (props) => {
                       : plate
                   );
                   props.setPlateThresholds(newPlateThresholds);
-                  let wells = [];
-                  let pos = 1;
-                  let plateIdx = 0;
-                  for (let i = 0; i < newPlateThresholds.length; i++) {
-                    let plateId = newPlateThresholds[i].elisa_plate;
-                    let thresh =
-                      newPlateThresholds[i].optical_density_threshold;
-                    let plate = elisaPlates.find(
-                      (plate) => (plate.id = plateId)
-                    );
-                    for (let w = 0; w < plate.elisawell_set.length; w++) {
-                      if (plate.elisawell_set[w].optical_density < thresh)
-                        continue;
-                      wells.push({
-                        elisa_well: {
-                          plate: plateId,
-                          location: w + 1,
-                        },
-                        plate: plateIdx,
-                        location: pos,
-                      });
-                      pos++;
-                      if (pos > 96) {
-                        pos = 1;
-                        plateIdx++;
-                      }
-                    }
-                  }
-                  props.setWells(wells);
+                  setWells(newPlateThresholds);
                 }}
                 className="w-full"
               />
