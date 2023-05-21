@@ -412,6 +412,7 @@ class SequencingRunSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
     def to_internal_value(self, data):
+        """Convert plate thresholds and wells by deserialising JSON strings."""
         new_data = super(SequencingRunSerializer, self).to_internal_value(data)
 
         if "plate_thresholds" in data:
