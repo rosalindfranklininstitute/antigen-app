@@ -63,7 +63,7 @@ const SequencingPlateLayout = (props) => {
     for (let i = 0; i < newPlateThresholds.length; i++) {
       let plateId = newPlateThresholds[i].elisa_plate;
       let thresh = newPlateThresholds[i].optical_density_threshold;
-      let plate = elisaPlates.find((plate) => (plate.id = plateId));
+      let plate = elisaPlates.find((plate) => plate.id === plateId);
       for (let w = 0; w < plate.elisawell_set.length; w++) {
         if (plate.elisawell_set[w].optical_density < thresh) continue;
         wells.push({
@@ -92,7 +92,7 @@ const SequencingPlateLayout = (props) => {
     <>
       {!elisaPlates && "..."}
       {elisaPlates &&
-        props.plateThresholds.map((thr) => (
+        props.plateThresholds.map((thr, thrIdx) => (
           <div key={thr.elisa_plate}>
             <ComboBox
               onChange={(val) => {
@@ -107,7 +107,7 @@ const SequencingPlateLayout = (props) => {
               }}
               multiple={false}
               options={elisaPlates}
-              // field={field.field}
+              field={"plateIdx" + thrIdx + "thresh"}
               displayField="displayLabel"
               selected={thr.elisa_plate}
             />
@@ -132,7 +132,18 @@ const SequencingPlateLayout = (props) => {
                 thr.optical_density_threshold
               )
             )}
-            Threshold: {thr.optical_density_threshold}
+            Threshold:{" "}
+            <span className="font-mono">
+              {thr.optical_density_threshold.toFixed(3)}
+            </span>
+            &nbsp;Selected wells:{" "}
+            <span className="font-mono">
+              {
+                props.wells.filter(
+                  (well) => well.elisa_well.plate === thr.elisa_plate
+                ).length
+              }
+            </span>
             <div className="w-full">
               <input
                 type="range"
