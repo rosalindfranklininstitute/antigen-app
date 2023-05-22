@@ -119,14 +119,25 @@ export const displayFieldSingle = (field, record, context) => {
       record[field.field].map((well) => well["optical_density"])
     );
   } else if (field.type === "sequencingplate" && record[field.field]) {
-    return plateMapOfValues(
-      record[field.field].map(
-        (well) =>
-          well["elisa_well"]["plate"] +
-          ":" +
-          plateLocationToName(well["elisa_well"]["location"])
-      )
-    );
+    let numPlates = Math.ceil(record[field.field].length / 96);
+    let retVal = [];
+    for (let p = 0; p < numPlates; p++) {
+      retVal.push(
+        <div key={"seqPlate" + p}>
+          {plateMapOfValues(
+            record[field.field]
+              .slice(p * 96, (p + 1) * 96)
+              .map(
+                (well) =>
+                  well["elisa_well"]["plate"] +
+                  ":" +
+                  plateLocationToName(well["elisa_well"]["location"])
+              )
+          )}
+        </div>
+      );
+    }
+    return retVal;
   } else if (field.type === "platethreshold" && record[field.field]) {
     return (
       <ul>

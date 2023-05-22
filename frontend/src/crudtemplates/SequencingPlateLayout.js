@@ -91,85 +91,97 @@ const SequencingPlateLayout = (props) => {
   return (
     <>
       {!elisaPlates && "..."}
-      {elisaPlates &&
-        props.plateThresholds.map((thr, thrIdx) => (
-          <div key={thr.elisa_plate}>
-            <ComboBox
-              onChange={(val) => {
-                // let newVal = props.plateThresholds;
-                let newVal = [];
+      {elisaPlates && (
+        <>
+          <ComboBox
+            onChange={(plates) => {
+              let newVal = [];
+              plates = plates.sort();
+              plates.forEach((plate) => {
+                let existingPlateThresh = props.plateThresholds.find(
+                  (thr) => thr.elisa_plate === plate
+                );
+                let odThresh = 0.0;
+                if (existingPlateThresh) {
+                  odThresh = existingPlateThresh.optical_density_threshold;
+                }
                 newVal.push({
-                  optical_density_threshold: 0.0,
-                  elisa_plate: val,
+                  optical_density_threshold: odThresh,
+                  elisa_plate: plate,
                 });
-                props.setPlateThresholds(newVal);
-                setWells(newVal);
-              }}
-              multiple={false}
-              options={elisaPlates}
-              field={"plateIdx" + thrIdx + "thresh"}
-              displayField="displayLabel"
-              selected={thr.elisa_plate}
-            />
-            {plateMapOfValues(
-              elisaPlates
-                .find((plate) => plate.id === thr.elisa_plate)
-                .elisawell_set.map((well) => well.optical_density),
-              // elisaPlates
-              //   .find((plate) => plate.id === thr.elisa_plate)
-              //   .elisawell_set.map((well) =>
-              //     well["optical_density"] >= thr.optical_density_threshold
-              //       ? "bg-orange-100"
-              //       : ""
-              //   )
-              wellColors(
-                props.wells
-                  .filter((well) => well.elisa_well.plate === thr.elisa_plate)
-                  .map((well) => well.elisa_well.location),
+              });
+              props.setPlateThresholds(newVal);
+              setWells(newVal);
+            }}
+            multiple={true}
+            options={elisaPlates}
+            field="elisaPlateSelectorSeq"
+            displayField="displayLabel"
+            selected={props.plateThresholds.map((thr) => thr.elisa_plate)}
+          />
+          {props.plateThresholds.map((thr) => (
+            <div key={thr.elisa_plate}>
+              {plateMapOfValues(
                 elisaPlates
                   .find((plate) => plate.id === thr.elisa_plate)
                   .elisawell_set.map((well) => well.optical_density),
-                thr.optical_density_threshold
-              )
-            )}
-            Threshold:{" "}
-            <span className="font-mono">
-              {thr.optical_density_threshold.toFixed(3)}
-            </span>
-            &nbsp;Selected wells:{" "}
-            <span className="font-mono">
+                wellColors(
+                  props.wells
+                    .filter((well) => well.elisa_well.plate === thr.elisa_plate)
+                    .map((well) => well.elisa_well.location),
+                  elisaPlates
+                    .find((plate) => plate.id === thr.elisa_plate)
+                    .elisawell_set.map((well) => well.optical_density),
+                  thr.optical_density_threshold
+                )
+              )}
+              Plate:{" "}
               {
-                props.wells.filter(
-                  (well) => well.elisa_well.plate === thr.elisa_plate
-                ).length
+                elisaPlates.find((plate) => plate.id === thr.elisa_plate)
+                  .displayLabel
               }
-            </span>
-            <div className="w-full">
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.001}
-                value={thr.optical_density_threshold}
-                onChange={(val) => {
-                  let newPlateThresholds = props.plateThresholds.map((plate) =>
-                    plate.elisa_plate === thr.elisa_plate
-                      ? {
-                          ...plate,
-                          optical_density_threshold: parseFloat(
-                            val.target.value
-                          ),
-                        }
-                      : plate
-                  );
-                  props.setPlateThresholds(newPlateThresholds);
-                  setWells(newPlateThresholds);
-                }}
-                className="w-full"
-              />
+              <br />
+              Threshold:{" "}
+              <span className="font-mono">
+                {thr.optical_density_threshold.toFixed(3)}
+              </span>
+              &nbsp;Selected wells:{" "}
+              <span className="font-mono">
+                {
+                  props.wells.filter(
+                    (well) => well.elisa_well.plate === thr.elisa_plate
+                  ).length
+                }
+              </span>
+              <div className="w-full">
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.001}
+                  value={thr.optical_density_threshold}
+                  onChange={(val) => {
+                    let newPlateThresholds = props.plateThresholds.map(
+                      (plate) =>
+                        plate.elisa_plate === thr.elisa_plate
+                          ? {
+                              ...plate,
+                              optical_density_threshold: parseFloat(
+                                val.target.value
+                              ),
+                            }
+                          : plate
+                    );
+                    props.setPlateThresholds(newPlateThresholds);
+                    setWells(newPlateThresholds);
+                  }}
+                  className="w-full"
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </>
+      )}
     </>
   );
 };

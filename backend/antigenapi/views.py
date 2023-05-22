@@ -446,9 +446,7 @@ class SequencingRunSerializer(ModelSerializer):
 
     @staticmethod
     def _create_wells(seq_run, wells):
-        # TODO: Multiple plate support
-        if any(w["plate"] != 0 for w in wells):
-            raise ValidationError({"wells": {"plate": "Plate must be 0"}})
+        # TODO: Better validation
 
         SequencingRunWell.objects.bulk_create(
             SequencingRunWell(
