@@ -19,11 +19,11 @@ repos:
     rev: v2.7.1
     hooks:
       - id: prettier
-  # - repo: https://github.com/psf/black
-  #   rev: 22.10.0
-  #   hooks:
-  #     - id: black
-  #       entry: sh -c "cd backend && black ."
+  - repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+      - id: black
+        entry: sh -c "cd backend && black ."
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.36.0
     hooks:

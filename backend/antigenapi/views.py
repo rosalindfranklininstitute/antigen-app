@@ -490,6 +490,23 @@ class SequencingRunSerializer(ModelSerializer):
             # than conditionally update
             SequencingRunWell.objects.filter(sequencing_run=instance).delete()
             self._create_wells(instance, wells)
+        if plate_thresholds is not None or wells is not None:
+            LogEntry.objects.log_create(
+                instance=instance,
+                action=LogEntry.Action.UPDATE,
+                changes=json.dumps(
+                    {
+                        "plate_thresholds": [
+                            "<Previous value>",
+                            "<Overwritten (possibly updated)>",
+                        ],
+                        "wells": [
+                            "<Previous value>",
+                            "<Overwritten (possibly updated)>",
+                        ],
+                    }
+                ),
+            )
         return instance
 
 
