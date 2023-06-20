@@ -1,5 +1,4 @@
 import collections.abc
-import json
 import urllib.error
 import urllib.parse
 
@@ -31,8 +30,6 @@ from antigenapi.models import (
     PlateLocations,
     Project,
     SequencingRun,
-    SequencingRunPlateThreshold,
-    SequencingRunWell,
 )
 from antigenapi.utils.uniprot import get_protein
 
@@ -369,15 +366,6 @@ class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         serializer.save(added_by=self.request.user)
 
 
-# Sequencing runs #
-class SequencingRunPlateSerializer(ModelSerializer):
-    """A serializer for elisa plate thresholds within a sequencing run."""
-
-    class Meta:  # noqa: D106
-        model = SequencingRunPlateThreshold
-        exclude = ("id", "sequencing_run")
-
-
 class ElisaWellInlineSerializer(ModelSerializer):
     """A serializer to represent elisa wells by plate id and location."""
 
@@ -386,128 +374,16 @@ class ElisaWellInlineSerializer(ModelSerializer):
         fields = ("plate", "location")
 
 
-class SequencingRunWellSerializer(ModelSerializer):
-    """A serializer for wells on a sequencing run plate."""
-
-    elisa_well = ElisaWellInlineSerializer()
-
-    class Meta:  # noqa: D106
-        model = SequencingRunWell
-        exclude = ("id", "sequencing_run")
-
-
 class SequencingRunSerializer(ModelSerializer):
     """A serializer for sequencing runs."""
 
     added_by = StringRelatedField()
-    plate_thresholds = SequencingRunPlateSerializer(
-        source="sequencingrunplatethreshold_set", many=True
-    )
-    wells = SequencingRunWellSerializer(source="sequencingrunwell_set", many=True)
-    results_file = FileField(use_url=False)
+    results_file = FileField(required=False, allow_null=True, use_url=False)
 
     class Meta:  # noqa: D106
         model = SequencingRun
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
-
-    def to_internal_value(self, data):
-        """Convert plate thresholds and wells by deserialising JSON strings."""
-        new_data = super(SequencingRunSerializer, self).to_internal_value(data)
-
-        if "plate_thresholds" in data:
-            try:
-                new_data["plate_thresholds"] = json.loads(data.get("plate_thresholds"))
-            except ValueError:
-                raise ValidationError("Error parsing plate thresholds")
-
-        if "wells" in data:
-            try:
-                new_data["wells"] = json.loads(data.get("wells"))
-            except ValueError:
-                raise ValidationError("Error parsing wells")
-
-        return new_data
-
-    @staticmethod
-    def _create_plate_thresholds(seq_run, plate_thresholds):
-        SequencingRunPlateThreshold.objects.bulk_create(
-            SequencingRunPlateThreshold(
-                sequencing_run=seq_run,
-                elisa_plate_id=(
-                    plate_thresh["elisa_plate"].id
-                    if isinstance(plate_thresh["elisa_plate"], ElisaPlate)
-                    else plate_thresh["elisa_plate"]
-                ),
-                optical_density_threshold=plate_thresh["optical_density_threshold"],
-            )
-            for plate_thresh in plate_thresholds
-        )
-
-    @staticmethod
-    def _create_wells(seq_run, wells):
-        # TODO: Better validation
-
-        SequencingRunWell.objects.bulk_create(
-            SequencingRunWell(
-                sequencing_run=seq_run,
-                plate=well["plate"],
-                location=well["location"],
-                elisa_well=ElisaWell.objects.get(
-                    plate=well["elisa_well"]["plate"],
-                    location=well["elisa_well"]["location"],
-                ),
-            )
-            for well in wells
-        )
-
-    @transaction.atomic
-    def create(self, validated_data):
-        """Create sequencing run."""
-        plate_thresholds = validated_data.pop("plate_thresholds")
-        wells = validated_data.pop("wells")
-        seq_run = super(SequencingRunSerializer, self).create(validated_data)
-        if plate_thresholds is not None:
-            self._create_plate_thresholds(seq_run, plate_thresholds)
-        if wells is not None:
-            self._create_wells(seq_run, wells)
-
-        return seq_run
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        """Update sequencing run."""
-        plate_thresholds = validated_data.pop("plate_thresholds", None)
-        wells = validated_data.pop("wells", None)
-        instance = super(SequencingRunSerializer, self).update(instance, validated_data)
-        if plate_thresholds is not None:
-            # Faster, fewer DB queries to bulk delete & re-insert
-            # than conditionally update
-            SequencingRunPlateThreshold.objects.filter(sequencing_run=instance).delete()
-            self._create_plate_thresholds(instance, plate_thresholds)
-        if wells is not None:
-            # Faster, fewer DB queries to bulk delete & re-insert
-            # than conditionally update
-            SequencingRunWell.objects.filter(sequencing_run=instance).delete()
-            self._create_wells(instance, wells)
-        if plate_thresholds is not None or wells is not None:
-            LogEntry.objects.log_create(
-                instance=instance,
-                action=LogEntry.Action.UPDATE,
-                changes=json.dumps(
-                    {
-                        "plate_thresholds": [
-                            "<Previous value>",
-                            "<Overwritten (possibly updated)>",
-                        ],
-                        "wells": [
-                            "<Previous value>",
-                            "<Overwritten (possibly updated)>",
-                        ],
-                    }
-                ),
-            )
-        return instance
 
 
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):

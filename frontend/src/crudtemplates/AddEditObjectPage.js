@@ -105,7 +105,6 @@ const AddEditObjectPage = (props) => {
         });
     };
 
-    if (!recordId) setLoading(false);
     if (recordId) getRecord();
     // fetch foreign key fields
     props.schema.fields
@@ -126,8 +125,14 @@ const AddEditObjectPage = (props) => {
             parseInt(query.get(field.field + "_id")) || null
           )
         );
+      // Add blank plate_thresholds and wells for sequencing plates
+      if (props.schema.viewUrl === "/sequencing") {
+        record["plate_thresholds"] = [];
+        record["wells"] = [];
+      }
+      setLoading(false);
     }
-  }, [props, recordId, query]);
+  }, [props, recordId, query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cancelForm = () => {
     setDialogOpen(true);
@@ -434,7 +439,6 @@ const AddEditObjectPage = (props) => {
                                   defaultValue={record[field.field]}
                                 />
                               )}
-
                               {field.type === "sequencingplate" && (
                                 <SequencingPlateLayout
                                   setError={props.onSetError}
