@@ -163,7 +163,14 @@ const SequencingPlateLayout = (props) => {
                 <input
                   type="range"
                   min={0}
-                  max={1}
+                  max={
+                    elisaPlates
+                      .find((plate) => plate.id === thr.elisa_plate)
+                      .elisawell_set.map((well) => well.optical_density)
+                      .reduce((prev, current) =>
+                        prev > current ? prev : current
+                      ) + 0.001
+                  }
                   step={0.001}
                   value={thr.optical_density_threshold}
                   onChange={(val) => {

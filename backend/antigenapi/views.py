@@ -454,13 +454,10 @@ class SequencingRunSerializer(ModelSerializer):
                     f"Plate threshold {idx}'s optical_density_threshold "
                     "is not an integer or float"
                 )
-            if (
-                thr["optical_density_threshold"] < 0
-                or thr["optical_density_threshold"] > 1
-            ):
+            if thr["optical_density_threshold"] < 0:
                 raise ValidationError(
                     f"Plate threshold {idx}'s optical_density_threshold "
-                    "must be between 0 and 1 inclusive"
+                    "must be at least 0"
                 )
             if "elisa_plate" not in thr:
                 raise ValidationError(f"Elisa plate missing in plate_threshold {idx}")
