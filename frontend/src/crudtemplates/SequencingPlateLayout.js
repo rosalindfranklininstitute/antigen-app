@@ -56,6 +56,12 @@ const SequencingPlateLayout = (props) => {
     return colors;
   };
 
+  // Functions to transpose position on a 96 well plate, to fill it vertically first
+  let zeroBasedTransposedRow = (pos) => (pos - 1) % 8;
+  let zeroBasedTransposedCol = (pos) => Math.floor((pos - 1) / 8);
+  let posFillVertical = (pos) =>
+    zeroBasedTransposedRow(pos) * 12 + zeroBasedTransposedCol(pos) + 1;
+
   const setWells = (newPlateThresholds) => {
     let wells = [];
     let pos = 1;
@@ -72,7 +78,7 @@ const SequencingPlateLayout = (props) => {
             location: w + 1,
           },
           plate: plateIdx,
-          location: pos,
+          location: posFillVertical(pos),
         });
         pos++;
         if (pos > 96) {

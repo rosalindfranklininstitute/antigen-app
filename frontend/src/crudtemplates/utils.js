@@ -121,21 +121,24 @@ export const displayFieldSingle = (field, record, context) => {
   } else if (field.type === "sequencingplate" && record[field.field]) {
     let numPlates = Math.ceil(record[field.field].length / 96);
     let retVal = [];
+    let plateFn = (p) => {
+      let plateArr = [];
+      let plateVals = record[field.field].slice(p * 96, (p + 1) * 96);
+      for (let i = 0; i < plateVals.length; i++) {
+        let well = plateVals[i];
+        while (plateArr.length < well["location"] - 1) {
+          plateArr.push(null);
+        }
+        plateArr.push(
+          well["elisa_well"]["plate"] +
+            ":" +
+            plateLocationToName(well["elisa_well"]["location"])
+        );
+      }
+      return plateMapOfValues(plateArr);
+    };
     for (let p = 0; p < numPlates; p++) {
-      retVal.push(
-        <div key={"seqPlate" + p}>
-          {plateMapOfValues(
-            record[field.field]
-              .slice(p * 96, (p + 1) * 96)
-              .map(
-                (well) =>
-                  well["elisa_well"]["plate"] +
-                  ":" +
-                  plateLocationToName(well["elisa_well"]["location"])
-              )
-          )}
-        </div>
-      );
+      retVal.push(<div key={"seqPlate" + p}>{plateFn(p)}</div>);
     }
     return retVal;
   } else if (field.type === "platethreshold" && record[field.field]) {
