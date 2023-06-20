@@ -387,10 +387,17 @@ class SequencingRunSerializer(ModelSerializer):
                 raise ValidationError(f"Extraneous keys in well {idx}")
             if "elisa_well" not in well:
                 raise ValidationError(f"Missing elisa_well in well {idx}")
+
             if "plate" not in well:
                 raise ValidationError(f"Missing plate in well {idx}")
             if not isinstance(well["plate"], int):
                 raise ValidationError(f"Well {idx}'s plate is not an integer")
+            if well["plate"] != (idx // 96):
+                raise ValidationError(
+                    f"Well {idx}'s plate should be "
+                    f"{(idx // 96)} (found: {well['plate']})"
+                )
+
             if "location" not in well:
                 raise ValidationError(f"Missing location in well {idx}")
             if not isinstance(well["location"], int):
