@@ -46,7 +46,7 @@ const SequencingPlateLayout = (props) => {
     for (let i = 1; i <= 96; i++) {
       let color = "";
       if (locations.includes(i)) {
-        if (wellThresholds[i - 1] >= selectedThreshold) color = "bg-orange-100";
+        if (wellThresholds[i - 1] >= selectedThreshold) color = "bg-indigo-200";
         else color = "bg-green-100";
       } else {
         if (wellThresholds[i - 1] > selectedThreshold) color = "bg-red-100";
