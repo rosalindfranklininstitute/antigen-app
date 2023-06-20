@@ -426,6 +426,10 @@ class SequencingRunSerializer(ModelSerializer):
                 )
 
             # TODO: Check elisa_plate is valid plate
+            # TODO: Check all locations are unique on a plate
+
+        # Sort by plate and location
+        data = sorted(data, key=lambda well: (well["plate"], well["location"]))
 
         return data
 
@@ -459,6 +463,7 @@ class SequencingRunSerializer(ModelSerializer):
                 )
 
             # TODO: Check elisa_plate is valid plate
+            # TODO: Check elisa_plate is unique within list
             # TODO: Check threshold is present for every plate listed in elisa_well
 
         return data
