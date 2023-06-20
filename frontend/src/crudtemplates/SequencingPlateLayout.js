@@ -188,7 +188,7 @@ const SequencingPlateLayout = (props) => {
                     props.setPlateThresholds(newPlateThresholds);
                     setWells(newPlateThresholds);
                   }}
-                  className="w-full"
+                  className="w-full accent-indigo-500"
                 />
               </div>
             </div>
