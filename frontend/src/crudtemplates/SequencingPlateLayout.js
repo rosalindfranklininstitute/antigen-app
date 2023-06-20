@@ -193,6 +193,10 @@ const SequencingPlateLayout = (props) => {
               </div>
             </div>
           ))}
+          <b>
+            Total selected wells:{" "}
+            <span className="font-mono">{props.wells.length}</span>
+          </b>
         </>
       )}
     </>
