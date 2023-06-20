@@ -380,6 +380,89 @@ class SequencingRunSerializer(ModelSerializer):
     added_by = StringRelatedField()
     results_file = FileField(required=False, allow_null=True, use_url=False)
 
+    def validate_wells(self, data):
+        """Check JSONField for wells is valid."""
+        for idx, well in enumerate(data):
+            if len(well.keys()) != 3:
+                raise ValidationError(f"Extraneous keys in well {idx}")
+            if "elisa_well" not in well:
+                raise ValidationError(f"Missing elisa_well in well {idx}")
+            if "plate" not in well:
+                raise ValidationError(f"Missing plate in well {idx}")
+            if not isinstance(well["plate"], int):
+                raise ValidationError(f"Well {idx}'s plate is not an integer")
+            if "location" not in well:
+                raise ValidationError(f"Missing location in well {idx}")
+            if not isinstance(well["location"], int):
+                raise ValidationError(f"Well {idx}'s location is not an integer")
+            if well["location"] < 1 or well["location"] > 96:
+                raise ValidationError(
+                    f"Well {idx}'s location must be between 1 and 96 inclusive"
+                )
+
+            if not isinstance(well["elisa_well"], collections.abc.Mapping):
+                raise ValidationError(f"elisa_well in well {idx} is not an object")
+            if len(well["elisa_well"].keys()) != 2:
+                raise ValidationError(f"Extraneous keys in well {idx}'s elisa_well")
+            if "plate" not in well["elisa_well"]:
+                raise ValidationError(f"Missing plate in well {idx}'s elisa_well")
+            if not isinstance(well["elisa_well"]["plate"], int):
+                raise ValidationError(
+                    f"Well {idx}'s elisa_well's plate is not an integer"
+                )
+            if "location" not in well["elisa_well"]:
+                raise ValidationError(f"Missing location in well {idx}'s elisa_well")
+            if not isinstance(well["elisa_well"]["location"], int):
+                raise ValidationError(
+                    f"Well {idx}'s elisa_well's location is not an integer"
+                )
+            if (
+                well["elisa_well"]["location"] < 1
+                or well["elisa_well"]["location"] > 96
+            ):
+                raise ValidationError(
+                    f"Well {idx}'s elisa_well's location must be "
+                    "between 1 and 96 inclusive"
+                )
+
+            # TODO: Check elisa_plate is valid plate
+
+        return data
+
+    def validate_plate_thresholds(self, data):
+        """Check JSONField for plate_thresholds is valid."""
+        for idx, thr in enumerate(data):
+            if len(thr.keys()) != 2:
+                raise ValidationError(f"Extraneous keys in plate_threshold {idx}")
+            if "optical_density_threshold" not in thr:
+                raise ValidationError(
+                    f"Optical density threshold missing in plate_threshold {idx}"
+                )
+            if not isinstance(thr["optical_density_threshold"], (int, float)):
+                raise ValidationError(
+                    f"Plate threshold {idx}'s optical_density_threshold "
+                    "is not an integer or float"
+                )
+            if (
+                thr["optical_density_threshold"] < 0
+                or thr["optical_density_threshold"] > 1
+            ):
+                raise ValidationError(
+                    f"Plate threshold {idx}'s optical_density_threshold "
+                    "must be between 0 and 1 inclusive"
+                )
+            if "elisa_plate" not in thr:
+                raise ValidationError(f"Elisa plate missing in plate_threshold {idx}")
+            if not isinstance(thr["elisa_plate"], int):
+                raise ValidationError(
+                    f"Plate threshold {idx}'s elisa_plate is not an integer"
+                )
+
+            # TODO: Check elisa_plate is valid plate
+            # TODO: Check threshold is present for every plate listed in elisa_well
+
+        return data
+
     class Meta:  # noqa: D106
         model = SequencingRun
         fields = "__all__"
