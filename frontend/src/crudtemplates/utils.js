@@ -1,5 +1,7 @@
 import { useRef, useEffect } from "react";
 import { LinkIcon } from "@heroicons/react/20/solid";
+import config from "../config.js";
+import schema from "../schema.js";
 
 const elisaHeader = [
   "",
@@ -139,6 +141,26 @@ export const displayFieldSingle = (field, record, context) => {
     };
     for (let p = 0; p < numPlates; p++) {
       retVal.push(<div key={"seqPlate" + p}>{plateFn(p)}</div>);
+      retVal.push(
+        <a
+          href={
+            config.url.API_URL +
+            schema.sequencing.apiUrl +
+            "/" +
+            record.id +
+            "/submissionfile/" +
+            p +
+            "/"
+          }
+        >
+          <button
+            type="button"
+            className="w-full sm:w-auto mb-2 mt-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Download sequencing submission file
+          </button>
+        </a>
+      );
     }
     return retVal;
   } else if (field.type === "platethreshold" && record[field.field]) {

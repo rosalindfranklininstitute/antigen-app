@@ -1,12 +1,17 @@
 import collections.abc
+import os
 import urllib.error
 import urllib.parse
+from tempfile import NamedTemporaryFile
+from wsgiref.util import FileWrapper
 
+import openpyxl
 from auditlog.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
+from django.http import Http404, HttpResponse
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -485,3 +490,75 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="Download sequencing run submission file (xlsx).",
+        url_path="submissionfile/(?P<submission_idx>[0-9]+)",
+    )
+    def download_submission_xlsx(self, request, pk, submission_idx):
+        """Download sequencing run submission file (xlsx)."""
+        # Load the Excel template
+        fn = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "files",
+            "sequencing-submission-form-v1.xlsx",
+        )
+        oxl = openpyxl.load_workbook(fn)
+
+        # Get first worksheet
+        ws = oxl.worksheets[0]
+
+        # Get sequencing run object
+        sr = self.get_object()
+        well_dict = {}
+        elisa_plates_to_load = set()
+        submission_idx = int(submission_idx)
+        for well in sr.wells:
+            if well["plate"] != submission_idx:
+                continue
+            well_dict[PlateLocations.labels[well["location"] - 1]] = well["elisa_well"]
+            elisa_plates_to_load.add(well["elisa_well"]["plate"])
+
+        if not well_dict:
+            raise Http404
+
+        elisa_wells = {
+            (ew.plate_id, ew.location): ew
+            for ew in ElisaWell.objects.filter(plate__pk__in=elisa_plates_to_load)
+            .select_related("plate")
+            .select_related("antigen")
+        }
+
+        # Make modifications
+        for row in range(3, 100):  # 96 wells
+            try:
+                # Sample name
+                well = well_dict[ws[f"A{row}"].value]
+            except KeyError:
+                continue
+
+            elisa_well = elisa_wells[(well["plate"], well["location"])]
+            ws[f"B{row}"] = (
+                f"{elisa_well.antigen.preferred_name}_"
+                f"EP{elisa_well.plate_id}_"
+                f"{PlateLocations.labels[elisa_well.location - 1]}"
+            )
+            # Own primer name
+            ws[f"D{row}"] = "PRIMER"
+
+        # Save to temp file
+        with NamedTemporaryFile() as tmp:
+            oxl.save(tmp.name)
+            response = HttpResponse(
+                FileWrapper(tmp),
+                content_type="application/vnd.openxmlformats-officedocument"
+                ".spreadsheetml.sheet",
+            )
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="sequencing-submission-form-'
+            f'sr{pk}_{submission_idx}.xlsx"'
+        )
+        return response
