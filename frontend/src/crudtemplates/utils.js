@@ -18,7 +18,22 @@ const elisaHeader = [
 ];
 const elisaRowNames = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-const elisaPlateOpticalDensityMap = (elisaValues) => {
+const plateLocationToName = (location) => {
+  if (location < 1 || location > 96) return "Unknown";
+  return (
+    elisaRowNames[Math.floor((location - 1) / (elisaHeader.length - 1))] +
+    elisaHeader[((location - 1) % (elisaHeader.length - 1)) + 1]
+  );
+};
+
+// Field types which call the displayFieldSingle as a block rather than iterating over array
+const displayTogetherFieldTypes = [
+  "elisaplate",
+  "sequencingplate",
+  "platethreshold",
+];
+
+export const plateMapOfValues = (elisaValues, colors) => {
   return (
     <table className="w-full table-fixed border-collapse border border-slate-500 mt-4">
       <thead>
@@ -47,7 +62,12 @@ const elisaPlateOpticalDensityMap = (elisaValues) => {
               ) : (
                 <td
                   key={"elisaCell_" + rowIdx + "_" + colIdx}
-                  className="border border-slate-600"
+                  className={
+                    "border border-slate-600" +
+                    (typeof colors !== "undefined"
+                      ? " " + colors[rowIdx * 12 + colIdx - 1]
+                      : "")
+                  }
                 >
                   {elisaValues ? elisaValues[rowIdx * 12 + colIdx - 1] : ""}
                 </td>
@@ -95,8 +115,41 @@ export const displayFieldSingle = (field, record, context) => {
   if (field.fkDisplayField) {
     return record[field.field + "_" + field.fkDisplayField];
   } else if (field.type === "elisaplate" && record[field.field]) {
-    return elisaPlateOpticalDensityMap(
+    return plateMapOfValues(
       record[field.field].map((well) => well["optical_density"])
+    );
+  } else if (field.type === "sequencingplate" && record[field.field]) {
+    let numPlates = Math.ceil(record[field.field].length / 96);
+    let retVal = [];
+    let plateFn = (p) => {
+      let plateArr = [];
+      let plateVals = record[field.field].slice(p * 96, (p + 1) * 96);
+      for (let i = 0; i < plateVals.length; i++) {
+        let well = plateVals[i];
+        while (plateArr.length < well["location"] - 1) {
+          plateArr.push(null);
+        }
+        plateArr.push(
+          well["elisa_well"]["plate"] +
+            ":" +
+            plateLocationToName(well["elisa_well"]["location"])
+        );
+      }
+      return plateMapOfValues(plateArr);
+    };
+    for (let p = 0; p < numPlates; p++) {
+      retVal.push(<div key={"seqPlate" + p}>{plateFn(p)}</div>);
+    }
+    return retVal;
+  } else if (field.type === "platethreshold" && record[field.field]) {
+    return (
+      <ul>
+        {record[field.field].map((plate) => (
+          <li key={plate.elisa_plate}>
+            Plate {plate.elisa_plate}: {plate.optical_density_threshold}
+          </li>
+        ))}
+      </ul>
     );
   } else if (field.viewPageExtLink) {
     return makeExtLink(record[field.field], field.viewPageExtLink, context);
@@ -106,7 +159,10 @@ export const displayFieldSingle = (field, record, context) => {
 };
 
 export const displayField = (field, record, context) => {
-  if (field.type !== "elisaplate" && Array.isArray(record[field.field])) {
+  if (
+    !displayTogetherFieldTypes.includes(field.type) &&
+    Array.isArray(record[field.field])
+  ) {
     return record[field.field]
       .map((valEach) =>
         displayFieldSingle(

@@ -10,6 +10,7 @@ from django.db.models import (
     FileField,
     ForeignKey,
     IntegerChoices,
+    JSONField,
     ManyToManyField,
     Model,
     UniqueConstraint,
@@ -155,46 +156,12 @@ class ElisaWell(Model):
 class SequencingRun(Model):
     """A sequencing run."""
 
+    plate_thresholds: JSONField = JSONField()
+    wells: JSONField = JSONField()
     notes = TextField(null=True, blank=True)
     sent_date = DateField(null=True)
-    results_date = DateField(null=True)
-    results_file: File = FileField(upload_to="uploads/sequencingresults/", null=True)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
-
-
-class SequencingRunPlateThreshold(Model):
-    """Optical density threshold for ELISA plate in sequencing run."""
-
-    sequencing_run: SequencingRun = ForeignKey(SequencingRun, on_delete=CASCADE)
-    elisa_plate: ElisaPlate = ForeignKey(ElisaPlate, on_delete=PROTECT)
-    optical_density_threshold: float = FloatField()
-
-    class Meta:  # noqa: D106
-        constraints = [
-            UniqueConstraint(
-                fields=["sequencing_run", "elisa_plate"], name="unique_plate"
-            )
-        ]
-
-
-class SequencingRunWell(Model):
-    """Link an ELISA well to a well on a sequencing run plate."""
-
-    sequencing_run: SequencingRun = ForeignKey(SequencingRun, on_delete=CASCADE)
-    plate = PositiveIntegerField()
-    location = PositiveSmallIntegerField(choices=PlateLocations.choices)
-    elisa_well: ElisaWell = ForeignKey(ElisaWell, on_delete=PROTECT)
-
-    class Meta:  # noqa: D106
-        constraints = [
-            UniqueConstraint(
-                fields=["sequencing_run", "plate", "location"], name="unique_location"
-            ),
-            UniqueConstraint(
-                fields=["sequencing_run", "elisa_well"], name="unique_elisa_well"
-            ),
-        ]
 
 
 auditlog.register(Project)
@@ -204,5 +171,3 @@ auditlog.register(Cohort, m2m_fields={"projects", "antigens"})
 auditlog.register(Library)
 auditlog.register(ElisaPlate)
 auditlog.register(SequencingRun)
-auditlog.register(SequencingRunPlateThreshold)
-auditlog.register(SequencingRunWell)

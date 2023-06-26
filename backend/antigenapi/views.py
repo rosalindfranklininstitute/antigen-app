@@ -30,8 +30,6 @@ from antigenapi.models import (
     PlateLocations,
     Project,
     SequencingRun,
-    SequencingRunPlateThreshold,
-    SequencingRunWell,
 )
 from antigenapi.utils.uniprot import get_protein
 
@@ -286,6 +284,9 @@ class ElisaPlateSerializer(ModelSerializer):
     contained within it.
     """
 
+    project_short_title = CharField(
+        source="library.project.short_title", read_only=True
+    )
     library_cohort_cohort_num = CharField(
         source="library.cohort.cohort_num", required=False
     )
@@ -365,15 +366,6 @@ class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         serializer.save(added_by=self.request.user)
 
 
-# Sequencing runs #
-class SequencingRunPlateSerializer(ModelSerializer):
-    """A serializer for elisa plate thresholds within a sequencing run."""
-
-    class Meta:  # noqa: D106
-        model = SequencingRunPlateThreshold
-        exclude = ("id", "sequencing_run")
-
-
 class ElisaWellInlineSerializer(ModelSerializer):
     """A serializer to represent elisa wells by plate id and location."""
 
@@ -382,90 +374,107 @@ class ElisaWellInlineSerializer(ModelSerializer):
         fields = ("plate", "location")
 
 
-class SequencingRunWellSerializer(ModelSerializer):
-    """A serializer for wells on a sequencing run plate."""
-
-    elisa_well = ElisaWellInlineSerializer()
-
-    class Meta:  # noqa: D106
-        model = SequencingRunWell
-        exclude = ("id", "sequencing_run")
-
-
 class SequencingRunSerializer(ModelSerializer):
     """A serializer for sequencing runs."""
 
     added_by = StringRelatedField()
-    plate_thresholds = SequencingRunPlateSerializer(
-        source="sequencingrunplatethreshold_set", many=True
-    )
-    wells = SequencingRunWellSerializer(source="sequencingrunwell_set", many=True)
+
+    def validate_wells(self, data):
+        """Check JSONField for wells is valid."""
+        for idx, well in enumerate(data):
+            if len(well.keys()) != 3:
+                raise ValidationError(f"Extraneous keys in well {idx}")
+            if "elisa_well" not in well:
+                raise ValidationError(f"Missing elisa_well in well {idx}")
+
+            if "plate" not in well:
+                raise ValidationError(f"Missing plate in well {idx}")
+            if not isinstance(well["plate"], int):
+                raise ValidationError(f"Well {idx}'s plate is not an integer")
+            if well["plate"] != (idx // 96):
+                raise ValidationError(
+                    f"Well {idx}'s plate should be "
+                    f"{(idx // 96)} (found: {well['plate']})"
+                )
+
+            if "location" not in well:
+                raise ValidationError(f"Missing location in well {idx}")
+            if not isinstance(well["location"], int):
+                raise ValidationError(f"Well {idx}'s location is not an integer")
+            if well["location"] < 1 or well["location"] > 96:
+                raise ValidationError(
+                    f"Well {idx}'s location must be between 1 and 96 inclusive"
+                )
+
+            if not isinstance(well["elisa_well"], collections.abc.Mapping):
+                raise ValidationError(f"elisa_well in well {idx} is not an object")
+            if len(well["elisa_well"].keys()) != 2:
+                raise ValidationError(f"Extraneous keys in well {idx}'s elisa_well")
+            if "plate" not in well["elisa_well"]:
+                raise ValidationError(f"Missing plate in well {idx}'s elisa_well")
+            if not isinstance(well["elisa_well"]["plate"], int):
+                raise ValidationError(
+                    f"Well {idx}'s elisa_well's plate is not an integer"
+                )
+            if "location" not in well["elisa_well"]:
+                raise ValidationError(f"Missing location in well {idx}'s elisa_well")
+            if not isinstance(well["elisa_well"]["location"], int):
+                raise ValidationError(
+                    f"Well {idx}'s elisa_well's location is not an integer"
+                )
+            if (
+                well["elisa_well"]["location"] < 1
+                or well["elisa_well"]["location"] > 96
+            ):
+                raise ValidationError(
+                    f"Well {idx}'s elisa_well's location must be "
+                    "between 1 and 96 inclusive"
+                )
+
+            # TODO: Check elisa_plate is valid plate
+            # TODO: Check all locations are unique on a plate
+
+        # Sort by plate and location
+        data = sorted(data, key=lambda well: (well["plate"], well["location"]))
+
+        return data
+
+    def validate_plate_thresholds(self, data):
+        """Check JSONField for plate_thresholds is valid."""
+        for idx, thr in enumerate(data):
+            if len(thr.keys()) != 2:
+                raise ValidationError(f"Extraneous keys in plate_threshold {idx}")
+            if "optical_density_threshold" not in thr:
+                raise ValidationError(
+                    f"Optical density threshold missing in plate_threshold {idx}"
+                )
+            if not isinstance(thr["optical_density_threshold"], (int, float)):
+                raise ValidationError(
+                    f"Plate threshold {idx}'s optical_density_threshold "
+                    "is not an integer or float"
+                )
+            if thr["optical_density_threshold"] < 0:
+                raise ValidationError(
+                    f"Plate threshold {idx}'s optical_density_threshold "
+                    "must be at least 0"
+                )
+            if "elisa_plate" not in thr:
+                raise ValidationError(f"Elisa plate missing in plate_threshold {idx}")
+            if not isinstance(thr["elisa_plate"], int):
+                raise ValidationError(
+                    f"Plate threshold {idx}'s elisa_plate is not an integer"
+                )
+
+            # TODO: Check elisa_plate is valid plate
+            # TODO: Check elisa_plate is unique within list
+            # TODO: Check threshold is present for every plate listed in elisa_well
+
+        return data
 
     class Meta:  # noqa: D106
         model = SequencingRun
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
-
-    @staticmethod
-    def _create_plate_thresholds(seq_run, plate_thresholds):
-        SequencingRunPlateThreshold.objects.bulk_create(
-            SequencingRunPlateThreshold(
-                sequencing_run=seq_run,
-                elisa_plate=plate_thresh["elisa_plate"],
-                optical_density_threshold=plate_thresh["optical_density_threshold"],
-            )
-            for plate_thresh in plate_thresholds
-        )
-
-    @staticmethod
-    def _create_wells(seq_run, wells):
-        # TODO: Multiple plate support
-        if any(w["plate"] != 0 for w in wells):
-            raise ValidationError({"wells": {"plate": "Plate must be 0"}})
-
-        SequencingRunWell.objects.bulk_create(
-            SequencingRunWell(
-                sequencing_run=seq_run,
-                plate=well["plate"],
-                location=well["location"],
-                elisa_well=ElisaWell.objects.get(
-                    plate=well["elisa_well"]["plate"],
-                    location=well["elisa_well"]["location"],
-                ),
-            )
-            for well in wells
-        )
-
-    @transaction.atomic
-    def create(self, validated_data):
-        """Create sequencing run."""
-        plate_thresholds = validated_data.pop("plate_thresholds")
-        wells = validated_data.pop("wells")
-        seq_run = super(SequencingRunSerializer, self).create(validated_data)
-        if plate_thresholds is not None:
-            self._create_plate_thresholds(seq_run, plate_thresholds)
-        if wells is not None:
-            self._create_wells(seq_run, wells)
-
-        return seq_run
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        """Update sequencing run."""
-        plate_thresholds = validated_data.pop("plate_thresholds", None)
-        wells = validated_data.pop("wells", None)
-        instance = super(SequencingRunSerializer, self).update(instance, validated_data)
-        if plate_thresholds is not None:
-            # Faster, fewer DB queries to bulk delete & re-insert
-            # than conditionally update
-            SequencingRunPlateThreshold.objects.filter(sequencing_run=instance).delete()
-            self._create_plate_thresholds(instance, plate_thresholds)
-        if wells is not None:
-            # Faster, fewer DB queries to bulk delete & re-insert
-            # than conditionally update
-            SequencingRunWell.objects.filter(sequencing_run=instance).delete()
-            self._create_wells(instance, wells)
-        return instance
 
 
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
