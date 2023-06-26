@@ -378,7 +378,6 @@ class SequencingRunSerializer(ModelSerializer):
     """A serializer for sequencing runs."""
 
     added_by = StringRelatedField()
-    results_file = FileField(required=False, allow_null=True, use_url=False)
 
     def validate_wells(self, data):
         """Check JSONField for wells is valid."""

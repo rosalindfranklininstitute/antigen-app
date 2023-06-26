@@ -263,16 +263,6 @@ const sequencingRuns = {
       field: "sent_date",
       type: "date",
     },
-    {
-      label: "Results received date",
-      field: "results_date",
-      type: "date",
-    },
-    {
-      label: "Results file",
-      field: "results_file",
-      type: "file",
-    },
   ],
 };
 

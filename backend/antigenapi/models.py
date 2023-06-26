@@ -160,8 +160,6 @@ class SequencingRun(Model):
     wells: JSONField = JSONField()
     notes = TextField(null=True, blank=True)
     sent_date = DateField(null=True)
-    results_date = DateField(null=True)
-    results_file: File = FileField(upload_to="uploads/sequencingresults/", null=True)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
