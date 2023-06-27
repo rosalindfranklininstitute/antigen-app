@@ -11,14 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name="sequencingrunwell",
-            name="elisa_well",
-        ),
-        migrations.RemoveField(
-            model_name="sequencingrunwell",
-            name="sequencing_run",
-        ),
-        migrations.RemoveField(
             model_name="sequencingrun",
             name="results_date",
         ),
