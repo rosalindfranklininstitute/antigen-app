@@ -22,7 +22,6 @@ services:
     volumes:
       - ./backend:/usr/src
       - api_data:/api_data
-      - ./db.sqlite3:/usr/src/db.sqlite3
     environment:
       DJANGO_DEBUG: "true"
       DJANGO_ALLOWED_HOSTS: "localhost"
