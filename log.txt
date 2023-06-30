@@ -1,0 +1,49 @@
+/usr/local/lib/python3.8/dist-packages/requests/__init__.py:109: RequestsDependencyWarning: urllib3 (2.0.2) or chardet (3.0.4)/charset_normalizer (2.0.12) doesn't match a supported version!
+  warnings.warn(
+/usr/lib/python3/dist-packages/paramiko/transport.py:219: CryptographyDeprecationWarning: Blowfish has been deprecated
+  "class": algorithms.Blowfish,
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/dist-packages/docker/api/client.py", line 214, in _retrieve_server_version
+    return self.version(api_version=False)["ApiVersion"]
+  File "/usr/local/lib/python3.8/dist-packages/docker/api/daemon.py", line 181, in version
+    return self._result(self._get(url), json=True)
+  File "/usr/local/lib/python3.8/dist-packages/docker/utils/decorators.py", line 46, in inner
+    return f(self, *args, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/docker/api/client.py", line 237, in _get
+    return self.get(url, **self._set_request_timeout(kwargs))
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 600, in get
+    return self.request("GET", url, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 587, in request
+    resp = self.send(prep, **send_kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/sessions.py", line 701, in send
+    r = adapter.send(request, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/requests/adapters.py", line 489, in send
+    resp = conn.urlopen(
+  File "/home/dvu21843/.local/lib/python3.8/site-packages/urllib3/connectionpool.py", line 790, in urlopen
+    response = self._make_request(
+  File "/home/dvu21843/.local/lib/python3.8/site-packages/urllib3/connectionpool.py", line 496, in _make_request
+    conn.request(
+TypeError: request() got an unexpected keyword argument 'chunked'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/bin/docker-compose", line 8, in <module>
+    sys.exit(main())
+  File "/usr/local/lib/python3.8/dist-packages/compose/cli/main.py", line 81, in main
+    command_func()
+  File "/usr/local/lib/python3.8/dist-packages/compose/cli/main.py", line 200, in perform_command
+    project = project_from_options('.', options)
+  File "/usr/local/lib/python3.8/dist-packages/compose/cli/command.py", line 60, in project_from_options
+    return get_project(
+  File "/usr/local/lib/python3.8/dist-packages/compose/cli/command.py", line 152, in get_project
+    client = get_client(
+  File "/usr/local/lib/python3.8/dist-packages/compose/cli/docker_client.py", line 41, in get_client
+    client = docker_client(
+  File "/usr/local/lib/python3.8/dist-packages/compose/cli/docker_client.py", line 170, in docker_client
+    client = APIClient(use_ssh_client=not use_paramiko_ssh, **kwargs)
+  File "/usr/local/lib/python3.8/dist-packages/docker/api/client.py", line 197, in __init__
+    self._version = self._retrieve_server_version()
+  File "/usr/local/lib/python3.8/dist-packages/docker/api/client.py", line 221, in _retrieve_server_version
+    raise DockerException(
+docker.errors.DockerException: Error while fetching server API version: request() got an unexpected keyword argument 'chunked'
