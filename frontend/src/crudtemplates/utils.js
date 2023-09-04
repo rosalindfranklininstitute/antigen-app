@@ -73,7 +73,7 @@ export const plateMapOfValues = (elisaValues, colors) => {
                 >
                   {elisaValues ? elisaValues[rowIdx * 12 + colIdx - 1] : ""}
                 </td>
-              )
+              ),
             )}
           </tr>
         ))}
@@ -111,14 +111,14 @@ export const displayFieldSingle = (field, record, context) => {
       return record[field.field];
     }
     return record[field.fkApiField].find(
-      (rec) => rec.id === record[field.field]
+      (rec) => rec.id === record[field.field],
     )[field.fkDisplayField];
   }
   if (field.fkDisplayField) {
     return record[field.field + "_" + field.fkDisplayField];
   } else if (field.type === "elisaplate" && record[field.field]) {
     return plateMapOfValues(
-      record[field.field].map((well) => well["optical_density"])
+      record[field.field].map((well) => well["optical_density"]),
     );
   } else if (field.type === "sequencingplate" && record[field.field]) {
     let numPlates = Math.ceil(record[field.field].length / 96);
@@ -134,7 +134,7 @@ export const displayFieldSingle = (field, record, context) => {
         plateArr.push(
           well["elisa_well"]["plate"] +
             ":" +
-            plateLocationToName(well["elisa_well"]["location"])
+            plateLocationToName(well["elisa_well"]["location"]),
         );
       }
       return plateMapOfValues(plateArr);
@@ -159,7 +159,7 @@ export const displayFieldSingle = (field, record, context) => {
           >
             Download sequencing submission file
           </button>
-        </a>
+        </a>,
       );
     }
     return retVal;
@@ -190,8 +190,8 @@ export const displayField = (field, record, context) => {
         displayFieldSingle(
           field,
           { ...record, [field.field]: valEach },
-          context
-        )
+          context,
+        ),
       )
       .reduce(
         (acc, x) =>
@@ -202,7 +202,7 @@ export const displayField = (field, record, context) => {
               {acc} <br /> {x}
             </>
           ),
-        null
+        null,
       );
   } else {
     return displayFieldSingle(field, record, context);

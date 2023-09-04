@@ -32,7 +32,7 @@ const SequencingPlateLayout = (props) => {
           },
           () => {
             props.setError("HTTP code " + res.status);
-          }
+          },
         );
       })
       .catch((err) => {
@@ -105,7 +105,7 @@ const SequencingPlateLayout = (props) => {
               plates = plates.sort();
               plates.forEach((plate) => {
                 let existingPlateThresh = props.plateThresholds.find(
-                  (thr) => thr.elisa_plate === plate
+                  (thr) => thr.elisa_plate === plate,
                 );
                 let odThresh = 0.0;
                 if (existingPlateThresh) {
@@ -138,8 +138,8 @@ const SequencingPlateLayout = (props) => {
                   elisaPlates
                     .find((plate) => plate.id === thr.elisa_plate)
                     .elisawell_set.map((well) => well.optical_density),
-                  thr.optical_density_threshold
-                )
+                  thr.optical_density_threshold,
+                ),
               )}
               Plate:{" "}
               {
@@ -155,7 +155,7 @@ const SequencingPlateLayout = (props) => {
               <span className="font-mono">
                 {
                   props.wells.filter(
-                    (well) => well.elisa_well.plate === thr.elisa_plate
+                    (well) => well.elisa_well.plate === thr.elisa_plate,
                   ).length
                 }
               </span>
@@ -168,7 +168,7 @@ const SequencingPlateLayout = (props) => {
                       .find((plate) => plate.id === thr.elisa_plate)
                       .elisawell_set.map((well) => well.optical_density)
                       .reduce((prev, current) =>
-                        prev > current ? prev : current
+                        prev > current ? prev : current,
                       ) + 0.001
                   }
                   step={0.001}
@@ -180,10 +180,10 @@ const SequencingPlateLayout = (props) => {
                           ? {
                               ...plate,
                               optical_density_threshold: parseFloat(
-                                val.target.value
+                                val.target.value,
                               ),
                             }
-                          : plate
+                          : plate,
                     );
                     props.setPlateThresholds(newPlateThresholds);
                     setWells(newPlateThresholds);

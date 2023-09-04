@@ -58,7 +58,7 @@ const AuditLog = (props) => {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     )
       .then((res) => {
         res.json().then(
@@ -75,7 +75,7 @@ const AuditLog = (props) => {
           () => {
             setAuditLog([]);
             setLoading(false);
-          }
+          },
         );
       })
       .catch((err) => {
@@ -117,7 +117,7 @@ const AuditLog = (props) => {
                         className={classNames(
                           auditLogIconColours[logEntry.action] ||
                             "bg-gray-300 shadow animate-pulse",
-                          "h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white"
+                          "h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white",
                         )}
                       >
                         {logEntry.action === -1 && (
@@ -189,7 +189,7 @@ const AuditLog = (props) => {
                                 {logEntry.action === 0 && "set "}
                                 {logEntry.action === 1 &&
                                   Array.isArray(
-                                    logEntry.changes_dict[fieldName]
+                                    logEntry.changes_dict[fieldName],
                                   ) && (
                                     <>
                                       {"changed from "}
@@ -202,7 +202,7 @@ const AuditLog = (props) => {
                                     </>
                                   )}
                                 {Array.isArray(
-                                  logEntry.changes_dict[fieldName]
+                                  logEntry.changes_dict[fieldName],
                                 ) && (
                                   <>
                                     {"to "}
@@ -215,7 +215,7 @@ const AuditLog = (props) => {
                                   </>
                                 )}
                                 {!Array.isArray(
-                                  logEntry.changes_dict[fieldName]
+                                  logEntry.changes_dict[fieldName],
                                 ) && (
                                   <>
                                     {

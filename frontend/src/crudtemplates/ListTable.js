@@ -44,7 +44,7 @@ const ListTable = (props) => {
             () => {
               props.onSetError("HTTP response code " + res.status);
               setLoading(false);
-            }
+            },
           );
         })
         .catch((err) => {
@@ -136,7 +136,7 @@ const ListTable = (props) => {
                               {displayField(
                                 props.schema.fields[0],
                                 record,
-                                "ListTable"
+                                "ListTable",
                               ) || <em>None</em>}
                             </NavLink>
                           )}
@@ -184,7 +184,7 @@ const ListTable = (props) => {
                       <td
                         colSpan={
                           props.schema.fields.filter(
-                            (field) => field.showInTable
+                            (field) => field.showInTable,
                           ).length
                         }
                         className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6 text-center"

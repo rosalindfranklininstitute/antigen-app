@@ -28,7 +28,7 @@ const ViewObjectPage = (props) => {
           if (props.schema.parentObjectName !== undefined) {
             let redirectUrl = schemas[props.schema.parentObjectName].viewUrl;
             let parentObjectId = parseInt(
-              record[props.schema.parentObjectName]
+              record[props.schema.parentObjectName],
             );
             if (!isNaN(parentObjectId)) {
               redirectUrl += "/" + parentObjectId;
@@ -49,7 +49,7 @@ const ViewObjectPage = (props) => {
             },
             () => {
               props.onSetError("HTTP response code " + res.status);
-            }
+            },
           );
         }
       })
@@ -76,7 +76,7 @@ const ViewObjectPage = (props) => {
               }
               setLoading(false);
             },
-            () => setLoading(false)
+            () => setLoading(false),
           );
         })
         .catch((err) => {

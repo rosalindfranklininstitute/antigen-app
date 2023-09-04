@@ -90,7 +90,7 @@ const App = () => {
           const csrfToken = getCookie("csrftoken");
           if (!csrfToken) {
             setError(
-              "CSRF cookie not set. Please refresh the page and check your cookie settings if this message persists."
+              "CSRF cookie not set. Please refresh the page and check your cookie settings if this message persists.",
             );
           }
           setCsrfToken(csrfToken);
@@ -100,12 +100,12 @@ const App = () => {
           console.log(err);
           if (err.message?.includes("NetworkError")) {
             setError(
-              "Unable to contact server. Please check your connection and refresh."
+              "Unable to contact server. Please check your connection and refresh.",
             );
           }
           if (err.message?.includes("The operation was aborted")) {
             setError(
-              "Timeout connecting to server. Please check your connection and refresh."
+              "Timeout connecting to server. Please check your connection and refresh.",
             );
           }
           // setLoading(false);
@@ -184,7 +184,7 @@ const App = () => {
                                   isActive
                                     ? "bg-gray-900 text-white"
                                     : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                                  "px-3 py-2 rounded-md text-sm font-medium"
+                                  "px-3 py-2 rounded-md text-sm font-medium",
                                 )
                               }
                               aria-current={item.current ? "page" : undefined}
@@ -230,7 +230,7 @@ const App = () => {
                                       href={item.href}
                                       className={classNames(
                                         active ? "bg-gray-100" : "",
-                                        "block px-4 py-2 text-sm text-gray-700"
+                                        "block px-4 py-2 text-sm text-gray-700",
                                       )}
                                     >
                                       {item.name}
@@ -273,7 +273,7 @@ const App = () => {
                             item.current
                               ? "bg-gray-900 text-white"
                               : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                            "block px-3 py-2 rounded-md text-base font-medium"
+                            "block px-3 py-2 rounded-md text-base font-medium",
                           )}
                           aria-current={item.current ? "page" : undefined}
                         >

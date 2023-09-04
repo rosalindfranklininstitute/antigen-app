@@ -41,7 +41,7 @@ const ComboBox = (props) => {
             return optIds
               .map((optId) => {
                 let opt = props.options.find(
-                  (availOpt) => availOpt.id === optId
+                  (availOpt) => availOpt.id === optId,
                 );
                 return opt !== undefined ? opt[props.displayField] : "";
               })
@@ -64,7 +64,7 @@ const ComboBox = (props) => {
                 className={({ active }) =>
                   classNames(
                     "relative cursor-default select-none py-2 pl-3 pr-9",
-                    active ? "bg-indigo-600 text-white" : "text-gray-900"
+                    active ? "bg-indigo-600 text-white" : "text-gray-900",
                   )
                 }
               >
@@ -81,7 +81,7 @@ const ComboBox = (props) => {
                       <span
                         className={classNames(
                           "ml-3 truncate",
-                          selected && "font-semibold"
+                          selected && "font-semibold",
                         )}
                       >
                         {option[props.displayField]}
@@ -93,7 +93,7 @@ const ComboBox = (props) => {
                       <span
                         className={classNames(
                           "absolute inset-y-0 right-0 flex items-center pr-4",
-                          active ? "text-white" : "text-indigo-600"
+                          active ? "text-white" : "text-indigo-600",
                         )}
                       >
                         <CheckIcon className="h-5 w-5" aria-hidden="true" />

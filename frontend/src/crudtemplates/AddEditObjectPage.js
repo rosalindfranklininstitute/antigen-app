@@ -67,7 +67,7 @@ const AddEditObjectPage = (props) => {
                 setError(res.status);
                 props.onSetError("HTTP code " + res.status);
                 setLoading(false);
-              }
+              },
             );
           }
         })
@@ -96,7 +96,7 @@ const AddEditObjectPage = (props) => {
             },
             () => {
               props.setError("HTTP code " + res.status);
-            }
+            },
           );
         })
         .catch((err) => {
@@ -122,8 +122,8 @@ const AddEditObjectPage = (props) => {
         .forEach((field) =>
           setFormValue(
             field.field,
-            parseInt(query.get(field.field + "_id")) || null
-          )
+            parseInt(query.get(field.field + "_id")) || null,
+          ),
         );
       // Add blank plate_thresholds and wells for sequencing plates
       if (props.schema.viewUrl === "/sequencing") {
@@ -150,8 +150,8 @@ const AddEditObjectPage = (props) => {
       .filter((field) => field.type === "selectmulti")
       .map((field) =>
         record[field.field].forEach((item) =>
-          formData.append(field.field, item)
-        )
+          formData.append(field.field, item),
+        ),
       );
 
     // deal with foreignkey manually
@@ -163,7 +163,7 @@ const AddEditObjectPage = (props) => {
     if (props.schema.viewUrl === "/sequencing") {
       formData.append(
         "plate_thresholds",
-        JSON.stringify(record["plate_thresholds"])
+        JSON.stringify(record["plate_thresholds"]),
       );
       formData.append("wells", JSON.stringify(record["wells"]));
     }
@@ -180,18 +180,18 @@ const AddEditObjectPage = (props) => {
           "X-CSRFToken": props.csrfToken,
         },
         body: formData,
-      }
+      },
     )
       .then((res) => {
         if (res.status >= 300 && res.status !== 400) {
           if (res.status === 500) {
             // Sentry should capture this on the backend
             props.onSetError(
-              "Internal server error - probably a bug we'll have to fix!"
+              "Internal server error - probably a bug we'll have to fix!",
             );
           } else {
             props.onSetError(
-              "Error code " + res.status + " - please report this to support!"
+              "Error code " + res.status + " - please report this to support!",
             );
           }
         } else {
@@ -225,7 +225,7 @@ const AddEditObjectPage = (props) => {
       if (props.schema.parentObjectName !== undefined) {
         let redirectUrl = schemas[props.schema.parentObjectName].viewUrl;
         let parentObjectId = parseInt(
-          query.get(props.schema.parentObjectName + "_id")
+          query.get(props.schema.parentObjectName + "_id"),
         );
         if (!isNaN(parentObjectId)) {
           redirectUrl += "/" + parentObjectId;
@@ -300,7 +300,7 @@ const AddEditObjectPage = (props) => {
                                   className={classNames(
                                     formErrors[field.field]
                                       ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                                      : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                      : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300",
                                   )}
                                   defaultValue={record[field.field]}
                                   // onChange={(e) => setFormValue(field.field, e.target.value)}
@@ -357,7 +357,7 @@ const AddEditObjectPage = (props) => {
                                       onChange={(e) =>
                                         setFormValue(
                                           field.field,
-                                          e.target.files[0]
+                                          e.target.files[0],
                                         )
                                       }
                                     />
@@ -383,12 +383,12 @@ const AddEditObjectPage = (props) => {
                                       className={classNames(
                                         formErrors[field.field]
                                           ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                                          : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                          : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300",
                                       )}
                                       defaultValue={
                                         relatedTables[field.field].find(
                                           (obj) =>
-                                            obj.id === record[field.field]
+                                            obj.id === record[field.field],
                                         )[field.fkDisplayField]
                                       }
                                     />
@@ -420,7 +420,7 @@ const AddEditObjectPage = (props) => {
                                   className={classNames(
                                     formErrors[field.field]
                                       ? "max-w shadow-sm block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                                      : "max-w shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md"
+                                      : "max-w shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md",
                                   )}
                                   defaultValue={record[field.field]}
                                 />
@@ -434,7 +434,7 @@ const AddEditObjectPage = (props) => {
                                   className={classNames(
                                     formErrors[field.field]
                                       ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
-                                      : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                                      : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300",
                                   )}
                                   defaultValue={record[field.field]}
                                 />
