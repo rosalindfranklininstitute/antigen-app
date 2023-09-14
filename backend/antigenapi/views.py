@@ -541,12 +541,13 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
             elisa_well = elisa_wells[(well["plate"], well["location"])]
             ws[f"B{row}"] = (
-                f"{elisa_well.antigen.preferred_name}_"
+                f"{elisa_well.antigen.short_name}_"
                 f"EP{elisa_well.plate_id}_"
                 f"{PlateLocations.labels[elisa_well.location - 1]}"
             )
             # Own primer name
-            ws[f"D{row}"] = "PRIMER"
+            ws[f"D{row}"] = "PHD_SEQ_FWD"
+            ws[f"F{row}"] = "Yes"
 
         # Save to temp file
         with NamedTemporaryFile() as tmp:

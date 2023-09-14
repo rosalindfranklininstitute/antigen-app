@@ -60,6 +60,7 @@ class Antigen(Model):
 
     uniprot_id = CharField(max_length=16, null=True, unique=True)
     preferred_name = CharField(max_length=256)
+    short_name = CharField(max_length=32, unique=True)
     sequence: str = TextField(validators=[AminoCodeLetters], null=True)
     molecular_mass: int = IntegerField(null=True)
     description = TextField(

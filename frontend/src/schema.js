@@ -159,6 +159,14 @@ const antigenSchema = {
       tableColWidth: "w-4/5",
     },
     {
+      label: "Short name",
+      field: "short_name",
+      type: "text",
+      formHint: "Leave blank to populate from UniProt",
+      showInTable: true,
+      tableColWidth: "w-4/5",
+    },
+    {
       label: "Sequence",
       field: "sequence",
       type: "text",
