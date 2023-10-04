@@ -596,10 +596,29 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             raise ValidationError("file", "Results file should be a .zip file")
 
         # TODO: Validate submission_idx
+        try:
+            sr = SequencingRun.objects.get(pk=int(pk))
+        except SequencingRun.DoesNotExist:
+            raise ValidationError(
+                f"Sequencing run {pk} does not exist " "to attach results"
+            )
+
+        wells = [w["location"] for w in sr.wells if w["plate"] == int(submission_idx)]
+        if not wells:
+            raise ValidationError(
+                f"Plate index {submission_idx} not found in " "sequencing run {pk}"
+            )
 
         # Run bioinformatics using .zip file
         # print("Extracting zip file...")
         seq_data = load_sequences(results_file.temporary_file_path())
+        if len(seq_data) != len(wells):
+            raise ValidationError(
+                {
+                    "file": f"Upload contains data for {len(seq_data)} "
+                    f"wells, expected {len(wells)}"
+                }
+            )
 
         # Convert to FASTA in-memory (vquest api handles chunking to
         # max 50 seqs per file)

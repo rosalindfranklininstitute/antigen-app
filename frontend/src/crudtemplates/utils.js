@@ -145,7 +145,17 @@ export const uploadSequencingResults = (event, props) => {
   ).then((res) => {
     props.setLoading(false);
     res.json().then((json) => {
-      props.setRecord(json);
+      if (res.status >= 200 && res.status < 300) {
+        props.setRecord(json);
+      } else {
+        if (typeof json === "string") {
+          props.setError(json);
+        } else if ("file" in json) {
+          props.setError("Problem with file: " + json["file"]);
+        } else {
+          props.setError("Error code " + res.status);
+        }
+      }
     });
   });
 };

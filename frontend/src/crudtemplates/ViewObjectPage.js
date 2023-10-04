@@ -147,6 +147,7 @@ const ViewObjectPage = (props) => {
                     displayField(field, record, "ViewObjectPage", {
                       setRecord: setRecord,
                       setLoading: setLoading,
+                      setError: props.onSetError,
                     })}
                   {loading && (
                     <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
