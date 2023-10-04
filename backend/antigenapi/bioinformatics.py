@@ -1,10 +1,12 @@
 import itertools
+import logging
 import os
 import sys
 import zipfile
 
 import vquest.config
 import vquest.vq
+from vquest import LOGGER as VQUEST_LOGGER
 
 START_CODON = "ATG"
 
@@ -27,7 +29,7 @@ def _load_sequences_zip(zip_file):
     seq_data = {}
     with zipfile.ZipFile(zip_file, "r") as zip_ref:
         for fn in zip_ref.namelist():
-            if not fn.endswith(".seq"):
+            if not fn.endswith(".seq") or fn.startswith("__MACOSX"):
                 continue
 
             # Convert the file name to a short sequence identifier
@@ -100,11 +102,6 @@ def run_vquest(fasta_data, species="alpaca", receptor="IG"):
     conf["receptorOrLocusType"] = receptor
     conf["sequences"] = fasta_data
 
-    # Set vquest logging to DEBUG
-    import logging
-
-    from vquest import LOGGER
-
-    LOGGER.setLevel(logging.DEBUG)
+    VQUEST_LOGGER.setLevel(logging.WARNING)
 
     return vquest.vq.vquest(conf)
