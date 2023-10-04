@@ -1,4 +1,5 @@
 import collections.abc
+import io
 import os
 import urllib.error
 import urllib.parse
@@ -597,7 +598,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # TODO: Validate submission_idx
 
         # Run bioinformatics using .zip file
-        print("Extracting zip file...")
+        # print("Extracting zip file...")
         seq_data = load_sequences(results_file.temporary_file_path())
 
         # Convert to FASTA in-memory (vquest api handles chunking to
@@ -605,13 +606,29 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         fasta_file = as_fasta_files(seq_data, max_file_size=None)[0]
 
         # Submit to vquest
-        print("Running vquest...")
+        # print("Running vquest...")
         vquest_results = run_vquest(fasta_file)
 
         parameters_file_data = vquest_results["Parameters.txt"]
         vquest_airr_data = vquest_results["vquest_airr.tsv"]
 
         base_filename = f"SequencingResults_{pk}_{submission_idx}"
+
+        # Make sure directory exists
+        base_dirs = set(
+            [
+                os.path.join(
+                    settings.MEDIA_ROOT,
+                    SequencingRunResults.parameters_file.field.upload_to,
+                ),
+                os.path.join(
+                    settings.MEDIA_ROOT, SequencingRunResults.airr_file.field.upload_to
+                ),
+            ]
+        )
+
+        for base_dir in base_dirs:
+            os.makedirs(base_dir, exist_ok=True)
 
         # Create SequencingRunResults object
         with open(
@@ -655,7 +672,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         name="Get sequencing results.",
         url_path="results",
     )
-    def upload_sequencing_run_results(self, request, pk):
+    def get_sequencing_run_results(self, request, pk):
         """Get sequencing results."""
         IMPORTANT_COLUMNS = (
             "sequence_id",
@@ -673,7 +690,8 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             sequencing_run_id=int(pk)
         ).order_by("seq")
 
-        import io
+        if not results:
+            return JsonResponse({"records": []})
 
         csvs = []
         for r in results:
