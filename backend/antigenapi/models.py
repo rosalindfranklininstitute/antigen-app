@@ -164,6 +164,29 @@ class SequencingRun(Model):
     added_date = DateTimeField(auto_now_add=True)
 
 
+class SequencingRunResults(Model):
+    """A results file for a sequencing run."""
+
+    sequencing_run = ForeignKey(SequencingRun, on_delete=PROTECT)
+    seq: int = PositiveSmallIntegerField()
+    seqres_file: File = FileField(
+        upload_to="uploads/sequencingresults/",
+    )
+    parameters_file: File = FileField(
+        upload_to="uploads/sequencingresults/",
+    )
+    airr_file: File = FileField(
+        upload_to="uploads/sequencingresults/",
+    )
+    added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
+    added_date = DateTimeField(auto_now_add=True)
+
+    class Meta:  # noqa: D106
+        constraints = [
+            UniqueConstraint(fields=["sequencing_run", "seq"], name="unique_seqrun_seq")
+        ]
+
+
 auditlog.register(Project)
 auditlog.register(Llama)
 auditlog.register(Antigen)
@@ -171,3 +194,4 @@ auditlog.register(Cohort, m2m_fields={"projects", "antigens"})
 auditlog.register(Library)
 auditlog.register(ElisaPlate)
 auditlog.register(SequencingRun)
+auditlog.register(SequencingRunResults)

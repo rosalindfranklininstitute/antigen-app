@@ -143,7 +143,11 @@ const ViewObjectPage = (props) => {
                   {field.label}
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 break-words">
-                  {!loading && displayField(field, record, "ViewObjectPage")}
+                  {!loading &&
+                    displayField(field, record, "ViewObjectPage", {
+                      setRecord: setRecord,
+                      setLoading: setLoading,
+                    })}
                   {loading && (
                     <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
                   )}

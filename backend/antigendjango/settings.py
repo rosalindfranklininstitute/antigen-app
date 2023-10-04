@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "guardian",
     "auditlog",
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [

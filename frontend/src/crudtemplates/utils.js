@@ -3,6 +3,22 @@ import { LinkIcon } from "@heroicons/react/20/solid";
 import config from "../config.js";
 import schema from "../schema.js";
 
+export const getCookie = (name) => {
+  if (!document.cookie) {
+    return null;
+  }
+
+  const xsrfCookies = document.cookie
+    .split(";")
+    .map((c) => c.trim())
+    .filter((c) => c.startsWith(name + "="));
+
+  if (xsrfCookies.length === 0) {
+    return null;
+  }
+  return decodeURIComponent(xsrfCookies[0].split("=")[1]);
+};
+
 const elisaHeader = [
   "",
   "1",
@@ -105,7 +121,37 @@ const makeExtLink = (value, linkTemplate, context) => {
   }
 };
 
-export const displayFieldSingle = (field, record, context) => {
+export const uploadSequencingResults = (event, props) => {
+  var input = event.target;
+
+  var data = new FormData();
+  data.append("file", input.files[0]);
+
+  props.setLoading(true);
+  fetch(
+    config.url.API_URL +
+      "/sequencingrun/" +
+      input.dataset.seqidx +
+      "/resultsfile/" +
+      input.dataset.residx +
+      "/",
+    {
+      method: "PUT",
+      body: data,
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+      },
+    },
+  ).then((res) => {
+    props.setLoading(false);
+    res.json().then((json) => {
+      console.log(json);
+      props.setRecord(json);
+    });
+  });
+};
+
+export const displayFieldSingle = (field, record, context, props) => {
   if (field.fkApiField) {
     if (!Array.isArray(record[field.fkApiField])) {
       return record[field.field];
@@ -143,6 +189,7 @@ export const displayFieldSingle = (field, record, context) => {
       retVal.push(<div key={"seqPlate" + p}>{plateFn(p)}</div>);
       retVal.push(
         <a
+          key={"seqPlateLink" + p}
           href={
             config.url.API_URL +
             schema.sequencing.apiUrl +
@@ -155,12 +202,34 @@ export const displayFieldSingle = (field, record, context) => {
         >
           <button
             type="button"
-            className="w-full sm:w-auto mb-2 mt-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Download sequencing submission file
           </button>
         </a>,
       );
+      if (record.sequencingrunresults_set.find((x) => x.seq === p)) {
+        // Sequencing results found
+      } else {
+        // Sequencing results not uploaded yet
+        retVal.push(
+          <label
+            key={"resultsFileUpload" + p}
+            type="button"
+            className="w-full cursor-pointer sm:w-auto mb-2 mt-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+          >
+            <input
+              type="file"
+              data-residx={p}
+              data-seqidx={record.id}
+              onChange={(event) => uploadSequencingResults(event, props)}
+              className="hidden"
+              name={"resultsFile" + p}
+            />
+            Upload sequencing results file
+          </label>,
+        );
+      }
     }
     return retVal;
   } else if (field.type === "platethreshold" && record[field.field]) {
@@ -180,7 +249,7 @@ export const displayFieldSingle = (field, record, context) => {
   }
 };
 
-export const displayField = (field, record, context) => {
+export const displayField = (field, record, context, props) => {
   if (
     !displayTogetherFieldTypes.includes(field.type) &&
     Array.isArray(record[field.field])
@@ -191,6 +260,7 @@ export const displayField = (field, record, context) => {
           field,
           { ...record, [field.field]: valEach },
           context,
+          props,
         ),
       )
       .reduce(
@@ -205,7 +275,7 @@ export const displayField = (field, record, context) => {
         null,
       );
   } else {
-    return displayFieldSingle(field, record, context);
+    return displayFieldSingle(field, record, context, props);
   }
 };
 

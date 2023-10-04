@@ -19,6 +19,8 @@ import {
 } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
+import { getCookie } from "./crudtemplates/utils.js";
+import SequencingResults from "./crudtemplates/SequencingResults.js";
 
 if (process.env.REACT_APP_SENTRY_DSN !== undefined) {
   Sentry.init({
@@ -59,22 +61,6 @@ const App = () => {
     email: "",
     username: "",
   });
-
-  const getCookie = (name) => {
-    if (!document.cookie) {
-      return null;
-    }
-
-    const xsrfCookies = document.cookie
-      .split(";")
-      .map((c) => c.trim())
-      .filter((c) => c.startsWith(name + "="));
-
-    if (xsrfCookies.length === 0) {
-      return null;
-    }
-    return decodeURIComponent(xsrfCookies[0].split("=")[1]);
-  };
 
   useEffect(() => {
     const getCSRF = () => {
@@ -724,6 +710,11 @@ const App = () => {
                       onSetError={setError}
                       csrfToken={csrfToken}
                     ></ViewObjectPage>
+                    <SequencingResults
+                      tabName="Results"
+                      schema={schemas.sequencing}
+                      onSetError={setError}
+                    ></SequencingResults>
                     <AuditLog
                       tabName="Audit Log"
                       schema={schemas.sequencing}
