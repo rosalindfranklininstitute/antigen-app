@@ -42,6 +42,7 @@ from antigenapi.models import (
     Project,
     SequencingRun,
     SequencingRunResults,
+    _remove_zero_pad_well_name,
 )
 from antigenapi.utils.uniprot import get_protein
 
@@ -595,7 +596,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         if not results_file.name.endswith(".zip"):
             raise ValidationError("file", "Results file should be a .zip file")
 
-        # TODO: Validate submission_idx
+        # Validate the plate number and submission idx (seq) from the URL
         try:
             sr = SequencingRun.objects.get(pk=int(pk))
         except SequencingRun.DoesNotExist:
@@ -617,6 +618,33 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                 {
                     "file": f"Upload contains data for {len(seq_data)} "
                     f"wells, expected {len(wells)}"
+                }
+            )
+        # Validate wells expected vs wells supplied
+        try:
+            wells_supplied = set(
+                [_remove_zero_pad_well_name(w[-3:]) for w in seq_data.keys()]
+            )
+        except IndexError:
+            raise ValidationError(
+                {
+                    "file": "Unable to parse well names. "
+                    "Ensure all .seq filenames end with a well."
+                }
+            )
+        wells_expected = set([PlateLocations.labels[loc - 1] for loc in wells])
+        if wells_expected - wells_supplied:
+            raise ValidationError(
+                {
+                    "file": f"Expected well(s) {wells_expected - wells_supplied} "
+                    "were not found in upload"
+                }
+            )
+        if wells_supplied - wells_expected:
+            raise ValidationError(
+                {
+                    "file": f"Unexpected well(s) {wells_supplied - wells_expected} "
+                    "were found in upload"
                 }
             )
 
