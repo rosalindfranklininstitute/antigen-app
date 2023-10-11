@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("antigenapi", "0004_remove_sequencingrun_results_date_and_more"),
+        ("antigenapi", "0006_antigen_short_name_unique"),
     ]
 
     operations = [
