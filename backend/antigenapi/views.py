@@ -1,17 +1,23 @@
 import collections.abc
+import io
 import os
+import re
 import urllib.error
 import urllib.parse
 from tempfile import NamedTemporaryFile
 from wsgiref.util import FileWrapper
 
+import numpy as np
 import openpyxl
+import pandas as pd
 from auditlog.models import LogEntry
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.files import File
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -25,6 +31,7 @@ from rest_framework.serializers import (
 )
 from rest_framework.viewsets import ModelViewSet
 
+from antigenapi.bioinformatics import as_fasta_files, load_sequences, run_vquest
 from antigenapi.models import (
     Antigen,
     Cohort,
@@ -35,10 +42,14 @@ from antigenapi.models import (
     PlateLocations,
     Project,
     SequencingRun,
+    SequencingRunResults,
+    _remove_zero_pad_well_name,
 )
 from antigenapi.utils.uniprot import get_protein
 
 from .parsers import parse_elisa_file
+
+_ELISA_PLATE_MATCHER = re.compile("_EP([0-9]+)_")
 
 
 # Audit logs #
@@ -379,10 +390,21 @@ class ElisaWellInlineSerializer(ModelSerializer):
         fields = ("plate", "location")
 
 
+class SequencingRunResultSerializer(ModelSerializer):
+    """A serializer for sequencing run results."""
+
+    added_by = StringRelatedField()
+
+    class Meta:  # noqa: D106
+        model = SequencingRunResults
+        fields = ("seq", "added_by", "added_date")
+
+
 class SequencingRunSerializer(ModelSerializer):
     """A serializer for sequencing runs."""
 
     added_by = StringRelatedField()
+    sequencingrunresults_set = SequencingRunResultSerializer(many=True, required=False)
 
     def validate_wells(self, data):
         """Check JSONField for wells is valid."""
@@ -482,6 +504,14 @@ class SequencingRunSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
+def _extract_plate_and_well(well):
+    well_name = _remove_zero_pad_well_name(well[-3:])
+    plate = _ELISA_PLATE_MATCHER.search(well)
+    if not plate:
+        return (None, well_name)
+    return (int(plate.groups(1)[0]), well_name)
+
+
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for sequencing runs."""
 
@@ -563,3 +593,225 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             f'sr{pk}_{submission_idx}.xlsx"'
         )
         return response
+
+    @action(
+        detail=True,
+        methods=["PUT"],
+        name="Upload sequencing run results file (.zip).",
+        url_path="resultsfile/(?P<submission_idx>[0-9]+)",
+    )
+    def upload_sequencing_run_results(self, request, pk, submission_idx):
+        """Upload sequencing run results file (.zip)."""
+        results_file = request.data["file"]
+
+        # TODO: Validate results file in more detail
+        if not results_file.name.endswith(".zip"):
+            raise ValidationError("file", "Results file should be a .zip file")
+
+        # Validate the plate number and submission idx (seq) from the URL
+        try:
+            sr = SequencingRun.objects.get(pk=int(pk))
+        except SequencingRun.DoesNotExist:
+            raise ValidationError(
+                f"Sequencing run {pk} does not exist " "to attach results"
+            )
+
+        # Store (elisa_plate, elisa_well tuples expected in this resultsfile)
+        wells = [
+            (
+                w["elisa_well"]["plate"],
+                PlateLocations.labels[w["elisa_well"]["location"] - 1],
+            )
+            for w in sr.wells
+            if w["plate"] == int(submission_idx)
+        ]
+        if not wells:
+            raise ValidationError(
+                f"Plate index {submission_idx} not found in " "sequencing run {pk}"
+            )
+
+        # Run bioinformatics using .zip file
+        # print("Extracting zip file...")
+        try:
+            seq_data_fh = results_file.temporary_file_path()
+        except AttributeError:
+            seq_data_fh = results_file.file
+        seq_data = load_sequences(seq_data_fh)
+        if len(seq_data) != len(wells):
+            raise ValidationError(
+                {
+                    "file": f"Upload contains data for {len(seq_data)} "
+                    f"wells, expected {len(wells)}"
+                }
+            )
+        # Validate wells expected vs wells supplied
+        try:
+            wells_supplied = [_extract_plate_and_well(w) for w in seq_data.keys()]
+        except IndexError:
+            raise ValidationError(
+                {
+                    "file": "Unable to parse well names. "
+                    "Ensure all .seq filenames end with a well."
+                }
+            )
+        # Plateless matching for legacy datasets
+        plateless_matching = any([w[0] is None for w in wells_supplied])
+        if plateless_matching:
+            # Check for duplicates in the expected well names, and error if so
+            wells_expected_list = [w[1] for w in wells]
+            wells_expected = set(wells_expected_list)
+            if len(wells_expected_list) != len(wells_expected):
+                raise ValidationError(
+                    {
+                        "file": "Using legacy match (no plate numbers) but duplicate "
+                        "wells found. Please re-upload with plate numbers in .seq "
+                        "filenames."
+                    }
+                )
+            wells_supplied = set([w[1] for w in wells_supplied])
+        else:
+            wells_expected = set(wells)
+            wells_supplied = set(wells_supplied)
+
+        if wells_expected - wells_supplied:
+            raise ValidationError(
+                {
+                    "file": f"Expected well(s) {wells_expected - wells_supplied} "
+                    "were not found in upload"
+                }
+            )
+        if wells_supplied - wells_expected:
+            raise ValidationError(
+                {
+                    "file": f"Unexpected well(s) {wells_supplied - wells_expected} "
+                    "were found in upload"
+                }
+            )
+
+        # Convert to FASTA in-memory (vquest api handles chunking to
+        # max 50 seqs per file)
+        fasta_file = as_fasta_files(seq_data, max_file_size=None)[0]
+
+        # Submit to vquest
+        # print("Running vquest...")
+        vquest_results = run_vquest(fasta_file)
+
+        parameters_file_data = vquest_results["Parameters.txt"]
+        vquest_airr_data = vquest_results["vquest_airr.tsv"]
+
+        base_filename = f"SequencingResults_{pk}_{submission_idx}"
+
+        # Make sure directory exists
+        base_dirs = set(
+            [
+                os.path.join(
+                    settings.MEDIA_ROOT,
+                    SequencingRunResults.parameters_file.field.upload_to,
+                ),
+                os.path.join(
+                    settings.MEDIA_ROOT, SequencingRunResults.airr_file.field.upload_to
+                ),
+            ]
+        )
+
+        for base_dir in base_dirs:
+            os.makedirs(base_dir, exist_ok=True)
+
+        # Create SequencingRunResults object
+        with open(
+            os.path.join(
+                settings.MEDIA_ROOT,
+                SequencingRunResults.parameters_file.field.upload_to,
+                f"{base_filename}_vquestparams.txt",
+            ),
+            "w+",
+        ) as parameters_file, open(
+            os.path.join(
+                settings.MEDIA_ROOT,
+                SequencingRunResults.airr_file.field.upload_to,
+                f"{base_filename}_vquestairr.tsv",
+            ),
+            "w+",
+        ) as airr_file:
+            parameters_file.write(parameters_file_data)
+            parameters_file_wrapped = File(parameters_file)
+            airr_file.write(vquest_airr_data)
+            airr_file_wrapped = File(airr_file)
+
+            SequencingRunResults.objects.update_or_create(
+                sequencing_run=SequencingRun.objects.get(pk=int(pk)),
+                seq=submission_idx,
+                defaults={
+                    "added_by": request.user,
+                    "seqres_file": results_file,
+                    "parameters_file": parameters_file_wrapped,
+                    "airr_file": airr_file_wrapped,
+                },
+            )
+
+        return JsonResponse(
+            SequencingRunSerializer(SequencingRun.objects.get(pk=int(pk))).data
+        )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="Get sequencing results.",
+        url_path="results",
+    )
+    def get_sequencing_run_results(self, request, pk):
+        """Get sequencing results."""
+        IMPORTANT_COLUMNS = (
+            "sequence_id",
+            "productive",
+            "stop_codon",
+            "fwr1_aa",
+            "cdr1_aa",
+            "fwr2_aa",
+            "cdr2_aa",
+            "fwr3_aa",
+            "cdr3_aa",
+        )
+
+        results = SequencingRunResults.objects.filter(
+            sequencing_run_id=int(pk)
+        ).order_by("seq")
+
+        if not results:
+            return JsonResponse({"records": []})
+
+        csvs = []
+        for r in results:
+            # Clean up the CSVs! They seem to have an extra tab in some cases.
+            buffer = io.StringIO(
+                "\n".join(
+                    line.strip()
+                    for line in r.airr_file.read().decode("utf8").split("\n")
+                )
+            )
+            df = pd.read_csv(buffer, sep="\t", header=0, usecols=IMPORTANT_COLUMNS)
+            csvs.append(df)
+        df = pd.concat(csvs)
+
+        # Get number of matches per CDR3 sequence
+        cdr3_counts = df["cdr3_aa"].value_counts()
+        cdr3_counts.name = "cdr3_aa_count"
+        df = df.merge(cdr3_counts, on="cdr3_aa", how="left")
+
+        # Sort as required - Productive, number of CDR3 matches,
+        # then CDR3 itself, then sequence ID
+        df = df.sort_values(
+            by=["productive", "cdr3_aa_count", "cdr3_aa", "sequence_id"],
+            ascending=[False, False, True, True],
+        )
+
+        # Ensure we have the right columns in the right order
+        df = df.loc[:, IMPORTANT_COLUMNS]
+
+        # Set index and replace NaN with None (null in JSON)
+        df = df.replace({np.nan: None})
+
+        # Indicator to show when cdr3 has changed from previous row
+        df["new_cdr3"] = df["cdr3_aa"].shift(1).ne(df["cdr3_aa"])
+
+        return JsonResponse({"records": df.to_dict(orient="records")})
