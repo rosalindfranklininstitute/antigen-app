@@ -51,7 +51,7 @@ def _load_sequences_zip(zip_file):
 
 def load_sequences(directory_or_zip):
     """Load a set of sequences from .seq files from a dictionary or .zip file."""
-    if os.path.isfile(directory_or_zip):
+    if hasattr(directory_or_zip, "read") or os.path.isfile(directory_or_zip):
         return _load_sequences_zip(directory_or_zip)
 
     seq_data = {}

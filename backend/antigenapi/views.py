@@ -1,6 +1,7 @@
 import collections.abc
 import io
 import os
+import re
 import urllib.error
 import urllib.parse
 from tempfile import NamedTemporaryFile
@@ -47,6 +48,8 @@ from antigenapi.models import (
 from antigenapi.utils.uniprot import get_protein
 
 from .parsers import parse_elisa_file
+
+_ELISA_PLATE_MATCHER = re.compile("_EP([0-9]+)_")
 
 
 # Audit logs #
@@ -501,6 +504,14 @@ class SequencingRunSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
+def _extract_plate_and_well(well):
+    well_name = _remove_zero_pad_well_name(well[-3:])
+    plate = _ELISA_PLATE_MATCHER.search(well)
+    if not plate:
+        return (None, well_name)
+    return (int(plate.groups(1)[0]), well_name)
+
+
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for sequencing runs."""
 
@@ -604,7 +615,15 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                 f"Sequencing run {pk} does not exist " "to attach results"
             )
 
-        wells = [w["location"] for w in sr.wells if w["plate"] == int(submission_idx)]
+        # Store (elisa_plate, elisa_well tuples expected in this resultsfile)
+        wells = [
+            (
+                w["elisa_well"]["plate"],
+                PlateLocations.labels[w["elisa_well"]["location"] - 1],
+            )
+            for w in sr.wells
+            if w["plate"] == int(submission_idx)
+        ]
         if not wells:
             raise ValidationError(
                 f"Plate index {submission_idx} not found in " "sequencing run {pk}"
@@ -612,7 +631,11 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         # Run bioinformatics using .zip file
         # print("Extracting zip file...")
-        seq_data = load_sequences(results_file.temporary_file_path())
+        try:
+            seq_data_fh = results_file.temporary_file_path()
+        except AttributeError:
+            seq_data_fh = results_file.file
+        seq_data = load_sequences(seq_data_fh)
         if len(seq_data) != len(wells):
             raise ValidationError(
                 {
@@ -622,9 +645,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             )
         # Validate wells expected vs wells supplied
         try:
-            wells_supplied = set(
-                [_remove_zero_pad_well_name(w[-3:]) for w in seq_data.keys()]
-            )
+            wells_supplied = [_extract_plate_and_well(w) for w in seq_data.keys()]
         except IndexError:
             raise ValidationError(
                 {
@@ -632,7 +653,25 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                     "Ensure all .seq filenames end with a well."
                 }
             )
-        wells_expected = set([PlateLocations.labels[loc - 1] for loc in wells])
+        # Plateless matching for legacy datasets
+        plateless_matching = any([w[0] is None for w in wells_supplied])
+        if plateless_matching:
+            # Check for duplicates in the expected well names, and error if so
+            wells_expected_list = [w[1] for w in wells]
+            wells_expected = set(wells_expected_list)
+            if len(wells_expected_list) != len(wells_expected):
+                raise ValidationError(
+                    {
+                        "file": "Using legacy match (no plate numbers) but duplicate "
+                        "wells found. Please re-upload with plate numbers in .seq "
+                        "filenames."
+                    }
+                )
+            wells_supplied = set([w[1] for w in wells_supplied])
+        else:
+            wells_expected = set(wells)
+            wells_supplied = set(wells_supplied)
+
         if wells_expected - wells_supplied:
             raise ValidationError(
                 {
