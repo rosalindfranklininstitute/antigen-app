@@ -94,6 +94,8 @@ if "AWS_STORAGE_BUCKET_NAME" in os.environ:
                 "bucket_name": os.environ["AWS_STORAGE_BUCKET_NAME"],
                 "region_name": os.environ["AWS_S3_REGION_NAME"],
                 "location": os.environ.get("AWS_S3_PREFIX", ""),
+                "access_key": os.environ["AWS_S3_ACCESS_KEY_ID"],
+                "secret_key": os.environ["AWS_S3_SECRET_ACCESS_KEY"],
                 "file_overwrite": False,
             },
         },
