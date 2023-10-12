@@ -5,6 +5,7 @@ verify_ssl = true
 
 [packages]
 antigenapp = { editable = true, path = "." }
+django-storages = {extras = ["s3"], version = "*"}
 
 [dev-packages]
 antigenapp = { editable = true, extras = ["dev"], path = "." }
