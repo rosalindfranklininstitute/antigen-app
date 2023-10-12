@@ -91,14 +91,15 @@ if "AWS_STORAGE_BUCKET_NAME" in os.environ:
         "default": {
             "BACKEND": "storages.backends.s3.S3Storage",
             "OPTIONS": {
-                "AWS_STORAGE_BUCKET_NAME": os.environ["AWS_STORAGE_BUCKET_NAME"],
-                "AWS_S3_REGION_NAME": os.environ["AWS_S3_REGION_NAME"],
-                "AWS_LOCATION": os.environ.get("AWS_S3_PREFIX", ""),
-                "AWS_S3_FILE_OVERWRITE": False,
-                "UPLOADED_FILES_USE_URL": False,
+                "bucket_name": os.environ["AWS_STORAGE_BUCKET_NAME"],
+                "region_name": os.environ["AWS_S3_REGION_NAME"],
+                "location": os.environ.get("AWS_S3_PREFIX", ""),
+                "file_overwrite": False,
             },
         },
     }
+UPLOADED_FILES_USE_URL = False
+
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
