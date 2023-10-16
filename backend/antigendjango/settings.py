@@ -99,6 +99,9 @@ if "AWS_STORAGE_BUCKET_NAME" in os.environ:
                 "file_overwrite": False,
             },
         },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+        },
     }
 UPLOADED_FILES_USE_URL = False
 
