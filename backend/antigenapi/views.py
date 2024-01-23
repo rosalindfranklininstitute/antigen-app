@@ -627,7 +627,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         ]
         if not wells:
             raise ValidationError(
-                f"Plate index {submission_idx} not found in " "sequencing run {pk}"
+                f"Plate index {submission_idx} not found in sequencing run {pk}"
             )
 
         # Run bioinformatics using .zip file
@@ -753,6 +753,29 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             SequencingRunSerializer(SequencingRun.objects.get(pk=int(pk))).data
         )
 
+    AIRR_IMPORTANT_COLUMNS = (
+        "sequence_id",
+        "productive",
+        "stop_codon",
+        "fwr1_aa",
+        "cdr1_aa",
+        "fwr2_aa",
+        "cdr2_aa",
+        "fwr3_aa",
+        "cdr3_aa",
+    )
+
+    def _read_airr_file(self, airr_file):
+        # Clean up the CSVs! They seem to have an extra tab in some cases.
+        buffer = io.StringIO(
+            "\n".join(
+                line.strip() for line in airr_file.read().decode("utf8").split("\n")
+            )
+        )
+        return pd.read_csv(
+            buffer, sep="\t", header=0, usecols=self.AIRR_IMPORTANT_COLUMNS
+        )
+
     @action(
         detail=True,
         methods=["GET"],
@@ -761,18 +784,6 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     )
     def get_sequencing_run_results(self, request, pk):
         """Get sequencing results."""
-        IMPORTANT_COLUMNS = (
-            "sequence_id",
-            "productive",
-            "stop_codon",
-            "fwr1_aa",
-            "cdr1_aa",
-            "fwr2_aa",
-            "cdr2_aa",
-            "fwr3_aa",
-            "cdr3_aa",
-        )
-
         results = SequencingRunResults.objects.filter(
             sequencing_run_id=int(pk)
         ).order_by("seq")
@@ -782,15 +793,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         csvs = []
         for r in results:
-            # Clean up the CSVs! They seem to have an extra tab in some cases.
-            buffer = io.StringIO(
-                "\n".join(
-                    line.strip()
-                    for line in r.airr_file.read().decode("utf8").split("\n")
-                )
-            )
-            df = pd.read_csv(buffer, sep="\t", header=0, usecols=IMPORTANT_COLUMNS)
-            csvs.append(df)
+            csvs.append(self._read_airr_file(r.airr_file))
         df = pd.concat(csvs)
 
         # Get number of matches per CDR3 sequence
@@ -806,7 +809,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
 
         # Ensure we have the right columns in the right order
-        df = df.loc[:, IMPORTANT_COLUMNS]
+        df = df.loc[:, self.AIRR_IMPORTANT_COLUMNS]
 
         # Set index and replace NaN with None (null in JSON)
         df = df.replace({np.nan: None})
@@ -815,3 +818,28 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         df["new_cdr3"] = df["cdr3_aa"].shift(1).ne(df["cdr3_aa"])
 
         return JsonResponse({"records": df.to_dict(orient="records")})
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        name="Search sequencing results by sequence.",
+        url_path="searchcdr3/(?P<query>[A-Za-z]+)",
+    )
+    def search_sequencing_run_results(self, request, query):
+        """Get sequencing run results by CDR3 sequence search."""
+        srs = SequencingRunResults.objects.select_related("sequencing_run")
+        results = []
+        query = query.upper()
+        for sr in srs:
+            airr_file = self._read_airr_file(sr.airr_file)
+            airr_file = airr_file[airr_file.cdr3_aa.notna()]
+            airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
+            if not airr_file.empty:
+                airr_file.insert(
+                    loc=0, column="sequencing_run", value=sr.sequencing_run_id
+                )
+                results.append(airr_file)
+
+        return JsonResponse(
+            {"matches": pd.concat(results).to_dict(orient="records") if results else []}
+        )

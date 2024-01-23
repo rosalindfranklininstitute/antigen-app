@@ -20,7 +20,6 @@ router.register("antigen", AntigenViewSet)
 router.register("elisa_plate", ElisaPlateViewSet)
 router.register("sequencingrun", SequencingRunViewSet)
 
-
 urlpatterns = [
     path("", include(router.urls)),
 ]

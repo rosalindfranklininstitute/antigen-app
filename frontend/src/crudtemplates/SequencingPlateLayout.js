@@ -31,13 +31,13 @@ const SequencingPlateLayout = (props) => {
             setElisaPlates(data);
           },
           () => {
-            props.setError("HTTP code " + res.status);
+            props.onSetError("HTTP code " + res.status);
           },
         );
       })
       .catch((err) => {
         Sentry.captureException(err);
-        props.setError(err.toString());
+        props.onSetError(err.toString());
       });
   };
 

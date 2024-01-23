@@ -69,6 +69,7 @@ const ListTable = (props) => {
           {/* <p className="mt-2 text-sm text-gray-700">&nbsp;</p> */}
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+          {props.extraButton}
           {!props.readOnly && (
             <NavLink
               to={

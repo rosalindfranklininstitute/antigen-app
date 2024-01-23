@@ -8,6 +8,7 @@ import Tabs from "./crudtemplates/Tabs.js";
 import AuditLog from "./crudtemplates/AuditLog.js";
 import schemas from "./schema.js";
 import ErrorHandler from "./ErrorHandler.js";
+import SearchSequencing from "./SearchSequencing.js";
 import React, { Fragment, useState, useEffect } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -681,6 +682,16 @@ const App = () => {
                   <ListTable
                     schema={schemas.sequencing}
                     onSetError={setError}
+                    extraButton={
+                      <NavLink to={"/sequencing/search"}>
+                        <button
+                          type="button"
+                          className="w-full sm:w-auto mr-2 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
+                        >
+                          Search by CDR3
+                        </button>
+                      </NavLink>
+                    }
                   ></ListTable>
                 </HeadedPage>
               }
@@ -734,6 +745,15 @@ const App = () => {
                     csrfToken={csrfToken}
                     onSetError={setError}
                   ></AddEditObjectPage>
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/sequencing/search"
+              element={
+                <HeadedPage title="Search by Sequence">
+                  <SearchSequencing onSetError={setError} />
                 </HeadedPage>
               }
             />
