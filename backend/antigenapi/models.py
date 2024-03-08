@@ -178,6 +178,7 @@ class SequencingRunResults(Model):
 
     sequencing_run = ForeignKey(SequencingRun, on_delete=PROTECT)
     seq: int = PositiveSmallIntegerField()
+    well_pos_offset: int = PositiveIntegerField(default=0)
     seqres_file: File = FileField(
         upload_to="uploads/sequencingresults/",
     )

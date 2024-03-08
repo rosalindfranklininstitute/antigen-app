@@ -144,19 +144,24 @@ export const uploadSequencingResults = (event, props) => {
     },
   ).then((res) => {
     props.setLoading(false);
-    res.json().then((json) => {
-      if (res.status >= 200 && res.status < 300) {
-        props.setRecord(json);
-      } else {
-        if (typeof json === "string") {
-          props.setError(json);
-        } else if ("file" in json) {
-          props.setError("Problem with file: " + json["file"]);
+    res.json().then(
+      (json) => {
+        if (res.status >= 200 && res.status < 300) {
+          props.setRecord(json);
         } else {
-          props.setError("Error code " + res.status);
+          if (typeof json === "string") {
+            props.setError(json);
+          } else if ("file" in json) {
+            props.setError("Problem with file: " + json["file"]);
+          } else {
+            props.setError("Error code " + res.status);
+          }
         }
-      }
-    });
+      },
+      () => {
+        props.setError("Failed with HTTP response code " + res.status);
+      },
+    );
   });
 };
 
@@ -181,9 +186,17 @@ export const displayFieldSingle = (field, record, context, props) => {
     let plateFn = (p) => {
       let plateArr = [];
       let plateVals = record[field.field].slice(p * 96, (p + 1) * 96);
+      let offset = 0;
+      for (let i = 0; i < record["sequencingrunresults_set"].length; i++) {
+        let seqRes = record["sequencingrunresults_set"][i];
+        if (seqRes["seq"] === p) {
+          offset = seqRes["well_pos_offset"];
+          break;
+        }
+      }
       for (let i = 0; i < plateVals.length; i++) {
         let well = plateVals[i];
-        while (plateArr.length < well["location"] - 1) {
+        while (plateArr.length < well["location"] - 1 + offset) {
           plateArr.push(null);
         }
         plateArr.push(

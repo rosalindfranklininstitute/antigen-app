@@ -1,7 +1,6 @@
 import collections.abc
 import io
 import os
-import re
 import urllib.error
 import urllib.parse
 from tempfile import NamedTemporaryFile
@@ -48,8 +47,6 @@ from antigenapi.models import (
 from antigenapi.utils.uniprot import get_protein
 
 from .parsers import parse_elisa_file
-
-_ELISA_PLATE_MATCHER = re.compile("_EP([0-9]+)_")
 
 
 # Audit logs #
@@ -397,7 +394,7 @@ class SequencingRunResultSerializer(ModelSerializer):
 
     class Meta:  # noqa: D106
         model = SequencingRunResults
-        fields = ("seq", "added_by", "added_date")
+        fields = ("seq", "well_pos_offset", "added_by", "added_date")
 
 
 class SequencingRunSerializer(ModelSerializer):
@@ -504,12 +501,9 @@ class SequencingRunSerializer(ModelSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-def _extract_plate_and_well(well):
+def _extract_well(well):
     well_name = _remove_zero_pad_well_name(well[-3:])
-    plate = _ELISA_PLATE_MATCHER.search(well)
-    if not plate:
-        return (None, well_name)
-    return (int(plate.groups(1)[0]), well_name)
+    return well_name
 
 
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
@@ -613,19 +607,16 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             sr = SequencingRun.objects.get(pk=int(pk))
         except SequencingRun.DoesNotExist:
             raise ValidationError(
-                f"Sequencing run {pk} does not exist " "to attach results"
+                f"Sequencing run {pk} does not exist to attach results"
             )
 
-        # Store (elisa_plate, elisa_well tuples expected in this resultsfile)
-        wells = [
-            (
-                w["elisa_well"]["plate"],
-                PlateLocations.labels[w["elisa_well"]["location"] - 1],
-            )
+        # Store well positions
+        wells_expected_list = [
+            PlateLocations.labels[w["location"] - 1]
             for w in sr.wells
             if w["plate"] == int(submission_idx)
         ]
-        if not wells:
+        if not wells_expected_list:
             raise ValidationError(
                 f"Plate index {submission_idx} not found in sequencing run {pk}"
             )
@@ -637,16 +628,16 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         except AttributeError:
             seq_data_fh = results_file.file
         seq_data = load_sequences(seq_data_fh)
-        if len(seq_data) != len(wells):
+        if len(seq_data) != len(wells_expected_list):
             raise ValidationError(
                 {
                     "file": f"Upload contains data for {len(seq_data)} "
-                    f"wells, expected {len(wells)}"
+                    f"wells, expected {len(wells_expected_list)}"
                 }
             )
         # Validate wells expected vs wells supplied
         try:
-            wells_supplied = [_extract_plate_and_well(w) for w in seq_data.keys()]
+            wells_supplied_list = [_extract_well(w) for w in seq_data.keys()]
         except IndexError:
             raise ValidationError(
                 {
@@ -654,37 +645,50 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                     "Ensure all .seq filenames end with a well."
                 }
             )
-        # Plateless matching for legacy datasets
-        plateless_matching = any([w[0] is None for w in wells_supplied])
-        if plateless_matching:
-            # Check for duplicates in the expected well names, and error if so
-            wells_expected_list = [w[1] for w in wells]
-            wells_expected = set(wells_expected_list)
-            if len(wells_expected_list) != len(wells_expected):
-                raise ValidationError(
-                    {
-                        "file": "Using legacy match (no plate numbers) but duplicate "
-                        "wells found. Please re-upload with plate numbers in .seq "
-                        "filenames."
-                    }
-                )
-            wells_supplied = set([w[1] for w in wells_supplied])
-        else:
-            wells_expected = set(wells)
-            wells_supplied = set(wells_supplied)
+
+        # Check for duplicates in the supplied well names, and error if so
+        wells_supplied = set(wells_supplied_list)
+        if len(wells_supplied_list) != len(wells_supplied):
+            seen = set()
+            seen_twice = list(
+                set(w for w in wells_supplied_list if w in seen or seen.add(w))
+            )
+
+            raise ValidationError(
+                {"file": f"Duplicate wells found in supplied list: {seen_twice}"}
+            )
+
+        # Check for duplicates in the expected well names, and error if so
+        wells_expected = set(wells_expected_list)
+        if len(wells_expected_list) != len(wells_expected):
+            raise ValueError(
+                f"Duplicate wells found in expected list for seq run {pk} "
+                f"idx {submission_idx}"
+            )
+
+        # Apply an offset in case the wells are shifted
+        offset = 0
+
+        wells_supplied_int = [PlateLocations.labels.index(w) for w in wells_supplied]
+        wells_expected_int = [PlateLocations.labels.index(w) for w in wells_expected]
+        if min(wells_supplied_int) > min(wells_expected_int):
+            offset = min(wells_supplied_int) - min(wells_expected_int)
+            wells_expected = set(
+                [PlateLocations.labels[w + offset] for w in wells_expected_int]
+            )
 
         if wells_expected - wells_supplied:
             raise ValidationError(
                 {
                     "file": f"Expected well(s) {wells_expected - wells_supplied} "
-                    "were not found in upload"
+                    f"were not found in upload (h.offset: {offset})"
                 }
             )
         if wells_supplied - wells_expected:
             raise ValidationError(
                 {
                     "file": f"Unexpected well(s) {wells_supplied - wells_expected} "
-                    "were found in upload"
+                    f"were found in upload (h.offset: {offset})"
                 }
             )
 
@@ -746,6 +750,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                     "seqres_file": results_file,
                     "parameters_file": parameters_file_wrapped,
                     "airr_file": airr_file_wrapped,
+                    "well_pos_offset": offset,
                 },
             )
 
