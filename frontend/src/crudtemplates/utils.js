@@ -289,7 +289,9 @@ export const displayField = (field, record, context, props) => {
             x
           ) : (
             <>
-              {acc} <br /> {x}
+              {acc}
+              <br />
+              {x}
             </>
           ),
         null,

@@ -142,7 +142,7 @@ const ViewObjectPage = (props) => {
                 <dt className="text-sm font-medium text-gray-500">
                   {field.label}
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 break-words">
+                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 break-words whitespace-pre-wrap">
                   {!loading &&
                     displayField(field, record, "ViewObjectPage", {
                       setRecord: setRecord,
