@@ -246,7 +246,7 @@ class AntigenSerializer(ModelSerializer):
 class AntigenViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded antigens."""
 
-    queryset = Antigen.objects.all()
+    queryset = Antigen.objects.all().select_related("added_by")
     serializer_class = AntigenSerializer
 
     def perform_create(self, serializer):  # noqa: D102
