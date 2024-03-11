@@ -10,9 +10,7 @@ import numpy as np
 import openpyxl
 import pandas as pd
 from auditlog.models import LogEntry
-from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.files import File
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
@@ -705,54 +703,23 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         base_filename = f"SequencingResults_{pk}_{submission_idx}"
 
-        # Make sure directory exists
-        base_dirs = set(
-            [
-                os.path.join(
-                    settings.MEDIA_ROOT,
-                    SequencingRunResults.parameters_file.field.upload_to,
-                ),
-                os.path.join(
-                    settings.MEDIA_ROOT, SequencingRunResults.airr_file.field.upload_to
-                ),
-            ]
+        # Create SequencingRunResults object
+        srr, _ = SequencingRunResults.objects.update_or_create(
+            sequencing_run=SequencingRun.objects.get(pk=int(pk)),
+            seq=submission_idx,
+            defaults={
+                "added_by": request.user,
+                "seqres_file": results_file,
+                "well_pos_offset": offset,
+            },
         )
 
-        for base_dir in base_dirs:
-            os.makedirs(base_dir, exist_ok=True)
-
-        # Create SequencingRunResults object
-        with open(
-            os.path.join(
-                settings.MEDIA_ROOT,
-                SequencingRunResults.parameters_file.field.upload_to,
-                f"{base_filename}_vquestparams.txt",
-            ),
-            "w+",
-        ) as parameters_file, open(
-            os.path.join(
-                settings.MEDIA_ROOT,
-                SequencingRunResults.airr_file.field.upload_to,
-                f"{base_filename}_vquestairr.tsv",
-            ),
-            "w+",
-        ) as airr_file:
-            parameters_file.write(parameters_file_data)
-            parameters_file_wrapped = File(parameters_file)
-            airr_file.write(vquest_airr_data)
-            airr_file_wrapped = File(airr_file)
-
-            SequencingRunResults.objects.update_or_create(
-                sequencing_run=SequencingRun.objects.get(pk=int(pk)),
-                seq=submission_idx,
-                defaults={
-                    "added_by": request.user,
-                    "seqres_file": results_file,
-                    "parameters_file": parameters_file_wrapped,
-                    "airr_file": airr_file_wrapped,
-                    "well_pos_offset": offset,
-                },
-            )
+        srr.airr_file.save(
+            f"{base_filename}_vquestairr.tsv", io.StringIO(vquest_airr_data)
+        )
+        srr.parameters_file.save(
+            f"{base_filename}_vquestparams.txt", io.StringIO(parameters_file_data)
+        )
 
         return JsonResponse(
             SequencingRunSerializer(SequencingRun.objects.get(pk=int(pk))).data
