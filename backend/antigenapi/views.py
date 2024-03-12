@@ -172,7 +172,12 @@ class LibrarySerializer(ModelSerializer):
 class LibraryViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for libraries."""
 
-    queryset = Library.objects.all().select_related("cohort").select_related("project")
+    queryset = (
+        Library.objects.all()
+        .select_related("cohort")
+        .select_related("project")
+        .select_related("added_by")
+    )
     serializer_class = LibrarySerializer
     filterset_fields = ("project",)
 
@@ -379,7 +384,11 @@ class ElisaPlateSerializer(ModelSerializer):
 class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded elisa plates."""
 
-    queryset = ElisaPlate.objects.all().select_related("library__cohort")
+    queryset = (
+        ElisaPlate.objects.all()
+        .select_related("library__cohort")
+        .select_related("library__project")
+    )
     serializer_class = ElisaPlateSerializer
     filterset_fields = ("library", "library__cohort")
 
