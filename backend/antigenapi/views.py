@@ -124,7 +124,7 @@ class ProjectSerializer(ModelSerializer):
 class ProjectViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded projects."""
 
-    queryset = Project.objects.all()
+    queryset = Project.objects.all().select_related("added_by")
     serializer_class = ProjectSerializer
 
     def perform_create(self, serializer):
@@ -147,7 +147,7 @@ class LlamaSerializer(ModelSerializer):
 class LlamaViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for llamas."""
 
-    queryset = Llama.objects.all()
+    queryset = Llama.objects.all().select_related("added_by")
     serializer_class = LlamaSerializer
 
     def perform_create(self, serializer):  # noqa: D102
