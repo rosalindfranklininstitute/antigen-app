@@ -42,9 +42,8 @@ def _load_sequences_zip(zip_file):
             # Trim the sequence
             seq = trim_sequence(seq)
 
-            # Add to dictionary of sequences, if a start codon was present
-            if seq:
-                seq_data[seq_name] = seq
+            # Add to dictionary of sequences
+            seq_data[seq_name] = seq
 
     return seq_data
 
@@ -64,9 +63,8 @@ def load_sequences(directory_or_zip):
                 seq = f.read()
             # Trim the sequence
             seq = trim_sequence(seq)
-            # Add to dictionary of sequences, if a start codon was present
-            if seq:
-                seq_data[seq_name] = seq
+            # Add to dictionary of sequences
+            seq_data[seq_name] = seq
 
     return seq_data
 
@@ -89,7 +87,12 @@ def as_fasta_files(seq_data, max_file_size=50):
     fasta_files = []
     for seq_data_chunk in _chunks(seq_data, max_file_size):
         fasta_files.append(
-            "\n".join([f"> {name}\n{seq}" for name, seq in seq_data_chunk.items()])
+            "\n".join(
+                [
+                    f"> {name}" + ("\n" + seq) if seq else ""
+                    for name, seq in seq_data_chunk.items()
+                ]
+            )
         )
     return fasta_files
 
