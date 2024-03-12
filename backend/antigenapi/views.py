@@ -1,5 +1,6 @@
 import collections.abc
 import io
+import math
 import os
 import urllib.error
 import urllib.parse
@@ -23,6 +24,7 @@ from rest_framework.serializers import (
     FileField,
     ModelSerializer,
     PrimaryKeyRelatedField,
+    SerializerMethodField,
     StringRelatedField,
     ValidationError,
 )
@@ -283,9 +285,17 @@ class CohortViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 class NestedElisaWellSerializer(ModelSerializer):
     """A serializer for elisa wells."""
 
+    optical_density = SerializerMethodField()
+
     class Meta:  # noqa: D106
         model = ElisaWell
         exclude = ("id", "plate")
+
+    def get_optical_density(self, obj):
+        """Get optical density - convert NaN to None for JSON encoding."""
+        if obj.optical_density is not None and not math.isnan(obj.optical_density):
+            return obj.optical_density
+        return None
 
 
 class ElisaPlateSerializer(ModelSerializer):
