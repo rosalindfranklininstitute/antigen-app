@@ -371,7 +371,7 @@ class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     queryset = ElisaPlate.objects.all().select_related("library__cohort")
     serializer_class = ElisaPlateSerializer
-    filterset_fields = ("library",)
+    filterset_fields = ("library", "library__cohort")
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)

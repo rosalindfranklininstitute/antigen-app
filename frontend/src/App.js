@@ -421,6 +421,7 @@ const App = () => {
                     <ListTable
                       tabName="Elisas"
                       schema={schemas.elisa}
+                      filterField="library__cohort"
                       onSetError={setError}
                       readOnly={true}
                     ></ListTable>
