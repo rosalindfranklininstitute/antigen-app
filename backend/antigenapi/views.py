@@ -388,6 +388,8 @@ class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         ElisaPlate.objects.all()
         .select_related("library__cohort")
         .select_related("library__project")
+        .select_related("added_by")
+        .prefetch_related("elisawell_set")
     )
     serializer_class = ElisaPlateSerializer
     filterset_fields = ("library", "library__cohort")
@@ -824,7 +826,8 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         for sr in srs:
             airr_file = self._read_airr_file(sr.airr_file)
             airr_file = airr_file[airr_file.cdr3_aa.notna()]
-            airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
+            if not airr_file.empty:
+                airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
             if not airr_file.empty:
                 airr_file.insert(
                     loc=0, column="sequencing_run", value=sr.sequencing_run_id
