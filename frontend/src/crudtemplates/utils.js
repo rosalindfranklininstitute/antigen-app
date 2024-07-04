@@ -262,8 +262,12 @@ export const displayFieldSingle = (field, record, context, props) => {
         ))}
       </ul>
     );
+  } else if (field.type === "boolean") {
+    return record[field.field] === true ? "Yes" : "No";
   } else if (field.viewPageExtLink) {
     return makeExtLink(record[field.field], field.viewPageExtLink, context);
+  } else if (field.field === "cohort_num") {
+    return record["cohort_num_prefixed"];
   } else {
     return record[field.field];
   }

@@ -7,6 +7,7 @@ from django.core.validators import FileExtensionValidator, RegexValidator
 from django.db.models import (
     CASCADE,
     PROTECT,
+    BooleanField,
     FileField,
     ForeignKey,
     IntegerChoices,
@@ -79,6 +80,7 @@ class Cohort(Model):
 
     cohort_num = PositiveIntegerField(unique=True)
     llama = ForeignKey(Llama, on_delete=PROTECT)
+    is_naive = BooleanField(default=False)
     immunisation_date = DateField(null=True)
     blood_draw_date = DateField(null=True)
     projects = ManyToManyField(
@@ -94,6 +96,10 @@ class Cohort(Model):
 
     def __str__(self):  # noqa: D105
         return f"Cohort No. {self.cohort_num}"
+
+    def cohort_num_prefixed(self):
+        """Cohort number with 'N' prefix if naive."""
+        return f"N{self.cohort_num}" if self.is_naive else f"{self.cohort_num}"
 
 
 class Library(Model):

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { OkCancelDialog } from "../OkCancelDialog.js";
 import ComboBox from "./ComboBox.js";
+import { Switch } from "@headlessui/react";
 import * as Sentry from "@sentry/browser";
 import SequencingPlateLayout from "./SequencingPlateLayout.js";
 
@@ -153,6 +154,11 @@ const AddEditObjectPage = (props) => {
           formData.append(field.field, item),
         ),
       );
+
+    // deal with boolean manually
+    props.schema.fields
+      .filter((field) => field.type === "boolean")
+      .map((field) => formData.append(field.field, record[field.field]));
 
     // deal with foreignkey manually
     props.schema.fields
@@ -305,6 +311,32 @@ const AddEditObjectPage = (props) => {
                                   defaultValue={record[field.field]}
                                   // onChange={(e) => setFormValue(field.field, e.target.value)}
                                 />
+                              )}
+
+                              {field.type === "boolean" && (
+                                <Switch
+                                  checked={record[field.field] === true}
+                                  onChange={(val) => {
+                                    setFormValue(field.field, val);
+                                  }}
+                                  className={classNames(
+                                    record[field.field] === true
+                                      ? "bg-indigo-600"
+                                      : "bg-gray-200",
+                                    "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2",
+                                  )}
+                                >
+                                  <span className="sr-only">Use setting</span>
+                                  <span
+                                    aria-hidden="true"
+                                    className={classNames(
+                                      record[field.field] === true
+                                        ? "translate-x-5"
+                                        : "translate-x-0",
+                                      "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                    )}
+                                  />
+                                </Switch>
                               )}
 
                               {field.type === "selectmulti" &&
