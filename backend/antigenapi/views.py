@@ -20,6 +20,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.serializers import (
+    BooleanField,
     CharField,
     FileField,
     ModelSerializer,
@@ -161,6 +162,10 @@ class LibrarySerializer(ModelSerializer):
     added_by = StringRelatedField()
     # llama_name = CharField(source='llama.name', read_only=True)
     cohort_cohort_num = CharField(source="cohort.cohort_num", read_only=True)
+    cohort_is_naive = BooleanField(source="cohort.is_naive", read_only=True)
+    cohort_cohort_num_prefixed = CharField(
+        source="cohort.cohort_num_prefixed", read_only=True
+    )
     project_short_title = CharField(source="project.short_title", read_only=True)
 
     class Meta:  # noqa: D106
@@ -268,6 +273,7 @@ class CohortSerializer(ModelSerializer):
     llama_name = CharField(source="llama.name", read_only=True)
     antigen_details = AntigenSerializer(source="antigens", many=True, read_only=True)
     # project_short_title = CharField(source='project.short_title', read_only=True)
+    cohort_num_prefixed = CharField(read_only=True)
 
     class Meta:  # noqa: D106
         model = Cohort
@@ -315,6 +321,12 @@ class ElisaPlateSerializer(ModelSerializer):
     )
     library_cohort_cohort_num = CharField(
         source="library.cohort.cohort_num", required=False
+    )
+    library_cohort_cohort_num_prefixed = CharField(
+        source="library.cohort.cohort_num_prefixed", required=False
+    )
+    library_cohort_is_naive = BooleanField(
+        source="library.cohort.is_naive", read_only=True
     )
     added_by = StringRelatedField()
     elisawell_set = NestedElisaWellSerializer(many=True, required=False)
