@@ -760,29 +760,6 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             SequencingRunSerializer(SequencingRun.objects.get(pk=int(pk))).data
         )
 
-    AIRR_IMPORTANT_COLUMNS = (
-        "sequence_id",
-        "productive",
-        "stop_codon",
-        "fwr1_aa",
-        "cdr1_aa",
-        "fwr2_aa",
-        "cdr2_aa",
-        "fwr3_aa",
-        "cdr3_aa",
-    )
-
-    def _read_airr_file(self, airr_file):
-        # Clean up the CSVs! They seem to have an extra tab in some cases.
-        buffer = io.StringIO(
-            "\n".join(
-                line.strip() for line in airr_file.read().decode("utf8").split("\n")
-            )
-        )
-        return pd.read_csv(
-            buffer, sep="\t", header=0, usecols=self.AIRR_IMPORTANT_COLUMNS
-        )
-
     @action(
         detail=True,
         methods=["GET"],
@@ -800,7 +777,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         csvs = []
         for r in results:
-            csvs.append(self._read_airr_file(r.airr_file))
+            csvs.append(_read_airr_file(r.airr_file))
         df = pd.concat(csvs)
 
         # Get number of matches per CDR3 sequence
@@ -816,7 +793,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
 
         # Ensure we have the right columns in the right order
-        df = df.loc[:, self.AIRR_IMPORTANT_COLUMNS]
+        df = df.loc[:, AIRR_IMPORTANT_COLUMNS]
 
         # Set index and replace NaN with None (null in JSON)
         df = df.replace({np.nan: None})
@@ -838,7 +815,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         results = []
         query = query.upper()
         for sr in srs:
-            airr_file = self._read_airr_file(sr.airr_file)
+            airr_file = _read_airr_file(sr.airr_file)
             airr_file = airr_file[airr_file.cdr3_aa.notna()]
             if not airr_file.empty:
                 airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
@@ -853,19 +830,46 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
 
 
+AIRR_IMPORTANT_COLUMNS = (
+    "sequence_id",
+    "productive",
+    "stop_codon",
+    "fwr1_aa",
+    "cdr1_aa",
+    "fwr2_aa",
+    "cdr2_aa",
+    "fwr3_aa",
+    "cdr3_aa",
+)
+
+
+def _read_airr_file(airr_file, usecols=AIRR_IMPORTANT_COLUMNS):
+    # Clean up the CSVs! They seem to have an extra tab in some cases.
+    buffer = io.StringIO(
+        "\n".join(line.strip() for line in airr_file.read().decode("utf8").split("\n"))
+    )
+    return pd.read_csv(buffer, sep="\t", header=0, usecols=usecols)
+
+
 class GlobalFastaView(APIView):
     def get(self, request, format=None):
         """Download entire database as .fasta file."""
-        fasta_files = []
-        for seq_res in SequencingRunResults.objects.all():
-            seq_data = load_sequences(seq_res.seqres_file)
-            fasta_files.append(as_fasta_files(seq_data, max_file_size=None)[0])
+        fasta_data = ""
+        for sr in SequencingRunResults.objects.all():
+            airr_file = _read_airr_file(
+                sr.airr_file, usecols=("sequence_id", "sequence_alignment_aa")
+            )
+            airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
+            if not airr_file.empty:
+                for _, row in airr_file.iterrows():
+                    fasta_data += f"> {row.sequence_id}\n"
+                    fasta_data += f"{row.sequence_alignment_aa.replace('.', '')}\n"
 
         fasta_filename = (
             f"antigenapp_database_{datetime.datetime.now().isoformat()}.fasta"
         )
         response = FileResponse(
-            "\n".join(fasta_files),
+            fasta_data,
             as_attachment=True,
             content_type="text/x-fasta",
             filename=fasta_filename,
