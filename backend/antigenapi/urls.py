@@ -5,6 +5,7 @@ from antigenapi.views import (
     AntigenViewSet,
     CohortViewSet,
     ElisaPlateViewSet,
+    GlobalFastaView,
     LibraryViewSet,
     LlamaViewSet,
     ProjectViewSet,
@@ -22,4 +23,5 @@ router.register("sequencingrun", SequencingRunViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("fasta/", GlobalFastaView.as_view(), name="fasta"),
 ]
