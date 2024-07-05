@@ -1,4 +1,5 @@
 import collections.abc
+import datetime
 import io
 import math
 import os
@@ -15,7 +16,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -29,6 +30,7 @@ from rest_framework.serializers import (
     StringRelatedField,
     ValidationError,
 )
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from antigenapi.bioinformatics import as_fasta_files, load_sequences, run_vquest
@@ -848,4 +850,20 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         return JsonResponse(
             {"matches": pd.concat(results).to_dict(orient="records") if results else []}
+        )
+
+
+class GlobalFastaView(APIView):
+    def get(self, request, format=None):
+        """Download entire database as .fasta file."""
+        fasta_files = []
+        for seq_res in SequencingRunResults.objects.all():
+            seq_data = load_sequences(seq_res.seqres_file)
+            fasta_files.append(as_fasta_files(seq_data, max_file_size=None)[0])
+
+        return FileResponse(
+            "\n".join(fasta_files),
+            as_attachment=True,
+            content_type="text/x-fasta",
+            filename=f"antigenapp_database_{datetime.datetime.now().isoformat()}.fasta",
         )
