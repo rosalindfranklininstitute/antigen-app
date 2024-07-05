@@ -861,9 +861,14 @@ class GlobalFastaView(APIView):
             seq_data = load_sequences(seq_res.seqres_file)
             fasta_files.append(as_fasta_files(seq_data, max_file_size=None)[0])
 
-        return FileResponse(
+        fasta_filename = (
+            f"antigenapp_database_{datetime.datetime.now().isoformat()}.fasta"
+        )
+        response = FileResponse(
             "\n".join(fasta_files),
             as_attachment=True,
             content_type="text/x-fasta",
-            filename=f"antigenapp_database_{datetime.datetime.now().isoformat()}.fasta",
+            filename=fasta_filename,
         )
+        response["Content-Disposition"] = f'attachment; filename="{fasta_filename}"'
+        return response
