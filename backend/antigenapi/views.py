@@ -33,7 +33,13 @@ from rest_framework.serializers import (
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from antigenapi.bioinformatics import as_fasta_files, load_sequences, run_vquest
+from antigenapi.bioinformatics import (
+    AIRR_IMPORTANT_COLUMNS,
+    as_fasta_files,
+    load_sequences,
+    read_airr_file,
+    run_vquest,
+)
 from antigenapi.models import (
     Antigen,
     Cohort,
@@ -41,6 +47,7 @@ from antigenapi.models import (
     ElisaWell,
     Library,
     Llama,
+    Nanobody,
     PlateLocations,
     Project,
     SequencingRun,
@@ -420,6 +427,28 @@ class ElisaWellInlineSerializer(ModelSerializer):
         fields = ("plate", "location")
 
 
+# Nanobodies #
+class NanobodySerializer(ModelSerializer):
+    """A serializer for nanobodies."""
+
+    added_by = StringRelatedField()
+
+    class Meta:  # noqa: D106
+        model = Nanobody
+        fields = "__all__"
+        read_only_fields = ["seqruns", "added_by", "added_date"]
+
+
+class NanobodyViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
+    """A view set for nanobodies."""
+
+    queryset = Nanobody.objects.all().select_related("added_by")
+    serializer_class = NanobodySerializer
+
+    def perform_create(self, serializer):  # noqa: D102
+        serializer.save(added_by=self.request.user)
+
+
 class SequencingRunResultSerializer(ModelSerializer):
     """A serializer for sequencing run results."""
 
@@ -738,6 +767,13 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         base_filename = f"SequencingResults_{pk}_{submission_idx}"
 
+        # Link to nanobodies table
+        cdr3s = read_airr_file(
+            io.BytesIO(vquest_airr_data.encode()), usecols=("cdr3_aa",)
+        )
+        cdr3s = cdr3s["cdr3_aa"].dropna().unique()
+        nanobodies = Nanobody.objects.filter(cdr3__in=cdr3s)
+
         # Create SequencingRunResults object
         srr, _ = SequencingRunResults.objects.update_or_create(
             sequencing_run=SequencingRun.objects.get(pk=int(pk)),
@@ -748,6 +784,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                 "well_pos_offset": offset,
             },
         )
+        srr.nanobodies.set(nanobodies)
 
         srr.airr_file.save(
             f"{base_filename}_vquestairr.tsv", io.StringIO(vquest_airr_data)
@@ -768,16 +805,26 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     )
     def get_sequencing_run_results(self, request, pk):
         """Get sequencing results."""
-        results = SequencingRunResults.objects.filter(
-            sequencing_run_id=int(pk)
-        ).order_by("seq")
+        results = (
+            SequencingRunResults.objects.filter(sequencing_run_id=int(pk))
+            .order_by("seq")
+            .prefetch_related("nanobodies")
+        )
 
         if not results:
             return JsonResponse({"records": []})
 
         csvs = []
+        nanobodies_rev_lookup = dict()
         for r in results:
-            csvs.append(_read_airr_file(r.airr_file))
+            csvs.append(read_airr_file(r.airr_file))
+            if r.nanobodies:
+                nanobodies_rev_lookup.update(
+                    {
+                        n.cdr3: {"id": str(n.id), "name": n.name}
+                        for n in r.nanobodies.all()
+                    }
+                )
         df = pd.concat(csvs)
 
         # Get number of matches per CDR3 sequence
@@ -801,7 +848,23 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Indicator to show when cdr3 has changed from previous row
         df["new_cdr3"] = df["cdr3_aa"].shift(1).ne(df["cdr3_aa"])
 
-        return JsonResponse({"records": df.to_dict(orient="records")})
+        cdr3s = df["cdr3_aa"].tolist()
+        nanobodies = []
+        for cdr3 in cdr3s:
+            try:
+                nb = nanobodies_rev_lookup[cdr3]
+                nanobodies.append(nb["id"])
+            except KeyError:
+                nanobodies.append(None)
+
+        df["nanobody"] = nanobodies
+
+        return JsonResponse(
+            {
+                "records": df.to_dict(orient="records"),
+                "nanobodies": nanobodies_rev_lookup,
+            }
+        )
 
     @action(
         detail=False,

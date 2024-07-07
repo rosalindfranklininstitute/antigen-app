@@ -8,6 +8,10 @@ const SequencingResults = (props) => {
   const [sequencingResults, setSequencingResults] = useState();
   // const [activeElisaPlates, setActiveElisaPlates] = useState([]);
 
+  function classNames(...classes) {
+    return classes.filter(Boolean).join(" ");
+  }
+
   const fetchSequencingResults = () => {
     fetch(config.url.API_URL + "/sequencingrun/" + recordId + "/results/", {
       method: "GET",
@@ -19,7 +23,7 @@ const SequencingResults = (props) => {
       .then((res) => {
         res.json().then(
           (data) => {
-            setSequencingResults(data.records);
+            setSequencingResults(data);
           },
           () => {
             props.onSetError("HTTP code " + res.status);
@@ -100,13 +104,22 @@ const SequencingResults = (props) => {
                     >
                       CDR3
                     </th>
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    >
+                      Named nanobody
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white">
-                  {sequencingResults.map((row) => (
+                  {sequencingResults.records.map((row) => (
                     <tr
                       key={row.sequence_id}
-                      className={row.new_cdr3 ? "border-t-2 border-black" : ""}
+                      className={classNames(
+                        row.new_cdr3 ? "border-t-2 border-black" : "",
+                        row.nanobody ? "bg-green-100" : "",
+                      )}
                     >
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">
                         {row.sequence_id}
@@ -134,6 +147,13 @@ const SequencingResults = (props) => {
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {row.cdr3_aa}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {row.nanobody && (
+                          <a href={"/nanobodies/" + row.nanobody}>
+                            {sequencingResults.nanobodies[row.cdr3_aa].name}
+                          </a>
+                        )}
                       </td>
                     </tr>
                   ))}

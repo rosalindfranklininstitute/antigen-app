@@ -41,6 +41,7 @@ const navigation = [
   { name: "Antigens", href: "/antigens" },
   { name: "Llamas", href: "/llamas" },
   { name: "Sequencing", href: "/sequencing" },
+  { name: "Nanobodies", href: "/nanobodies" },
 ];
 const userNavigation = [
   // { name: 'Your Profile', href: '#' },
@@ -765,6 +766,67 @@ const App = () => {
               element={
                 <HeadedPage title="Search by Sequence">
                   <SearchSequencing onSetError={setError} />
+                </HeadedPage>
+              }
+            />
+
+            {/* Nanobodies */}
+            <Route
+              exact
+              path="/nanobodies"
+              element={
+                <HeadedPage title="Nanobodies">
+                  <ListTable
+                    schema={schemas.nanobody}
+                    onSetError={setError}
+                  ></ListTable>
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/nanobodies/add"
+              element={
+                <HeadedPage title="Add Nanobody">
+                  <AddEditObjectPage
+                    onSetError={setError}
+                    schema={schemas.nanobody}
+                    csrfToken={csrfToken}
+                  ></AddEditObjectPage>
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/nanobodies/:recordId"
+              element={
+                <HeadedPage title="View Nanobody">
+                  <Tabs>
+                    <ViewObjectPage
+                      tabName="Nanobody Information"
+                      schema={schemas.nanobody}
+                      onSetError={setError}
+                      csrfToken={csrfToken}
+                    ></ViewObjectPage>
+                    <AuditLog
+                      tabName="Audit Log"
+                      schema={schemas.nanobody}
+                      onSetError={setError}
+                    ></AuditLog>
+                  </Tabs>
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/nanobodies/:recordId/edit"
+              element={
+                <HeadedPage title="Edit Nanobody">
+                  <AddEditObjectPage
+                    schema={schemas.nanobody}
+                    csrfToken={csrfToken}
+                    onSetError={setError}
+                  ></AddEditObjectPage>
                 </HeadedPage>
               }
             />
