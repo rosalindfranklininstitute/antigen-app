@@ -1,9 +1,11 @@
+import io
 import itertools
 import logging
 import os
 import sys
 import zipfile
 
+import pandas as pd
 import vquest.config
 import vquest.vq
 from vquest import LOGGER as VQUEST_LOGGER
@@ -108,3 +110,25 @@ def run_vquest(fasta_data, species="alpaca", receptor="IG"):
     VQUEST_LOGGER.setLevel(logging.WARNING)
 
     return vquest.vq.vquest(conf)
+
+
+AIRR_IMPORTANT_COLUMNS = (
+    "sequence_id",
+    "productive",
+    "stop_codon",
+    "fwr1_aa",
+    "cdr1_aa",
+    "fwr2_aa",
+    "cdr2_aa",
+    "fwr3_aa",
+    "cdr3_aa",
+)
+
+
+def read_airr_file(airr_file, usecols=AIRR_IMPORTANT_COLUMNS):
+    """Read an AIRR file into a pandas dataframe."""
+    # Clean up the CSVs! They seem to have an extra tab in some cases.
+    buffer = io.StringIO(
+        "\n".join(line.strip() for line in airr_file.read().decode("utf8").split("\n"))
+    )
+    return pd.read_csv(buffer, sep="\t", header=0, usecols=usecols)

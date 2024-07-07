@@ -279,6 +279,30 @@ const sequencingRuns = {
   ],
 };
 
+const nanobodySchema = {
+  apiUrl: "/nanobody",
+  viewUrl: "/nanobodies",
+  objectName: "nanobody",
+  fields: [
+    {
+      label: "Name",
+      field: "name",
+      type: "text",
+      showInTable: true,
+      tableColWidth: "w-2/5",
+    },
+    {
+      label: "CDR3",
+      field: "cdr3",
+      type: "text",
+      showInTable: true,
+      tableColWidth: "w-3/5",
+    },
+    { label: "Added by", field: "added_by", hideOnForm: true },
+    { label: "Added date", field: "added_date", hideOnForm: true },
+  ],
+};
+
 const schemas = {
   project: projectSchema,
   cohort: cohortSchema,
@@ -287,6 +311,7 @@ const schemas = {
   elisa: elisaSchema,
   library: librarySchema,
   sequencing: sequencingRuns,
+  nanobody: nanobodySchema,
 };
 
 export default schemas;

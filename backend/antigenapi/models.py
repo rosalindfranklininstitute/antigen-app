@@ -26,6 +26,9 @@ from django.db.models.fields import (
     PositiveSmallIntegerField,
     TextField,
 )
+from django.db.models.signals import post_init, post_save
+
+from .bioinformatics import read_airr_file
 
 
 class Project(Model):
@@ -203,6 +206,37 @@ class SequencingRunResults(Model):
         ]
 
 
+class Nanobody(Model):
+    """A named nanobody."""
+
+    name: str = TextField()
+    cdr3: str = TextField(validators=[AminoCodeLetters], unique=True)
+    seqruns = ManyToManyField(SequencingRunResults, related_name="nanobodies")
+    added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
+    added_date = DateTimeField(auto_now_add=True)
+    previous_cdr3 = None  # Track previous CDR3 for update hook
+
+    @staticmethod
+    def post_save(sender, instance, created, **kwargs):
+        """Update seqruns if the CDR3 has changed."""
+        if instance.previous_cdr3 != instance.cdr3 or created:
+            srr_links = []
+            for sr in SequencingRunResults.objects.all():
+                airr_file = read_airr_file(sr.airr_file, usecols=("cdr3_aa",))
+                cdr3s = set(airr_file.cdr3_aa.dropna().unique())
+                if instance.cdr3 in cdr3s:
+                    srr_links.append(sr)
+            instance.seqruns.set(srr_links)
+
+    @staticmethod
+    def remember_state(sender, instance, **kwargs):
+        """Save the previous CDR3 to see if it's changed when saving."""
+        instance.previous_cdr3 = instance.cdr3
+
+
+post_save.connect(Nanobody.post_save, sender=Nanobody)
+post_init.connect(Nanobody.remember_state, sender=Nanobody)
+
 auditlog.register(Project)
 auditlog.register(Llama)
 auditlog.register(Antigen)
@@ -211,3 +245,4 @@ auditlog.register(Library)
 auditlog.register(ElisaPlate)
 auditlog.register(SequencingRun)
 auditlog.register(SequencingRunResults)
+auditlog.register(Nanobody)
