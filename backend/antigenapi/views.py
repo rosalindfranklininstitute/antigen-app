@@ -157,7 +157,7 @@ class LlamaSerializer(ModelSerializer):
 class LlamaViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for llamas."""
 
-    queryset = Llama.objects.all().select_related("added_by")
+    queryset = Llama.objects.all().select_related("added_by").order_by("name")
     serializer_class = LlamaSerializer
 
     def perform_create(self, serializer):  # noqa: D102
@@ -191,6 +191,7 @@ class LibraryViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         .select_related("cohort")
         .select_related("project")
         .select_related("added_by")
+        .order_by("cohort__is_naive", "cohort__cohort_num")
     )
     serializer_class = LibrarySerializer
     filterset_fields = ("project",)
@@ -415,6 +416,7 @@ class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         .select_related("library__project")
         .select_related("added_by")
         .prefetch_related("elisawell_set")
+        .order_by("-added_date")
     )
     serializer_class = ElisaPlateSerializer
     filterset_fields = ("library", "library__cohort")
@@ -446,7 +448,7 @@ class NanobodySerializer(ModelSerializer):
 class NanobodyViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for nanobodies."""
 
-    queryset = Nanobody.objects.all().select_related("added_by")
+    queryset = Nanobody.objects.all().select_related("added_by").order_by("name")
     serializer_class = NanobodySerializer
 
     def perform_create(self, serializer):  # noqa: D102
@@ -575,7 +577,7 @@ def _extract_well(well):
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for sequencing runs."""
 
-    queryset = SequencingRun.objects.all()
+    queryset = SequencingRun.objects.all().order_by("-added_date")
     serializer_class = SequencingRunSerializer
 
     def perform_create(self, serializer):  # noqa: D102
