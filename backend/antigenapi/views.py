@@ -134,7 +134,7 @@ class ProjectSerializer(ModelSerializer):
 class ProjectViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded projects."""
 
-    queryset = Project.objects.all().select_related("added_by")
+    queryset = Project.objects.all().select_related("added_by").order_by("short_title")
     serializer_class = ProjectSerializer
 
     def perform_create(self, serializer):
