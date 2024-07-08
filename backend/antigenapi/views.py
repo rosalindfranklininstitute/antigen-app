@@ -293,7 +293,7 @@ class CohortSerializer(ModelSerializer):
 class CohortViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for cohorts."""
 
-    queryset = Cohort.objects.all().select_related("llama")
+    queryset = Cohort.objects.all().select_related("llama").order_by("cohort_num")
     serializer_class = CohortSerializer
     filterset_fields = ("llama", "cohort_num")
 
