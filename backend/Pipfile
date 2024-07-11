@@ -9,6 +9,7 @@ django-storages = {extras = ["s3"], version = "*"}
 vquest = "*"
 urllib3 = ">2"
 lxml = {extras = ["html_clean"], version = "*"}
+django = "*"
 
 [dev-packages]
 antigenapp = { editable = true, extras = ["dev"], path = "." }
