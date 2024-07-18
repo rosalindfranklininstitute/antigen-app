@@ -185,7 +185,7 @@ class SequencingRun(Model):
 class SequencingRunResults(Model):
     """A results file for a sequencing run."""
 
-    sequencing_run = ForeignKey(SequencingRun, on_delete=PROTECT)
+    sequencing_run = ForeignKey(SequencingRun, on_delete=CASCADE)
     seq: int = PositiveSmallIntegerField()
     well_pos_offset: int = PositiveIntegerField(default=0)
     seqres_file: File = FileField(
