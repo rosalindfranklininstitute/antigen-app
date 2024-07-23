@@ -37,10 +37,6 @@
   }
 }
 
-.preproduction .preproduction-visible {
-  display: inline;
-}
-
 .preproduction.bg-gray-100 {
   background-color: rgb(255, 235, 235) !important;
 }
