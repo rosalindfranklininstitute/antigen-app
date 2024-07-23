@@ -215,6 +215,7 @@ def filter_transactions(event, hint):
 if "SENTRY_DSN" in os.environ:
     sentry_sdk.init(
         dsn=os.environ["SENTRY_DSN"],
+        environment=os.environ.get("SENTRY_ENVIRONMENT", "production"),
         integrations=[
             DjangoIntegration(),
         ],
