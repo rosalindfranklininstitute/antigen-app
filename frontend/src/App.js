@@ -26,6 +26,7 @@ import SequencingResults from "./crudtemplates/SequencingResults.js";
 if (process.env.REACT_APP_SENTRY_DSN !== undefined) {
   Sentry.init({
     dsn: process.env.REACT_APP_SENTRY_DSN,
+    environment: window._environment,
     integrations: [new BrowserTracing()],
 
     // Set tracesSampleRate to 1.0 to capture 100%
