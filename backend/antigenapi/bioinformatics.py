@@ -116,6 +116,7 @@ AIRR_IMPORTANT_COLUMNS = (
     "sequence_id",
     "productive",
     "stop_codon",
+    "sequence_alignment_aa",
     "fwr1_aa",
     "cdr1_aa",
     "fwr2_aa",

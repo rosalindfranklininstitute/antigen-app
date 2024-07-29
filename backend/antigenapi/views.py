@@ -774,11 +774,17 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         base_filename = f"SequencingResults_{pk}_{submission_idx}"
 
         # Link to nanobodies table
-        cdr3s = read_airr_file(
-            io.BytesIO(vquest_airr_data.encode()), usecols=("cdr3_aa",)
+        sequences = read_airr_file(
+            io.BytesIO(vquest_airr_data.encode()), usecols=("sequence_alignment_aa",)
         )
-        cdr3s = cdr3s["cdr3_aa"].dropna().unique()
-        nanobodies = Nanobody.objects.filter(cdr3__in=cdr3s)
+        sequences = (
+            sequences["sequence_alignment_aa"]
+            .dropna()
+            .str.replace(".", "")
+            .replace("*", "X")
+            .unique()
+        )
+        nanobodies = Nanobody.objects.filter(sequence__in=sequences)
 
         # Create SequencingRunResults object
         srr, _ = SequencingRunResults.objects.update_or_create(
@@ -827,7 +833,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             if r.nanobodies:
                 nanobodies_rev_lookup.update(
                     {
-                        n.cdr3: {"id": str(n.id), "name": n.name}
+                        n.sequence: {"id": str(n.id), "name": n.name}
                         for n in r.nanobodies.all()
                     }
                 )
@@ -854,11 +860,15 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Indicator to show when cdr3 has changed from previous row
         df["new_cdr3"] = df["cdr3_aa"].shift(1).ne(df["cdr3_aa"])
 
-        cdr3s = df["cdr3_aa"].tolist()
+        sequences = (
+            df["sequence_alignment_aa"].str.replace(".", "").replace("*", "X").tolist()
+        )
+        df["sequence"] = sequences
+        df = df.drop("sequence_alignment_aa", axis=1)
         nanobodies = []
-        for cdr3 in cdr3s:
+        for seq in sequences:
             try:
-                nb = nanobodies_rev_lookup[cdr3]
+                nb = nanobodies_rev_lookup[seq]
                 nanobodies.append(nb["id"])
             except KeyError:
                 nanobodies.append(None)
@@ -884,7 +894,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         results = []
         query = query.upper()
         for sr in srs:
-            airr_file = _read_airr_file(sr.airr_file)
+            airr_file = read_airr_file(sr.airr_file)
             airr_file = airr_file[airr_file.cdr3_aa.notna()]
             if not airr_file.empty:
                 airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
@@ -899,33 +909,12 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
 
 
-AIRR_IMPORTANT_COLUMNS = (
-    "sequence_id",
-    "productive",
-    "stop_codon",
-    "fwr1_aa",
-    "cdr1_aa",
-    "fwr2_aa",
-    "cdr2_aa",
-    "fwr3_aa",
-    "cdr3_aa",
-)
-
-
-def _read_airr_file(airr_file, usecols=AIRR_IMPORTANT_COLUMNS):
-    # Clean up the CSVs! They seem to have an extra tab in some cases.
-    buffer = io.StringIO(
-        "\n".join(line.strip() for line in airr_file.read().decode("utf8").split("\n"))
-    )
-    return pd.read_csv(buffer, sep="\t", header=0, usecols=usecols)
-
-
 class GlobalFastaView(APIView):
     def get(self, request, format=None):
         """Download entire database as .fasta file."""
         fasta_data = ""
         for sr in SequencingRunResults.objects.all():
-            airr_file = _read_airr_file(
+            airr_file = read_airr_file(
                 sr.airr_file, usecols=("sequence_id", "sequence_alignment_aa")
             )
             airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]

@@ -210,28 +210,36 @@ class Nanobody(Model):
     """A named nanobody."""
 
     name: str = TextField()
-    cdr3: str = TextField(validators=[AminoCodeLetters], unique=True)
+    sequence: str = TextField(validators=[AminoCodeLetters], unique=True)
     seqruns = ManyToManyField(SequencingRunResults, related_name="nanobodies")
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
-    previous_cdr3 = None  # Track previous CDR3 for update hook
+    previous_sequence = None  # Track previous sequence for update hook
 
     @staticmethod
     def post_save(sender, instance, created, **kwargs):
-        """Update seqruns if the CDR3 has changed."""
-        if instance.previous_cdr3 != instance.cdr3 or created:
+        """Update seqruns if the sequence has changed."""
+        if instance.previous_sequence != instance.sequence or created:
             srr_links = []
             for sr in SequencingRunResults.objects.all():
-                airr_file = read_airr_file(sr.airr_file, usecols=("cdr3_aa",))
-                cdr3s = set(airr_file.cdr3_aa.dropna().unique())
-                if instance.cdr3 in cdr3s:
+                airr_file = read_airr_file(
+                    sr.airr_file, usecols=("sequence_alignment_aa",)
+                )
+                seqs = set(
+                    airr_file.sequence_alignment_aa.dropna()
+                    .str.replace(".", "")
+                    .replace("*", "X")
+                    .unique()
+                )
+                print(seqs)
+                if instance.sequence in seqs:
                     srr_links.append(sr)
             instance.seqruns.set(srr_links)
 
     @staticmethod
     def remember_state(sender, instance, **kwargs):
-        """Save the previous CDR3 to see if it's changed when saving."""
-        instance.previous_cdr3 = instance.cdr3
+        """Save the previous sequence to see if it's changed when saving."""
+        instance.previous_sequence = instance.sequence
 
 
 post_save.connect(Nanobody.post_save, sender=Nanobody)
