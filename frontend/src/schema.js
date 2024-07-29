@@ -292,8 +292,8 @@ const nanobodySchema = {
       tableColWidth: "w-2/5",
     },
     {
-      label: "CDR3",
-      field: "cdr3",
+      label: "Sequence",
+      field: "sequence",
       type: "text",
       showInTable: true,
       tableColWidth: "w-3/5",
