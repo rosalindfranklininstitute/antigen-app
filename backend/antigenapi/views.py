@@ -13,10 +13,12 @@ import openpyxl
 import pandas as pd
 from auditlog.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
+from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -808,6 +810,50 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         return JsonResponse(
             SequencingRunSerializer(SequencingRun.objects.get(pk=int(pk))).data
         )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="Download sequencing run results file (.zip).",
+        url_path="resultsfile/(?P<submission_idx>[0-9]+)",
+    )
+    def download_sequencing_run_results(self, request, pk, submission_idx):
+        """Download sequencing run results file (.zip)."""
+        try:
+            sr = SequencingRunResults.objects.get(
+                sequencing_run_id=int(pk), seq=int(submission_idx)
+            )
+        except SequencingRunResults.DoesNotExist:
+            raise Http404
+
+        if default_storage.__class__.__name__ == "S3Storage":
+            return redirect(sr.seqres_file.url)
+
+        filename = sr.seqres_file.path
+        response = FileResponse(open(filename, "rb"))
+        return response
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="Download IMGT results file (.airr).",
+        url_path="resultsfile/(?P<submission_idx>[0-9]+)/airr",
+    )
+    def download_sequencing_run_airr(self, request, pk, submission_idx):
+        """Download sequencing run results file (.zip)."""
+        try:
+            sr = SequencingRunResults.objects.get(
+                sequencing_run_id=int(pk), seq=int(submission_idx)
+            )
+        except SequencingRunResults.DoesNotExist:
+            raise Http404
+
+        if default_storage.__class__.__name__ == "S3Storage":
+            return redirect(sr.airr_file.url)
+
+        filename = sr.airr_file.path
+        response = FileResponse(open(filename, "rb"))
+        return response
 
     @action(
         detail=True,
