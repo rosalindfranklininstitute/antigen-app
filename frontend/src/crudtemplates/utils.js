@@ -250,48 +250,50 @@ export const displayFieldSingle = (field, record, context, props) => {
           sequencing results file
         </label>,
       );
-      retVal.push(
-        <a
-          key={"seqPlateResultsDownload" + p}
-          href={
-            config.url.API_URL +
-            schema.sequencing.apiUrl +
-            "/" +
-            record.id +
-            "/resultsfile/" +
-            p +
-            "/"
-          }
-        >
-          <button
-            type="button"
-            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+      record.sequencingrunresults_set.find((x) => x.seq === p) &&
+        retVal.push(
+          <a
+            key={"seqPlateResultsDownload" + p}
+            href={
+              config.url.API_URL +
+              schema.sequencing.apiUrl +
+              "/" +
+              record.id +
+              "/resultsfile/" +
+              p +
+              "/"
+            }
           >
-            Download sequencing results file (.zip)
-          </button>
-        </a>,
-      );
-      retVal.push(
-        <a
-          key={"seqPlateAirrDownload" + p}
-          href={
-            config.url.API_URL +
-            schema.sequencing.apiUrl +
-            "/" +
-            record.id +
-            "/resultsfile/" +
-            p +
-            "/airr"
-          }
-        >
-          <button
-            type="button"
-            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            <button
+              type="button"
+              className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              Download sequencing results file (.zip)
+            </button>
+          </a>,
+        );
+      record.sequencingrunresults_set.find((x) => x.seq === p) &&
+        retVal.push(
+          <a
+            key={"seqPlateAirrDownload" + p}
+            href={
+              config.url.API_URL +
+              schema.sequencing.apiUrl +
+              "/" +
+              record.id +
+              "/resultsfile/" +
+              p +
+              "/airr"
+            }
           >
-            Download IMGT AIRR file
-          </button>
-        </a>,
-      );
+            <button
+              type="button"
+              className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              Download IMGT AIRR file
+            </button>
+          </a>,
+        );
     }
     return retVal;
   } else if (field.type === "platethreshold" && record[field.field]) {
