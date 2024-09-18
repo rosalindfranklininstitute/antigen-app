@@ -841,6 +841,12 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         response = FileResponse(open(filename, "rb"))
         return response
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="Download IMGT results file (.airr).",
+        url_path="resultsfile/(?P<submission_idx>[0-9]+)/airr",
+    )
     def download_sequencing_run_airr(self, request, pk, submission_idx):
         """Download sequencing run results file (.zip)."""
         try:
