@@ -148,14 +148,6 @@ PlateLocations = IntegerChoices(
 )
 
 
-def _remove_zero_pad_well_name(well_name):
-    """Remove zero padding from well name, e.g. A01 -> A1."""
-    if well_name[1] == "0":
-        return well_name[0] + well_name[2]
-    else:
-        return well_name
-
-
 class ElisaWell(Model):
     """ELISA well model."""
 

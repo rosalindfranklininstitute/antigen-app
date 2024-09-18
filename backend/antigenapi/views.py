@@ -3,6 +3,7 @@ import datetime
 import io
 import math
 import os
+import re
 import urllib.error
 import urllib.parse
 from tempfile import NamedTemporaryFile
@@ -54,7 +55,6 @@ from antigenapi.models import (
     Project,
     SequencingRun,
     SequencingRunResults,
-    _remove_zero_pad_well_name,
 )
 from antigenapi.utils.uniprot import get_protein
 
@@ -572,8 +572,16 @@ class SequencingRunSerializer(ModelSerializer):
 
 
 def _extract_well(well):
-    well_name = _remove_zero_pad_well_name(well[-3:])
-    return well_name
+    well = well.upper()
+    try:
+        # Match A1-H12, including A01 etc.
+        well_match = re.search("[A-H]((1[0-2])|(0?[1-9]))$", well).group(0)
+    except AttributeError:
+        raise ValueError("Unable to extract well name from filename")
+    # Remove zero-padding if present
+    if well_match[1] == "0":
+        well_match = well_match[0] + well_match[2]
+    return well_match
 
 
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
@@ -660,12 +668,15 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     @action(
         detail=True,
-        methods=["PUT"],
-        name="Upload sequencing run results file (.zip).",
+        methods=["GET", "PUT"],
+        name="Upload/download sequencing run results file (.zip).",
         url_path="resultsfile/(?P<submission_idx>[0-9]+)",
     )
-    def upload_sequencing_run_results(self, request, pk, submission_idx):
+    def sequencing_run_results(self, request, pk, submission_idx):
         """Upload sequencing run results file (.zip)."""
+        if request.method == "GET":
+            return self.download_sequencing_run_results(request, pk, submission_idx)
+
         results_file = request.data["file"]
 
         # TODO: Validate results file in more detail
@@ -697,7 +708,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             seq_data_fh = results_file.temporary_file_path()
         except AttributeError:
             seq_data_fh = results_file.file
-        seq_data = load_sequences(seq_data_fh)
+        try:
+            seq_data = load_sequences(seq_data_fh)
+        except ValueError as e:
+            raise ValidationError({"file": str(e)})
         if len(seq_data) != len(wells_expected_list):
             raise ValidationError(
                 {
@@ -811,12 +825,6 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             SequencingRunSerializer(SequencingRun.objects.get(pk=int(pk))).data
         )
 
-    @action(
-        detail=True,
-        methods=["GET"],
-        name="Download sequencing run results file (.zip).",
-        url_path="resultsfile/(?P<submission_idx>[0-9]+)",
-    )
     def download_sequencing_run_results(self, request, pk, submission_idx):
         """Download sequencing run results file (.zip)."""
         try:
@@ -833,12 +841,6 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         response = FileResponse(open(filename, "rb"))
         return response
 
-    @action(
-        detail=True,
-        methods=["GET"],
-        name="Download IMGT results file (.airr).",
-        url_path="resultsfile/(?P<submission_idx>[0-9]+)/airr",
-    )
     def download_sequencing_run_airr(self, request, pk, submission_idx):
         """Download sequencing run results file (.zip)."""
         try:
