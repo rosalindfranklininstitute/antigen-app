@@ -2,6 +2,7 @@ import io
 import itertools
 import logging
 import os
+import re
 import sys
 import zipfile
 
@@ -11,27 +12,46 @@ import vquest.vq
 from vquest import LOGGER as VQUEST_LOGGER
 
 START_CODON = "ATG"
+SUFFIXES = (".seq", ".fa", ".fasta")
 
 
 def file_name_to_sequence_name(fn):
-    """Extract the sequence identifier from the file name (Ray Owens' method)."""
+    """Extract the sequence identifier from the file name."""
     # Use whole filename as sequence name, as requested by Lauren
-    return fn[:-4] if fn.endswith(".seq") else fn
+    for suffix in SUFFIXES:
+        if fn.endswith(suffix):
+            return fn[: -len(suffix)]
+    return fn
 
 
 def trim_sequence(seq):
     """Trim the sequence after start codon, if present."""
+    if seq.startswith(">"):
+        seq = "".join(seq.splitlines()[1:])
+
+    # Remove whitespace, move to upper case
+    seq = seq.strip().upper()
+    if "\n" in seq:
+        raise ValueError("Sequence contains multiple lines")
+
+    # Check codons
+    if not re.match("^[ACGTN]*$", seq):
+        raise ValueError("Sequence should only contain A,C,G,T,N")
+
+    # Trim from start codon
     try:
-        return seq[seq.index(START_CODON) + len(START_CODON) :]
+        seq = seq[seq.index(START_CODON) + len(START_CODON) :]
     except ValueError:
-        return ""
+        seq = ""
+
+    return seq
 
 
 def _load_sequences_zip(zip_file):
     seq_data = {}
     with zipfile.ZipFile(zip_file, "r") as zip_ref:
         for fn in zip_ref.namelist():
-            if not fn.endswith(".seq") or fn.startswith("__MACOSX"):
+            if not fn.endswith(SUFFIXES) or fn.startswith("__MACOSX"):
                 continue
 
             # Convert the file name to a short sequence identifier
@@ -42,7 +62,10 @@ def _load_sequences_zip(zip_file):
                 seq = f.read().decode("utf-8")
 
             # Trim the sequence
-            seq = trim_sequence(seq)
+            try:
+                seq = trim_sequence(seq)
+            except ValueError as e:
+                raise ValueError(f"File {fn}: {str(e)}")
 
             # Add to dictionary of sequences
             seq_data[seq_name] = seq
@@ -64,7 +87,10 @@ def load_sequences(directory_or_zip):
             with open(os.path.join(directory_or_zip, fn), "r") as f:
                 seq = f.read()
             # Trim the sequence
-            seq = trim_sequence(seq)
+            try:
+                seq = trim_sequence(seq)
+            except ValueError as e:
+                raise ValueError(f"File {fn}: {str(e)}")
             # Add to dictionary of sequences
             seq_data[seq_name] = seq
 
