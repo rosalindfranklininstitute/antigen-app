@@ -3,7 +3,7 @@ services:
     container_name: antigenapp_app
     build:
       context: frontend
-      dockerfile: Dockerfile-dev
+      target: dev
     restart: always
     ports:
       - 3000:3000
@@ -15,7 +15,7 @@ services:
     container_name: antigenapp_api
     build:
       context: backend
-      dockerfile: Dockerfile-dev
+      target: dev
     restart: always
     volumes:
       - ./backend:/usr/src
