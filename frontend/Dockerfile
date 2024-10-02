@@ -1,4 +1,4 @@
-FROM registry.hub.docker.com/library/node:18-alpine as build-stage
+FROM registry.hub.docker.com/library/node:18-alpine AS dev
 
 ENV ANTIGENAPP_DIR /antigenapp
 
@@ -10,9 +10,13 @@ RUN npm install
 
 COPY . ${ANTIGENAPP_DIR}
 
+CMD ["npm", "start"]
+
+FROM dev AS build-stage
+
 RUN npm run build
 
-FROM nginx:stable-alpine as prod
+FROM nginx:stable-alpine AS prod
 
 COPY --from=build-stage /antigenapp/build/ /usr/share/nginx/html
 COPY nginx-check-env.sh /docker-entrypoint.d/nginx-check-env.sh

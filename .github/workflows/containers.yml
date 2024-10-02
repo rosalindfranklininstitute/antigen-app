@@ -30,6 +30,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: backend
+          target: prod
           platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: quay.io/rosalindfranklininstitute/antigen-app-backend:latest
@@ -38,6 +39,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: frontend
+          target: prod
           platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: quay.io/rosalindfranklininstitute/antigen-app-frontend:latest
