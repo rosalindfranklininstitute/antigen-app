@@ -743,7 +743,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
             well_dat.append(
                 f"{elisa_well.plate_id}:"
-                f"{PlateLocations.labels[elisa_well.location]} "
+                f"{PlateLocations.labels[elisa_well.location - 1]} "
                 f"[{elisa_well.antigen}]"
             )
 
