@@ -145,6 +145,22 @@ const antigenSchema = {
   objectName: "antigen",
   fields: [
     {
+      label: "Preferred name",
+      field: "preferred_name",
+      type: "text",
+      formHint: "Leave blank to populate from UniProt",
+      showInTable: true,
+      tableColWidth: "w-2/5",
+    },
+    {
+      label: "Short name",
+      field: "short_name",
+      type: "text",
+      formHint: "Leave blank to populate from UniProt",
+      showInTable: true,
+      tableColWidth: "w-2/5",
+    },
+    {
       label: "UniProt ID",
       field: "uniprot_id",
       type: "text",
@@ -154,22 +170,6 @@ const antigenSchema = {
         contexts: ["ViewObjectPage"],
       },
       tableColWidth: "w-1/5",
-    },
-    {
-      label: "Preferred name",
-      field: "preferred_name",
-      type: "text",
-      formHint: "Leave blank to populate from UniProt",
-      showInTable: true,
-      tableColWidth: "w-4/5",
-    },
-    {
-      label: "Short name",
-      field: "short_name",
-      type: "text",
-      formHint: "Leave blank to populate from UniProt",
-      showInTable: true,
-      tableColWidth: "w-4/5",
     },
     {
       label: "Sequence",
