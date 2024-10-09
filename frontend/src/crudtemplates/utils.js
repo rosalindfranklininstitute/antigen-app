@@ -247,6 +247,26 @@ export const displayFieldSingle = (field, record, context, props) => {
         </a>,
       );
       retVal.push(
+        <label
+          key={"resultsFileUpload" + p}
+          type="button"
+          className="w-full cursor-pointer sm:w-auto mb-2 mt-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+        >
+          <input
+            type="file"
+            data-residx={p}
+            data-seqidx={record.id}
+            onChange={(event) => uploadSequencingResults(event, props)}
+            className="hidden"
+            name={"resultsFile" + p}
+          />
+          {(record.sequencingrunresults_set.find((x) => x.seq === p) &&
+            "Replace") ||
+            "Upload"}{" "}
+          sequencing results file
+        </label>,
+      );
+      retVal.push(
         <a
           key={"seqPlateTsv" + p}
           href={
@@ -266,26 +286,6 @@ export const displayFieldSingle = (field, record, context, props) => {
             Download plate layout (.tsv)
           </button>
         </a>,
-      );
-      retVal.push(
-        <label
-          key={"resultsFileUpload" + p}
-          type="button"
-          className="w-full cursor-pointer sm:w-auto mb-2 mt-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-        >
-          <input
-            type="file"
-            data-residx={p}
-            data-seqidx={record.id}
-            onChange={(event) => uploadSequencingResults(event, props)}
-            className="hidden"
-            name={"resultsFile" + p}
-          />
-          {(record.sequencingrunresults_set.find((x) => x.seq === p) &&
-            "Replace") ||
-            "Upload"}{" "}
-          sequencing results file
-        </label>,
       );
       record.sequencingrunresults_set.find((x) => x.seq === p) &&
         retVal.push(
