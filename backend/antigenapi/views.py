@@ -751,9 +751,8 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         response = HttpResponse(output, content_type="text/tab-separated-values")
 
-        response[
-            "Content-Disposition"
-        ] = 'attachment; filename="sequencing_run_{pk}_plate_{submission_idx}.tsv"'
+        fn = f"sequencing_run_{pk}_plate_{submission_idx}.tsv"
+        response["Content-Disposition"] = f'attachment; filename="{fn}"'
 
         return response
 
