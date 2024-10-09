@@ -743,8 +743,9 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
             well_dat.append(
                 f"{elisa_well.plate_id}:"
-                f"{PlateLocations.labels[elisa_well.location - 1]} "
-                f"[{elisa_well.antigen}]"
+                f"{PlateLocations.labels[elisa_well.location - 1]} "(
+                    f"[{elisa_well.antigen}]" if elisa_well.antigen else ""
+                )
             )
 
         output = _wells_to_tsv(well_dat)
