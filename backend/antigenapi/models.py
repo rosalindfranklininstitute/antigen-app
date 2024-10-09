@@ -75,7 +75,9 @@ class Antigen(Model):
     added_date = DateTimeField(auto_now_add=True)
 
     def __str__(self):  # noqa: D105
-        return self.preferred_name + f" [{self.uniprot_id}]" if self.uniprot_id else ""
+        return self.preferred_name + (
+            f" [{self.uniprot_id}]" if self.uniprot_id else ""
+        )
 
 
 class Cohort(Model):
