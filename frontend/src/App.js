@@ -4,6 +4,7 @@ import HeadedPage from "./HeadedPage.js";
 import ListTable from "./crudtemplates/ListTable.js";
 import ViewObjectPage from "./crudtemplates/ViewObjectPage.js";
 import AddEditObjectPage from "./crudtemplates/AddEditObjectPage.js";
+import Dashboard from "./crudtemplates/Dashboard.js";
 import Tabs from "./crudtemplates/Tabs.js";
 import AuditLog from "./crudtemplates/AuditLog.js";
 import schemas from "./schema.js";
@@ -322,10 +323,7 @@ const App = () => {
               path="/"
               element={
                 <HeadedPage title="Dashboard">
-                  <span>
-                    Welcome to Antigen App! Please navigate using the menu at
-                    the top.
-                  </span>
+                  <Dashboard onSetError={setError} />
                 </HeadedPage>
               }
             />

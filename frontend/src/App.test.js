@@ -3,6 +3,6 @@ import App from "./App";
 
 test("renders learn react link", () => {
   render(<App />);
-  const linkElement = screen.getByText(/Welcome to Antigen App!/);
+  const linkElement = screen.getByText(/Named Nanobodies/);
   expect(linkElement).toBeInTheDocument();
 });
