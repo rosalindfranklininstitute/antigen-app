@@ -409,6 +409,23 @@ class ElisaPlateSerializer(ModelSerializer):
         return instance
 
 
+def _wells_to_tsv(wells):
+    UPPER_CASE_A = 65
+    ROW_LENGTH = 12
+    NUM_ROWS = 8
+
+    output = "\t".join([""] + [str(i) for i in range(1, ROW_LENGTH + 1)]) + "\n"
+    for row in range(NUM_ROWS):
+        start = row * ROW_LENGTH
+        row = [chr(UPPER_CASE_A + row)]
+        row += [
+            str(w) if w is not None else "" for w in wells[start : (start + ROW_LENGTH)]
+        ]
+        output += "\t".join(row) + "\n"
+
+    return output
+
+
 class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded elisa plates."""
 
@@ -425,6 +442,30 @@ class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="Download ELISA plate as TSV.",
+        url_path="tsv",
+    )
+    def download_elisa_tsv(self, request, pk):
+        """Download ELISA plate as .tsv file."""
+        wells = list(
+            ElisaWell.objects.filter(
+                plate_id=pk,
+            )
+            .order_by("location")
+            .values_list("optical_density", flat=True)
+        )
+
+        output = _wells_to_tsv(wells)
+
+        response = HttpResponse(output, content_type="text/tab-separated-values")
+
+        response["Content-Disposition"] = f'attachment; filename="elisa_plate_{pk}.tsv"'
+
+        return response
 
 
 class ElisaWellInlineSerializer(ModelSerializer):
@@ -664,6 +705,54 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             f'attachment; filename="sequencing-submission-form-'
             f'sr{pk}_{submission_idx}.xlsx"'
         )
+        return response
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="Download sequencing run submission file (xlsx).",
+        url_path="submissionfile/(?P<submission_idx>[0-9]+)/tsv",
+    )
+    def download_sequencing_plate_tsv(self, request, pk, submission_idx):
+        """Download sequencing run plate layout as .tsv file."""
+        try:
+            sr = SequencingRun.objects.get(id=int(pk))
+        except SequencingRunResults.DoesNotExist:
+            raise Http404
+
+        wells = {
+            w["location"]: w for w in sr.wells if w["plate"] == int(submission_idx)
+        }
+        plate_ids = [w["elisa_well"]["plate"] for w in wells.values()]
+        elisa_wells = {
+            (ew.plate_id, ew.location): ew
+            for ew in ElisaWell.objects.filter(plate_id__in=plate_ids)
+        }
+
+        well_dat = []
+        for i in range(1, 97):
+            try:
+                well = wells[i]
+            except KeyError:
+                well_dat.append("")
+                continue
+
+            elisa_well = elisa_wells[
+                (well["elisa_well"]["plate"], well["elisa_well"]["location"])
+            ]
+
+            well_dat.append(
+                f"{elisa_well.plate_id}:"
+                f"{PlateLocations.labels[elisa_well.location]} "
+                f"[{elisa_well.antigen}]"
+            )
+
+        output = _wells_to_tsv(well_dat)
+
+        response = HttpResponse(output, content_type="text/tab-separated-values")
+
+        response["Content-Disposition"] = f'attachment; filename="elisa_plate_{pk}.tsv"'
+
         return response
 
     @action(

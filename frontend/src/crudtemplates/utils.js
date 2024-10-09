@@ -177,8 +177,24 @@ export const displayFieldSingle = (field, record, context, props) => {
   if (field.fkDisplayField) {
     return record[field.field + "_" + field.fkDisplayField];
   } else if (field.type === "elisaplate" && record[field.field]) {
-    return plateMapOfValues(
-      record[field.field].map((well) => well["optical_density"]),
+    return (
+      <>
+        {plateMapOfValues(
+          record[field.field].map((well) => well["optical_density"]),
+        )}
+        <a
+          href={
+            config.url.API_URL + schema.elisa.apiUrl + "/" + record.id + "/tsv"
+          }
+        >
+          <button
+            type="button"
+            className="w-full sm:w-auto mr-2 mt-2 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
+          >
+            Download plate (.tsv)
+          </button>
+        </a>
+      </>
     );
   } else if (field.type === "sequencingplate" && record[field.field]) {
     let numPlates = Math.ceil(record[field.field].length / 96);
@@ -226,7 +242,28 @@ export const displayFieldSingle = (field, record, context, props) => {
             type="button"
             className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
-            Download sequencing submission file
+            Download sequencing submission file (.xlsx)
+          </button>
+        </a>,
+      );
+      retVal.push(
+        <a
+          key={"seqPlateTsv" + p}
+          href={
+            config.url.API_URL +
+            schema.sequencing.apiUrl +
+            "/" +
+            record.id +
+            "/submissionfile/" +
+            p +
+            "/tsv"
+          }
+        >
+          <button
+            type="button"
+            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Download plate layout (.tsv)
           </button>
         </a>,
       );
@@ -290,7 +327,7 @@ export const displayFieldSingle = (field, record, context, props) => {
               type="button"
               className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
-              Download IMGT AIRR file
+              Download IMGT AIRR file (.tsv)
             </button>
           </a>,
         );
