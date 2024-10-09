@@ -4,9 +4,10 @@ import io
 import math
 import os
 import re
+import subprocess
 import urllib.error
 import urllib.parse
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from wsgiref.util import FileWrapper
 
 import numpy as np
@@ -1053,19 +1054,24 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
 
 
+def _get_entire_db_fasta():
+    fasta_data = ""
+    for sr in SequencingRunResults.objects.all():
+        airr_file = read_airr_file(
+            sr.airr_file, usecols=("sequence_id", "sequence_alignment_aa")
+        )
+        airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
+        if not airr_file.empty:
+            for _, row in airr_file.iterrows():
+                fasta_data += f"> {row.sequence_id}\n"
+                fasta_data += f"{row.sequence_alignment_aa.replace('.', '')}\n"
+    return fasta_data
+
+
 class GlobalFastaView(APIView):
     def get(self, request, format=None):
         """Download entire database as .fasta file."""
-        fasta_data = ""
-        for sr in SequencingRunResults.objects.all():
-            airr_file = read_airr_file(
-                sr.airr_file, usecols=("sequence_id", "sequence_alignment_aa")
-            )
-            airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
-            if not airr_file.empty:
-                for _, row in airr_file.iterrows():
-                    fasta_data += f"> {row.sequence_id}\n"
-                    fasta_data += f"{row.sequence_alignment_aa.replace('.', '')}\n"
+        fasta_data = _get_entire_db_fasta()
 
         fasta_filename = (
             f"antigenapp_database_{datetime.datetime.now().isoformat()}.fasta"
@@ -1077,4 +1083,75 @@ class GlobalFastaView(APIView):
             filename=fasta_filename,
         )
         response["Content-Disposition"] = f'attachment; filename="{fasta_filename}"'
+        return response
+
+
+class BlastAllView(APIView):
+    def get(self, request, format=None):
+        """Run all-vs-all BLAST on entire DB."""
+        fasta_data = _get_entire_db_fasta()
+
+        # Write the DB to disk as .fasta format
+        with TemporaryDirectory() as tmp_dir:
+            fasta_filename = os.path.join(tmp_dir, "antigen.fasta")
+            with open(fasta_filename, "w") as f:
+                f.write(fasta_data)
+
+            # Run makeblastdb
+            mkdb_proc = subprocess.run(
+                [
+                    "makeblastdb",
+                    "-in",
+                    "antigen.fasta",
+                    "-dbtype",
+                    "prot",
+                    "-out",
+                    "antigen.db",
+                ],
+                cwd=tmp_dir,
+            )
+
+            if mkdb_proc.returncode != 0:
+                raise Exception(
+                    f"makeblastdb returned exit code of " f"{mkdb_proc.returncode}"
+                )
+
+            # Run blastp
+            blastp_proc = subprocess.run(
+                [
+                    "blastp",
+                    "-db",
+                    "antigen.db",
+                    "-query",
+                    "antigen.fasta",
+                    "-html",
+                    "-out",
+                    "antigen.html",
+                    "-num_threads",
+                    "4",
+                ],
+                cwd=tmp_dir,
+            )
+
+            if blastp_proc.returncode != 0:
+                raise Exception(
+                    f"blastp returned exit code of " f"{blastp_proc.returncode}"
+                )
+
+            # Read in the results file
+            with open(os.path.join(tmp_dir, "antigen.html"), "r") as f:
+                results = f.read()
+
+        # blast_filename = (
+        #     f"antigenapp_database_blast_allvsall_"
+        #     f"{datetime.datetime.now().isoformat()}.tsv"
+        # )
+        # response = FileResponse(
+        #     results,
+        #     as_attachment=True,
+        #     content_type="text/tab-separated-values",
+        #     filename=blast_filename,
+        # )
+        # response["Content-Disposition"] = f'attachment; filename="{blast_filename}"'
+        response = HttpResponse(results)
         return response
