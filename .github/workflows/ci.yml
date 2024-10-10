@@ -1,4 +1,4 @@
-name: Build, test and push backend container
+name: Build, test and push container
 
 on:
   push:
