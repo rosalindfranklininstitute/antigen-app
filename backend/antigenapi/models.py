@@ -175,6 +175,9 @@ class SequencingRun(Model):
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
+    def __str__(self):  # noqa: D105
+        return f"SequencingRun {self.pk}"
+
 
 class SequencingRunResults(Model):
     """A results file for a sequencing run."""
@@ -199,6 +202,9 @@ class SequencingRunResults(Model):
             UniqueConstraint(fields=["sequencing_run", "seq"], name="unique_seqrun_seq")
         ]
 
+    def __str__(self):  # noqa: D105
+        return f"SeqencingRunResults {self.pk}"
+
 
 class Nanobody(Model):
     """A named nanobody."""
@@ -209,6 +215,9 @@ class Nanobody(Model):
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
     previous_sequence = None  # Track previous sequence for update hook
+
+    def __str__(self):  # noqa: D105
+        return self.name
 
     @staticmethod
     def post_save(sender, instance, created, **kwargs):

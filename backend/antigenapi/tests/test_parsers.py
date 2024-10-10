@@ -3,7 +3,7 @@ import unittest
 import zipfile
 
 from antigenapi.bioinformatics import load_sequences, trim_sequence
-from antigenapi.views import _extract_well
+from antigenapi.views_old import _extract_well
 
 
 def _create_zip(zip_data):
