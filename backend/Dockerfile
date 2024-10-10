@@ -40,22 +40,8 @@ USER nonroot
 
 CMD [".venv/bin/uwsgi", "--ini", "uwsgi.ini"]
 
-FROM python:3.11-bullseye AS dev
+FROM builder AS dev
 
-RUN python -m pip install wheel pipenv
+ENV PATH="$PATH:/root/.local/bin:/usr/src/.venv/bin"
 
-COPY Pipfile Pipfile.lock pyproject.toml setup.cfg /usr/src/
-WORKDIR /usr/src
-
-RUN python -m pipenv install --system --verbose
-RUN python -m pipenv install --dev
-
-COPY manage.py /usr/src/
-COPY antigendjango /usr/src/antigendjango
-COPY antigenapi /usr/src/antigenapi
-
-RUN DJANGO_CI=true python manage.py collectstatic --noinput \
-    && mkdir /api_data/ \
-    && mv ./static/ /api_data/static/
-
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
+CMD ["pipenv", "run", "python", "manage.py", "runserver", "0.0.0.0:8080"]
