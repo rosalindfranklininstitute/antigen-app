@@ -61,12 +61,16 @@ class AuditLogLatestEvents(APIView):
                     "type": le.content_type.name,
                     "pk": le.object_id,
                     "link": {
-                        "schema": _schema(le.content_type)
-                        if le.action != LogEntry.Action.DELETE
-                        else None,
-                        "id": _schemalink(le)
-                        if le.action != LogEntry.Action.DELETE
-                        else None,
+                        "schema": (
+                            _schema(le.content_type)
+                            if le.action != LogEntry.Action.DELETE
+                            else None
+                        ),
+                        "id": (
+                            _schemalink(le)
+                            if le.action != LogEntry.Action.DELETE
+                            else None
+                        ),
                     },
                     "operation": LogEntry.Action.choices[le.action][1],
                 },
