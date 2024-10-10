@@ -1,0 +1,62 @@
+name: Build, test and push backend container
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [backend, frontend]
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Quay.io
+        uses: docker/login-action@v2
+        with:
+          registry: quay.io
+          username: rosalindfranklininstitute+github_antigenapp
+          password: ${{ secrets.QUAYIO_TOKEN }}
+
+      - name: Build image
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ matrix.component }}
+          target: dev
+          platforms: linux/amd64
+          load: true
+          tags: antigen-app-dev-${{ matrix.component }}:latest
+
+      - name: Run backend tests
+        if: ${{ matrix.component == 'backend' }}
+        run: |
+          docker run --rm -e DJANGO_CI=true antigen-app-dev-backend:latest pipenv run tests
+
+      - name: Run frontend tests
+        if: ${{ matrix.component == 'frontend' }}
+        run: |
+          docker run --rm -e CI=true antigen-app-dev-frontend:latest npm test
+          docker run --rm antigen-app-dev-frontend:latest npx prettier --check .
+
+      - name: Push image
+        uses: docker/build-push-action@v3
+        with:
+          context: ${{ matrix.component }}
+          target: prod
+          platforms: linux/amd64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}:latest
