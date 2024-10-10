@@ -44,4 +44,6 @@ FROM builder AS dev
 
 ENV PATH="$PATH:/root/.local/bin:/usr/src/.venv/bin"
 
+RUN pipenv sync --dev
+
 CMD ["pipenv", "run", "python", "manage.py", "runserver", "0.0.0.0:8080"]

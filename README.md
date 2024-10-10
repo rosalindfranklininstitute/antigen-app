@@ -37,4 +37,4 @@ To run the backend (Python+Django) test suite:
 
 To run the test suite:
 
-    docker compose exec app npm test
+    docker compose exec -e CI=true app npm test
