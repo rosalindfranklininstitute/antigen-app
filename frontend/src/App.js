@@ -23,6 +23,7 @@ import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/tracing";
 import { getCookie } from "./crudtemplates/utils.js";
 import SequencingResults from "./crudtemplates/SequencingResults.js";
+import BlastResults from "./crudtemplates/BlastResults.js";
 
 if (process.env.REACT_APP_SENTRY_DSN !== undefined) {
   Sentry.init({
@@ -685,14 +686,6 @@ const App = () => {
                     onSetError={setError}
                     extraButton={
                       <>
-                        <a href="/api/blast/all" target="_blank">
-                          <button
-                            type="button"
-                            className="w-full sm:w-auto mr-2 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-                          >
-                            BLAST all-vs-all
-                          </button>
-                        </a>
                         <a href="/api/fasta">
                           <button
                             type="button"
@@ -745,6 +738,11 @@ const App = () => {
                       schema={schemas.sequencing}
                       onSetError={setError}
                     ></SequencingResults>
+                    <BlastResults
+                      tabName="BLAST"
+                      schema={schemas.sequencing}
+                      onSetError={setError}
+                    ></BlastResults>
                     <AuditLog
                       tabName="Audit Log"
                       schema={schemas.sequencing}

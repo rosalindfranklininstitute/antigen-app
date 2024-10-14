@@ -1,13 +1,13 @@
 import collections.abc
 import datetime
 import io
+import json
 import math
 import os
 import re
-import subprocess
 import urllib.error
 import urllib.parse
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 from wsgiref.util import FileWrapper
 
 import numpy as np
@@ -37,7 +37,8 @@ from rest_framework.serializers import (
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from antigenapi.bioinformatics import (
+from antigenapi.bioinformatics.blast import get_db_fasta, run_blastp
+from antigenapi.bioinformatics.imgt import (
     AIRR_IMPORTANT_COLUMNS,
     as_fasta_files,
     load_sequences,
@@ -1053,25 +1054,83 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             {"matches": pd.concat(results).to_dict(orient="records") if results else []}
         )
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="BLAST sequencing run results vs DB.",
+        url_path="blast",
+    )
+    def get_blast_sequencing_run(self, request, pk):
+        """BLAST sequencing run vs database."""
+        blast_str = run_blastp(pk)
+        if not blast_str:
+            return JsonResponse({}, status=status.HTTP_404_NOT_FOUND)
 
-def _get_entire_db_fasta():
-    fasta_data = ""
-    for sr in SequencingRunResults.objects.all():
-        airr_file = read_airr_file(
-            sr.airr_file, usecols=("sequence_id", "sequence_alignment_aa")
+        # Read query AIRR files for CDRs
+        results = SequencingRunResults.objects.filter(sequencing_run_id=int(pk))
+
+        airr_df = pd.concat(read_airr_file(r.airr_file) for r in results)
+        airr_df = airr_df.set_index("sequence_id")
+
+        ALIGN_PERC_THRESHOLD = 90
+        E_VALUE_THRESHOLD = 0.05
+
+        # Parse the JSON and keep the important bits
+        blast_result = json.loads(blast_str)
+        res = []
+        for blast_run in blast_result["BlastOutput2"]:
+            run_res = blast_run["report"]["results"]["search"]
+            for blast_hit_set in run_res["hits"]:
+                subject_title = blast_hit_set["description"][0]["title"]
+                query_title = run_res["query_title"]
+                query_cdr3 = airr_df.at[query_title, "cdr3_aa"]
+                if pd.isna(query_cdr3):
+                    query_cdr3 = None
+                if subject_title.strip() == query_title.strip():
+                    continue
+                hsps = blast_hit_set["hsps"][0]
+                assert len(blast_hit_set["description"]) == 1
+                for hsps in blast_hit_set["hsps"]:
+                    align_perc = round(
+                        (hsps["align_len"] / run_res["query_len"]) * 100, 2
+                    )
+                    if align_perc < ALIGN_PERC_THRESHOLD:
+                        continue
+                    e_value = hsps["evalue"]
+                    if e_value > E_VALUE_THRESHOLD:
+                        continue
+                    res.append(
+                        {
+                            "query_title": query_title.strip(),
+                            "query_cdr3": query_cdr3,
+                            "subject_title": subject_title.strip(),
+                            "submatch_no": hsps["num"],
+                            "query_seq": hsps["qseq"],
+                            "subject_seq": hsps["hseq"],
+                            "midline": hsps["midline"],
+                            "bit_score": hsps["bit_score"],
+                            "e_value": e_value,
+                            "align_len": hsps["align_len"],
+                            "align_perc": align_perc,
+                            "ident_perc": round(
+                                (hsps["identity"] / hsps["align_len"]) * 100, 2
+                            ),
+                        }
+                    )
+
+        # Sort the results
+        res = sorted(
+            res,
+            key=lambda r: (r["query_cdr3"] or "", -r["align_perc"], -r["ident_perc"]),
         )
-        airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
-        if not airr_file.empty:
-            for _, row in airr_file.iterrows():
-                fasta_data += f"> {row.sequence_id}\n"
-                fasta_data += f"{row.sequence_alignment_aa.replace('.', '')}\n"
-    return fasta_data
+
+        return JsonResponse({"hits": res})
 
 
 class GlobalFastaView(APIView):
     def get(self, request, format=None):
         """Download entire database as .fasta file."""
-        fasta_data = _get_entire_db_fasta()
+        fasta_data = get_db_fasta()
 
         fasta_filename = (
             f"antigenapp_database_{datetime.datetime.now().isoformat()}.fasta"
@@ -1083,75 +1142,4 @@ class GlobalFastaView(APIView):
             filename=fasta_filename,
         )
         response["Content-Disposition"] = f'attachment; filename="{fasta_filename}"'
-        return response
-
-
-class BlastAllView(APIView):
-    def get(self, request, format=None):
-        """Run all-vs-all BLAST on entire DB."""
-        fasta_data = _get_entire_db_fasta()
-
-        # Write the DB to disk as .fasta format
-        with TemporaryDirectory() as tmp_dir:
-            fasta_filename = os.path.join(tmp_dir, "antigen.fasta")
-            with open(fasta_filename, "w") as f:
-                f.write(fasta_data)
-
-            # Run makeblastdb
-            mkdb_proc = subprocess.run(
-                [
-                    "makeblastdb",
-                    "-in",
-                    "antigen.fasta",
-                    "-dbtype",
-                    "prot",
-                    "-out",
-                    "antigen.db",
-                ],
-                cwd=tmp_dir,
-            )
-
-            if mkdb_proc.returncode != 0:
-                raise Exception(
-                    f"makeblastdb returned exit code of " f"{mkdb_proc.returncode}"
-                )
-
-            # Run blastp
-            blastp_proc = subprocess.run(
-                [
-                    "blastp",
-                    "-db",
-                    "antigen.db",
-                    "-query",
-                    "antigen.fasta",
-                    "-html",
-                    "-out",
-                    "antigen.html",
-                    "-num_threads",
-                    "4",
-                ],
-                cwd=tmp_dir,
-            )
-
-            if blastp_proc.returncode != 0:
-                raise Exception(
-                    f"blastp returned exit code of " f"{blastp_proc.returncode}"
-                )
-
-            # Read in the results file
-            with open(os.path.join(tmp_dir, "antigen.html"), "r") as f:
-                results = f.read()
-
-        # blast_filename = (
-        #     f"antigenapp_database_blast_allvsall_"
-        #     f"{datetime.datetime.now().isoformat()}.tsv"
-        # )
-        # response = FileResponse(
-        #     results,
-        #     as_attachment=True,
-        #     content_type="text/tab-separated-values",
-        #     filename=blast_filename,
-        # )
-        # response["Content-Disposition"] = f'attachment; filename="{blast_filename}"'
-        response = HttpResponse(results)
         return response

@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 from antigenapi.views.dashboard import AuditLogLatestEvents, DashboardStats
 from antigenapi.views_old import (
     AntigenViewSet,
-    BlastAllView,
     CohortViewSet,
     ElisaPlateViewSet,
     GlobalFastaView,
@@ -30,5 +29,4 @@ urlpatterns = [
     path("fasta/", GlobalFastaView.as_view(), name="fasta"),
     path("dashboard/stats", DashboardStats.as_view(), name="dashboard_stats"),
     path("dashboard/latest", AuditLogLatestEvents.as_view(), name="dashboard_latest"),
-    path("blast/all", BlastAllView.as_view(), name="blast_all"),
 ]
