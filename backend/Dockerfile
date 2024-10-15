@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y \
     libxml2 \
     media-types \
     liblmdb-dev \
+    libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN adduser --uid 10191 --group --system --no-create-home nonroot
