@@ -1,6 +1,6 @@
 FROM quay.io/rosalindfranklininstitute/blast:2.16.0 AS blast
 
-FROM python:3.13-bookworm AS builder
+FROM python:3.12-bookworm AS builder
 
 RUN pip install --upgrade pip wheel pipenv
 
@@ -23,7 +23,7 @@ COPY antigenapi /usr/src/antigenapi
 
 RUN DJANGO_CI=true .venv/bin/python manage.py collectstatic --noinput
 
-FROM python:3.13-slim-bookworm AS prod
+FROM python:3.12-slim-bookworm AS prod
 
 # liblmdb-dev required by BLAST
 RUN apt-get update && apt-get install -y \
