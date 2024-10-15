@@ -1,6 +1,6 @@
 FROM registry.hub.docker.com/library/node:22-alpine AS dev
 
-ENV ANTIGENAPP_DIR /antigenapp
+ENV ANTIGENAPP_DIR=/antigenapp
 
 COPY package-lock.json ${ANTIGENAPP_DIR}/package-lock.json
 COPY package.json ${ANTIGENAPP_DIR}/package.json

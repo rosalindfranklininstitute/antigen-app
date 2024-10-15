@@ -28,7 +28,7 @@ from django.db.models.fields import (
 )
 from django.db.models.signals import post_init, post_save
 
-from .bioinformatics import read_airr_file
+from .bioinformatics.imgt import read_airr_file
 
 
 class Project(Model):

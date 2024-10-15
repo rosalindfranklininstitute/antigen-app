@@ -2,7 +2,7 @@ import io
 import unittest
 import zipfile
 
-from antigenapi.bioinformatics import load_sequences, trim_sequence
+from antigenapi.bioinformatics.imgt import load_sequences, trim_sequence
 from antigenapi.views_old import _extract_well
 
 

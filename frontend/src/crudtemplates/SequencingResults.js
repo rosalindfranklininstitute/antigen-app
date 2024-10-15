@@ -2,6 +2,7 @@ import config from "../config.js";
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import * as Sentry from "@sentry/browser";
+import LoadingLlama from "../LoadingLlama.js";
 
 const SequencingResults = (props) => {
   const { recordId } = useParams();
@@ -42,7 +43,7 @@ const SequencingResults = (props) => {
 
   return (
     <>
-      {!sequencingResults && "..."}
+      {!sequencingResults && <LoadingLlama />}
       {sequencingResults && (
         <div className="mt-8 flow-root">
           <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -119,6 +120,13 @@ const SequencingResults = (props) => {
                   </tr>
                 </thead>
                 <tbody className="bg-white">
+                  {!sequencingResults.records.length && (
+                    <tr>
+                      <td colSpan="11" className="py-4 font-medium text-center">
+                        No results
+                      </td>
+                    </tr>
+                  )}
                   {sequencingResults.records.map((row) => (
                     <tr
                       key={row.sequence_id}

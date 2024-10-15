@@ -16,8 +16,11 @@ services:
     build:
       context: backend
       target: dev
+      args:
+        PIPENV_SYNC_FLAGS: --dev
     restart: always
     volumes:
+      - api_venv:/usr/src/.venv
       - ./backend:/usr/src
       - api_data:/api_data
     environment:
@@ -43,3 +46,4 @@ services:
 
 volumes:
   api_data:
+  api_venv:

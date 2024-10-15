@@ -37,6 +37,8 @@ jobs:
         with:
           context: ${{ matrix.component }}
           target: dev
+          build-args: |
+            PIPENV_SYNC_FLAGS=--dev
           platforms: linux/amd64
           load: true
           tags: antigen-app-dev-${{ matrix.component }}:latest
