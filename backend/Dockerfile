@@ -25,11 +25,12 @@ RUN DJANGO_CI=true .venv/bin/python manage.py collectstatic --noinput
 
 FROM python:3.12-slim-bookworm AS prod
 
-# liblmdb-dev required by BLAST
+# liblmdb-dev and libgomp1 required by BLAST
 RUN apt-get update && apt-get install -y \
     libxml2 \
     media-types \
     liblmdb-dev \
+    libgomp1 \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
