@@ -1064,7 +1064,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         """BLAST sequencing run vs database."""
         blast_str = run_blastp(pk)
         if not blast_str:
-            return JsonResponse({}, status=status.HTTP_404_NOT_FOUND)
+            return JsonResponse({"hits": []}, status=status.HTTP_404_NOT_FOUND)
 
         # Read query AIRR files for CDRs
         results = SequencingRunResults.objects.filter(sequencing_run_id=int(pk))

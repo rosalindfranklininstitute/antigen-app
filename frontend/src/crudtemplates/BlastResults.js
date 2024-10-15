@@ -103,6 +103,13 @@ const BlastResults = (props) => {
                   </tr>
                 </thead>
                 <tbody className="bg-white">
+                  {!blastResults.hits.length && (
+                    <tr>
+                      <td colSpan="5" className="py-4 font-medium text-center">
+                        No results
+                      </td>
+                    </tr>
+                  )}
                   {blastResults.hits.map((row, rowIdx, arr) => (
                     <tr
                       key={

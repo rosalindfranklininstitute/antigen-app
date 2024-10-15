@@ -120,6 +120,13 @@ const SequencingResults = (props) => {
                   </tr>
                 </thead>
                 <tbody className="bg-white">
+                  {!sequencingResults.records.length && (
+                    <tr>
+                      <td colSpan="11" className="py-4 font-medium text-center">
+                        No results
+                      </td>
+                    </tr>
+                  )}
                   {sequencingResults.records.map((row) => (
                     <tr
                       key={row.sequence_id}
