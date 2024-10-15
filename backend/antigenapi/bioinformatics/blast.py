@@ -96,8 +96,8 @@ def run_blastp(
             raise Exception(
                 f"makeblastdb returned exit code of "
                 f"{mkdb_proc.returncode}\n\n"
-                f"STDOUT: {mkdb_proc.stdout}\n\n"
-                f"STDERR: {mkdb_proc.stderr}"
+                f"STDOUT: {mkdb_proc.stdout.decode()}\n\n"
+                f"STDERR: {mkdb_proc.stderr.decode()}"
             )
 
         # Write out query file
@@ -128,8 +128,8 @@ def run_blastp(
             raise Exception(
                 f"blastp returned exit code of "
                 f"{blastp_proc.returncode}\n\n"
-                f"STDOUT: {blastp_proc.stdout}\n\n"
-                f"STDERR: {blastp_proc.stderr}"
+                f"STDOUT: {blastp_proc.stdout.decode()}\n\n"
+                f"STDERR: {blastp_proc.stderr.decode()}"
             )
 
         # Read in the results file
