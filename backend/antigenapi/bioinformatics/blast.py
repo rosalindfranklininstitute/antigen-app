@@ -4,7 +4,7 @@ from tempfile import TemporaryDirectory
 from typing import Optional
 
 from ..models import SequencingRunResults
-from .imgt import read_airr_file
+from .imgt import as_fasta_files, read_airr_file
 
 # https://www.ncbi.nlm.nih.gov/books/NBK279684/table/appendices.T.options_common_to_all_blast/
 BLAST_FMT_MULTIPLE_FILE_BLAST_JSON = "15"
@@ -23,7 +23,7 @@ def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] =
     Returns:
         str: Sequencing run as a FASTA format string
     """
-    fasta_data = ""
+    fasta_data = {}
     query = SequencingRunResults.objects.all()
     if include_run:
         query = query.filter(sequencing_run_id=include_run)
@@ -36,9 +36,17 @@ def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] =
         airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
         if not airr_file.empty:
             for _, row in airr_file.iterrows():
-                fasta_data += f"> {row.sequence_id}\n"
-                fasta_data += f"{row.sequence_alignment_aa.replace('.', '')}\n"
-    return fasta_data
+                seq = row.sequence_alignment_aa.replace(".", "")
+                try:
+                    if fasta_data[row.sequence_id] != seq:
+                        raise ValueError(
+                            f"Different sequences with same name! {row.sequence_id}"
+                        )
+                    continue
+                except KeyError:
+                    fasta_data[row.sequence_id] = seq
+
+    return as_fasta_files(fasta_data, max_file_size=None)[0]
 
 
 def get_sequencing_run_fasta(sequencing_run_id: int):
