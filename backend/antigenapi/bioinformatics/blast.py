@@ -46,7 +46,11 @@ def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] =
                 except KeyError:
                     fasta_data[row.sequence_id] = seq
 
-    return as_fasta_files(fasta_data, max_file_size=None)[0]
+    fasta_files = as_fasta_files(fasta_data, max_file_size=None)
+    if fasta_files:
+        return fasta_files[0]
+
+    return ""
 
 
 def get_sequencing_run_fasta(sequencing_run_id: int):
