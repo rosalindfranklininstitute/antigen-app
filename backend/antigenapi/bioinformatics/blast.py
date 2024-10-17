@@ -23,7 +23,7 @@ def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] =
     Returns:
         str: Sequencing run as a FASTA format string
     """
-    fasta_data = {}
+    fasta_data: dict[str, str] = {}
     query = SequencingRunResults.objects.all()
     if include_run:
         query = query.filter(sequencing_run_id=include_run)
