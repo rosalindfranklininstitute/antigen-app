@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import * as Sentry from "@sentry/browser";
 import LoadingLlama from "../LoadingLlama.js";
-import RadioGroup from "./RadioGroup.js";
+import WrappedRadioGroup from "./RadioGroup.js";
 
 const blastQueryTypeOptions = [
   { id: "cdr3", name: "CDR3" },
@@ -78,7 +78,7 @@ const BlastResults = (props) => {
 
   return (
     <>
-      <RadioGroup
+      <WrappedRadioGroup
         label="BLAST query type"
         value={queryType}
         setValue={setQueryType}
