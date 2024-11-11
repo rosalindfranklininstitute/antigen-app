@@ -11,7 +11,11 @@ BLAST_FMT_MULTIPLE_FILE_BLAST_JSON = "15"
 BLAST_NUM_THREADS = 4
 
 
-def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] = None):
+def get_db_fasta(
+    include_run: Optional[int] = None,
+    exclude_run: Optional[int] = None,
+    query_type: str = "full",
+):
     """Get the sequencing database in fasta format.
 
     Args:
@@ -19,6 +23,8 @@ def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] =
           Defaults to None.
         exclude_run (int, optional): Sequencing run ID to exclude.
           Defaults to None.
+        query_type (str): Query type - "full" sequence or "cdr3"
+          Defaults to "full".
 
     Returns:
         str: Sequencing run as a FASTA format string
@@ -31,20 +37,35 @@ def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] =
         query = query.exclude(sequencing_run_id=exclude_run)
     for sr in query:
         airr_file = read_airr_file(
-            sr.airr_file, usecols=("sequence_id", "sequence_alignment_aa")
+            sr.airr_file,
+            usecols=(
+                "sequence_id",
+                "cdr3_aa" if query_type == "cdr3" else "sequence_alignment_aa",
+            ),
         )
-        airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
+        airr_file = airr_file[
+            (
+                airr_file.cdr3_aa.notna()
+                if query_type == "cdr3"
+                else airr_file.sequence_alignment_aa.notna()
+            )
+        ]
         if not airr_file.empty:
-            for _, row in airr_file.iterrows():
-                seq = row.sequence_alignment_aa.replace(".", "")
-                try:
-                    if fasta_data[row.sequence_id] != seq:
-                        raise ValueError(
-                            f"Different sequences with same name! {row.sequence_id}"
-                        )
-                    continue
-                except KeyError:
-                    fasta_data[row.sequence_id] = seq
+            if query_type == "cdr3":
+                cdr3s = set(airr_file.cdr3_aa.unique())
+                for cdr3 in cdr3s:
+                    fasta_data[f"CDR3: {cdr3}"] = cdr3
+            else:
+                for _, row in airr_file.iterrows():
+                    seq = row.sequence_alignment_aa.replace(".", "")
+                    try:
+                        if fasta_data[row.sequence_id] != seq:
+                            raise ValueError(
+                                f"Different sequences with same name! {row.sequence_id}"
+                            )
+                        continue
+                    except KeyError:
+                        fasta_data[row.sequence_id] = seq
 
     fasta_files = as_fasta_files(fasta_data, max_file_size=None)
     if fasta_files:
@@ -53,25 +74,29 @@ def get_db_fasta(include_run: Optional[int] = None, exclude_run: Optional[int] =
     return ""
 
 
-def get_sequencing_run_fasta(sequencing_run_id: int):
+def get_sequencing_run_fasta(sequencing_run_id: int, query_type: str):
     """Get sequencing run in BLAST format.
 
     Args:
         sequencing_run_id (int): Sequencing run ID
+        query_type (str): Query type - "full" sequence or "cdr3"
 
     Returns:
         str: Sequencing run as a FASTA format string
     """
-    return get_db_fasta(include_run=sequencing_run_id)
+    return get_db_fasta(include_run=sequencing_run_id, query_type=query_type)
 
 
 def run_blastp(
-    sequencing_run_id: int, outfmt: str = BLAST_FMT_MULTIPLE_FILE_BLAST_JSON
+    sequencing_run_id: int,
+    query_type: str = "full",
+    outfmt: str = BLAST_FMT_MULTIPLE_FILE_BLAST_JSON,
 ):
     """Run blastp for a sequencing run vs rest of database.
 
     Args:
         sequencing_run_id (int): Sequencing run ID.
+        query_type (str): Query type - "full" sequence or "cdr3"
 
     Returns:
         JSONResponse: Single file BLAST JSON
@@ -79,7 +104,7 @@ def run_blastp(
     db_data = get_db_fasta()
     if not db_data:
         return None
-    query_data = get_sequencing_run_fasta(sequencing_run_id)
+    query_data = get_sequencing_run_fasta(sequencing_run_id, query_type=query_type)
     if not query_data:
         return None
 

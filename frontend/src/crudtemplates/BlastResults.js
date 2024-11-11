@@ -3,10 +3,18 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import * as Sentry from "@sentry/browser";
 import LoadingLlama from "../LoadingLlama.js";
+import WrappedRadioGroup from "./RadioGroup.js";
+
+const blastQueryTypeOptions = [
+  { id: "cdr3", name: "CDR3" },
+  { id: "full", name: "Full Sequence" },
+];
 
 const BlastResults = (props) => {
   const { recordId } = useParams();
   const [blastResults, setBlastResults] = useState();
+
+  const [queryType, setQueryType] = useState(blastQueryTypeOptions[0]);
 
   function classNames(...classes) {
     return classes.filter(Boolean).join(" ");
@@ -31,14 +39,21 @@ const BlastResults = (props) => {
     );
   };
 
-  const fetchBlastResults = () => {
-    fetch(config.url.API_URL + "/sequencingrun/" + recordId + "/blast/", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": props.csrfToken,
+  const fetchBlastResults = (queryType) => {
+    fetch(
+      config.url.API_URL +
+        "/sequencingrun/" +
+        recordId +
+        "/blast/?queryType=" +
+        queryType.id,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": props.csrfToken,
+        },
       },
-    })
+    )
       .then((res) => {
         res.json().then(
           (data) => {
@@ -57,11 +72,19 @@ const BlastResults = (props) => {
   };
 
   useEffect(() => {
-    fetchBlastResults();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    setBlastResults();
+    fetchBlastResults(queryType);
+  }, [queryType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>
+      <WrappedRadioGroup
+        label="BLAST query type"
+        value={queryType}
+        setValue={setQueryType}
+        options={blastQueryTypeOptions}
+      />
+
       {!blastResults && <LoadingLlama />}
       {blastResults && (
         <div className="mt-8 flow-root">

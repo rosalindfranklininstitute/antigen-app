@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@headlessui/react": "^1.7.19",
+    "@headlessui/react": "2.1",
     "@heroicons/react": "^2.1.5",
     "@sentry/react": "^7.119.1",
     "@sentry/tracing": "^7.114.0",
