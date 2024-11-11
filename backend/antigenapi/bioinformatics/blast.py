@@ -44,9 +44,11 @@ def get_db_fasta(
             ),
         )
         airr_file = airr_file[
-            airr_file.cdr3_aa.notna()
-            if query_type == "cdr3"
-            else airr_file.sequence_alignment_aa.notna()
+            (
+                airr_file.cdr3_aa.notna()
+                if query_type == "cdr3"
+                else airr_file.sequence_alignment_aa.notna()
+            )
         ]
         if not airr_file.empty:
             if query_type == "cdr3":
