@@ -1062,7 +1062,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     )
     def get_blast_sequencing_run(self, request, pk):
         """BLAST sequencing run vs database."""
-        blast_str = run_blastp(pk)
+        query_type = self.request.query_params.get("queryType", "full")
+        if query_type not in ("full", "cdr3"):
+            raise ValueError(f"Unknown queryType: {query_type}")
+        blast_str = run_blastp(pk, query_type=query_type)
         if not blast_str:
             return JsonResponse({"hits": []}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1083,9 +1086,13 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             for blast_hit_set in run_res["hits"]:
                 subject_title = blast_hit_set["description"][0]["title"]
                 query_title = run_res["query_title"]
-                query_cdr3 = airr_df.at[query_title, "cdr3_aa"]
-                if pd.isna(query_cdr3):
-                    query_cdr3 = None
+                if query_type == "cdr3":
+                    # TODO: Make more robust
+                    query_cdr3 = query_title[6:]
+                else:
+                    query_cdr3 = airr_df.at[query_title, "cdr3_aa"]
+                    if pd.isna(query_cdr3):
+                        query_cdr3 = None
                 if subject_title.strip() == query_title.strip():
                     continue
                 hsps = blast_hit_set["hsps"][0]
