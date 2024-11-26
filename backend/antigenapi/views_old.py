@@ -1006,6 +1006,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Indicator to show when cdr3 has changed from previous row
         df["new_cdr3"] = df["cdr3_aa"].shift(1).ne(df["cdr3_aa"])
 
+        # Replace T/F with Y/N in productive and stop_codon columns
+        for column in ("productive", "stop_codon"):
+            df[column] = df[column].str.replace("F", "N").replace("T", "Y")
+
         sequences = (
             df["sequence_alignment_aa"].str.replace(".", "").replace("*", "X").tolist()
         )

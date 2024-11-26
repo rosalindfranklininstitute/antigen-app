@@ -61,13 +61,13 @@ const SequencingResults = (props) => {
                       scope="col"
                       className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                     >
-                      Productive (T/F)
+                      Productive (Y/N)
                     </th>
                     <th
                       scope="col"
                       className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                     >
-                      Stop Codon (T/F)
+                      Stop Codon (Y/N)
                     </th>
                     <th
                       scope="col"
