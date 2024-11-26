@@ -203,7 +203,7 @@ class SequencingRunResults(Model):
         ]
 
     def __str__(self):  # noqa: D105
-        return f"SeqencingRunResults {self.pk}"
+        return f"SequencingRunResults {self.pk}"
 
 
 class Nanobody(Model):
