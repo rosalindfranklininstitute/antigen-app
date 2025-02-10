@@ -23,6 +23,7 @@ from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.serializers import (
     BooleanField,
@@ -36,6 +37,7 @@ from rest_framework.serializers import (
 )
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
+from urllib3.exceptions import ConnectTimeoutError
 
 from antigenapi.bioinformatics.blast import get_db_fasta, run_blastp
 from antigenapi.bioinformatics.imgt import (
@@ -61,6 +63,17 @@ from antigenapi.models import (
 from antigenapi.utils.uniprot import get_protein
 
 from .parsers import parse_elisa_file
+
+
+# Exceptions #
+class ServiceUnavailable(APIException):
+    status_code = 503
+    default_detail = "Service temporarily unavailable, please try again later."
+    default_code = "service_unavailable"
+
+
+class IMGTUnavailable(ServiceUnavailable):
+    default_detail = "IMGT is currently not responding, please try again later."
 
 
 # Audit logs #
@@ -874,7 +887,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         # Submit to vquest
         # print("Running vquest...")
-        vquest_results = run_vquest(fasta_file)
+        try:
+            vquest_results = run_vquest(fasta_file)
+        except ConnectTimeoutError:
+            raise IMGTUnavailable()
 
         parameters_file_data = vquest_results["Parameters.txt"]
         vquest_airr_data = vquest_results["vquest_airr.tsv"]
