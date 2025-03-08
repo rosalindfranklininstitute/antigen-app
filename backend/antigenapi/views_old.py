@@ -17,8 +17,9 @@ from auditlog.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import default_storage
 from django.db import transaction
+from django.db.models import Q
 from django.db.models.deletion import ProtectedError
-from django.db.utils import IntegrityError
+from django.db.utils import IntegrityError, NotSupportedError
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from rest_framework import status
@@ -219,11 +220,67 @@ class AntigenSerializer(ModelSerializer):
     preferred_name = CharField(
         required=False
     )  # Not required at creation, since we can use Uniprot ID instead
+    elisa_plates = SerializerMethodField()
+    sequencing_runs = SerializerMethodField()
 
     class Meta:  # noqa: D106
         model = Antigen
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        request = self.context.get("request")
+        if request and not request.parser_context.get("kwargs", {}).get("pk"):
+            # If it's a list view, remove these fields
+            self.fields.pop("elisa_plates", None)
+            self.fields.pop("sequencing_runs", None)
+
+    def get_elisa_plates(self, obj):
+        """Get ELISA plates using this antigen in single-object requests."""
+        # Only include related data if this is a single-object request
+        request = self.context.get("request")
+        if request and request.parser_context.get("kwargs", {}).get("pk"):
+            return ElisaPlateWithoutWellsSerializer(
+                ElisaPlate.objects.filter(elisawell__antigen=obj.pk).distinct(),
+                many=True,
+            ).data
+        return None  # Omit in list views
+
+    def get_sequencing_runs(self, obj):
+        """Get sequencing runs using this antigen in single-object requests."""
+        # Only include related data if this is a single-object request
+        request = self.context.get("request")
+        if request and request.parser_context.get("kwargs", {}).get("pk"):
+            elisa_plate_ids = (
+                ElisaPlate.objects.filter(elisawell__antigen=obj.pk)
+                .values_list("id", flat=True)
+                .distinct()
+            )
+
+            # Try PostgreSQL JSONField filtering
+            # Build a Q object to check if any given elisa_plate is inside the JSONField
+            query = Q()
+            for plate_id in elisa_plate_ids:
+                query |= Q(plate_thresholds__contains=[{"elisa_plate": plate_id}])
+
+            sequencing_runs = SequencingRun.objects.filter(query)
+
+            try:
+                return SequencingRunShortSerializer(sequencing_runs, many=True).data
+            except NotSupportedError:
+                # Fallback for SQLite: Manual filtering in Python
+                sequencing_runs = [
+                    run
+                    for run in SequencingRun.objects.all()
+                    if any(
+                        entry.get("elisa_plate") in elisa_plate_ids
+                        for entry in run.plate_thresholds
+                    )
+                ]
+                return SequencingRunShortSerializer(sequencing_runs, many=True).data
+        return None
 
     def validate(self, data):
         """Check the antigen is a valid uniprot ID."""
@@ -327,11 +384,10 @@ class NestedElisaWellSerializer(ModelSerializer):
         return None
 
 
-class ElisaPlateSerializer(ModelSerializer):
-    """A serializer for elisa plates.
+class ElisaPlateWithoutWellsSerializer(ModelSerializer):
+    """A serializer for elisa plates without well data included.
 
-    A serializer for elisa plates which serializes all internal fields and elisa wells
-    contained within it.
+    A serializer for elisa plates which serializes all internal fields.
     """
 
     project_short_title = CharField(
@@ -347,7 +403,6 @@ class ElisaPlateSerializer(ModelSerializer):
         source="library.cohort.is_naive", read_only=True
     )
     added_by = StringRelatedField()
-    elisawell_set = NestedElisaWellSerializer(many=True, required=False)
     antigen = PrimaryKeyRelatedField(queryset=Antigen.objects.all(), write_only=True)
     read_only_fields = [
         "library_cohort_cohort_num",
@@ -360,6 +415,13 @@ class ElisaPlateSerializer(ModelSerializer):
     class Meta:  # noqa: D106
         model = ElisaPlate
         fields = "__all__"
+
+
+class ElisaPlateSerializer(ElisaPlateWithoutWellsSerializer):
+    elisawell_set = NestedElisaWellSerializer(many=True, required=False)
+
+    """A serializer for elisa plates included well data.
+    """
 
     def validate(self, data):
         """Validate plate (load and parse file)."""
@@ -611,6 +673,15 @@ class SequencingRunSerializer(ModelSerializer):
     class Meta:  # noqa: D106
         model = SequencingRun
         fields = "__all__"
+        read_only_fields = ["added_by", "added_date"]
+
+
+class SequencingRunShortSerializer(SequencingRunSerializer):
+    """Sequencing run serializer which excludes plate/well information."""
+
+    class Meta:  # noqa: D106
+        model = SequencingRun
+        exclude = ("plate_thresholds", "wells")
         read_only_fields = ["added_by", "added_date"]
 
 
