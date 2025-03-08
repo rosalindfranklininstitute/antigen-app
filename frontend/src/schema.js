@@ -185,6 +185,18 @@ const antigenSchema = {
     },
     { label: "Description", field: "description", type: "textarea" },
     { label: "Epitope", field: "epitope", type: "textarea" },
+    {
+      label: "ELISAs",
+      field: "elisa_plates",
+      type: "elisaPlateList",
+      hideOnForm: true,
+    },
+    {
+      label: "Sequencing runs",
+      field: "sequencing_runs",
+      type: "sequencingRunList",
+      hideOnForm: true,
+    },
     { label: "Added by", field: "added_by", hideOnForm: true },
     { label: "Added date", field: "added_date", hideOnForm: true },
   ],

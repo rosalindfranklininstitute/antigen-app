@@ -349,6 +349,21 @@ export const displayFieldSingle = (field, record, context, props) => {
     return makeExtLink(record[field.field], field.viewPageExtLink, context);
   } else if (field.field === "cohort_num") {
     return record["cohort_num_prefixed"];
+  } else if (field.type === "elisaPlateList") {
+    let rec = record[field.field];
+    return (
+      <a href={schema.elisa.viewUrl + "/" + rec.id}>
+        {rec.plate_file +
+          " (Lib. " +
+          rec.library_cohort_cohort_num_prefixed +
+          ")"}
+      </a>
+    );
+  } else if (field.type === "sequencingRunList") {
+    let rec = record[field.field];
+    return (
+      <a href={schema.sequencing.viewUrl + "/" + rec.id}>{rec.added_date}</a>
+    );
   } else {
     return record[field.field];
   }
