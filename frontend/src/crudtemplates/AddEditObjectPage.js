@@ -60,6 +60,13 @@ const AddEditObjectPage = (props) => {
                 if (res.status === 404) {
                   setError(404);
                 } else {
+                  // Set antigen for elisa plates
+                  if (props.schema.viewUrl === "/elisas") {
+                    if (data["elisawell_set"].length) {
+                      data["antigen"] = data["elisawell_set"][0]["antigen"];
+                    }
+                  }
+                  // Set record data
                   setRecord(data);
                 }
                 setLoading(false);

@@ -470,6 +470,8 @@ class ElisaPlateSerializer(ElisaPlateWithoutWellsSerializer):
             # than conditionally update
             ElisaWell.objects.filter(plate=plate).delete()
             self._create_wells(plate, antigen, well_set)
+        else:
+            ElisaWell.objects.filter(plate=plate).update(antigen=antigen)
         return instance
 
 
