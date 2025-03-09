@@ -10,6 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AlterField(
+            model_name="antigen",
+            name="short_name",
+            field=models.CharField(max_length=32),
+        ),
         migrations.RenameField(
             model_name="antigen",
             old_name="short_name",
