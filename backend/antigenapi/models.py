@@ -67,8 +67,8 @@ class Antigen(Model):
     """Antigen model."""
 
     uniprot_id = CharField(max_length=16, null=True, unique=True)
-    preferred_name = CharField(max_length=256)
     short_name = CharField(max_length=32, unique=True)
+    long_name = CharField(max_length=256, blank=True)
     sequence: str = TextField(validators=[AminoCodeLetters], null=True)
     molecular_mass: int = IntegerField(null=True)
     description = TextField(
@@ -79,9 +79,7 @@ class Antigen(Model):
     added_date = DateTimeField(auto_now_add=True)
 
     def __str__(self):  # noqa: D105
-        return self.preferred_name + (
-            f" [{self.uniprot_id}]" if self.uniprot_id else ""
-        )
+        return self.short_name + (f" [{self.uniprot_id}]" if self.uniprot_id else "")
 
 
 class Cohort(Model):

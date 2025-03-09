@@ -217,9 +217,6 @@ class AntigenSerializer(ModelSerializer):
     """
 
     added_by = StringRelatedField()
-    preferred_name = CharField(
-        required=False
-    )  # Not required at creation, since we can use Uniprot ID instead
     elisa_plates = SerializerMethodField()
     sequencing_runs = SerializerMethodField()
 
@@ -303,39 +300,19 @@ class AntigenSerializer(ModelSerializer):
                 else:
                     raise
             if not data.get("sequence") or data.get("sequence").strip() == "":
-                data["sequence"] = protein_data["sequence"]["$"]
+                data["sequence"] = protein_data["sequence"]
             if data.get("molecular_mass") is None:
-                data["molecular_mass"] = protein_data["sequence"]["@mass"]
-            if (
-                not data.get("preferred_name")
-                or data.get("preferred_name").strip() == ""
-            ):
-                try:
-                    data["preferred_name"] = protein_data["protein"]["recommendedName"][
-                        "fullName"
-                    ]
-                    if isinstance(data["preferred_name"], collections.abc.Mapping):
-                        data["preferred_name"] = data["preferred_name"]["$"]
-                except KeyError:
-                    # TODO: Further error checking that name list is set
-                    data["preferred_name"] = protein_data["name"][0]
-        else:
-            if (
-                not data.get("preferred_name")
-                or data.get("preferred_name", "").strip() == ""
-            ):
-                raise ValidationError(
-                    {"preferred_name": "Need either a UniProt ID or a preferred name"}
-                )
+                data["molecular_mass"] = protein_data["molecular_mass"]
+            if not data.get("long_name") or data.get("long_name").strip() == "":
+                data["long_name"] = protein_data["protein_name"]
+
         return data
 
 
 class AntigenViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set displaying all recorded antigens."""
 
-    queryset = (
-        Antigen.objects.all().select_related("added_by").order_by("preferred_name")
-    )
+    queryset = Antigen.objects.all().select_related("added_by").order_by("short_name")
     serializer_class = AntigenSerializer
 
     def perform_create(self, serializer):  # noqa: D102
