@@ -1032,7 +1032,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # [.<ELISA plate number (index) if >1 plate]_C<cohort>
 
         # Get ELISA wells as dict for lookup
-        seq_wells_to_elisa = {
+        elisa_wells_to_seq = {
             (w["elisa_well"]["plate"], w["elisa_well"]["location"]): (
                 results[0].seq,
                 w["location"],
@@ -1041,7 +1041,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         }
         # Get the ELISA plate IDs seen across this resultset -
         # put in dict for an ordered set
-        elisa_plate_idxs = dict.fromkeys(w[0] for w in seq_wells_to_elisa.keys())
+        elisa_plate_idxs = dict.fromkeys(w[0] for w in elisa_wells_to_seq.keys())
 
         if len(elisa_plate_idxs) == 1:
             # If there's only one ELISA plate in this set,
@@ -1055,7 +1055,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         # Retrieve nanobody autonames associated with ELISA plates in this result set
         nanobody_autonames_lookup = {
-            seq_wells_to_elisa[(ew.plate_id, ew.location)]: f"{ew.antigen.short_name}_"
+            elisa_wells_to_seq[(ew.plate_id, ew.location)]: f"{ew.antigen.short_name}_"
             f"{ew.plate.pan_round_concentration:g}_"
             f"{PlateLocations.labels[ew.location - 1]}{elisa_plate_idxs[ew.plate_id]}_C"
             + ("N" if ew.plate.library.cohort.is_naive else "")
@@ -1065,7 +1065,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             ).select_related(
                 "antigen", "plate", "plate__library", "plate__library__cohort"
             )
-            if (ew.plate_id, ew.location) in seq_wells_to_elisa.keys()
+            if (ew.plate_id, ew.location) in elisa_wells_to_seq.keys()
         }
 
         csvs = []
@@ -1081,7 +1081,12 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                 try:
                     nanobody_autonames.append(
                         nanobody_autonames_lookup[
-                            (r.seq, PlateLocations.labels.index(_extract_well(wn)) + 1)
+                            (
+                                r.seq,
+                                PlateLocations.labels.index(_extract_well(wn))
+                                + 1
+                                - r.well_pos_offset,
+                            )
                         ]
                     )
                 except ValueError:
