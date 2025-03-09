@@ -3,7 +3,11 @@ from itertools import product
 from auditlog.registry import auditlog
 from django.conf import settings
 from django.core.files import File
-from django.core.validators import FileExtensionValidator, RegexValidator
+from django.core.validators import (
+    FileExtensionValidator,
+    MinValueValidator,
+    RegexValidator,
+)
 from django.db.models import (
     CASCADE,
     PROTECT,
@@ -129,7 +133,8 @@ class ElisaPlate(Model):
 
     library = ForeignKey(Library, on_delete=PROTECT)
     antibody = TextField(blank=True)
-    pan_round = TextField(blank=True)
+    pan_round_concentration = FloatField(default=0, validators=[MinValueValidator(0)])
+    comments = TextField(blank=True)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
     plate_file: File = FileField(
