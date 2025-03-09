@@ -1085,7 +1085,9 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                         ]
                     )
                 except ValueError:
-                    nanobody_autonames.append("n/a")
+                    nanobody_autonames.append("n/a (well unparseable)")
+                except KeyError:
+                    nanobody_autonames.append("n/a (index not found)")
             airr_file["nanobody_autoname"] = nanobody_autonames
 
         df = pd.concat(csvs)
