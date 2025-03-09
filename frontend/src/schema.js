@@ -240,7 +240,12 @@ const elisaSchema = {
       hideOnForm: true,
     },
     { label: "Antibody", field: "antibody", type: "text" },
-    { label: "Pan round", field: "pan_round", type: "text" },
+    {
+      label: "Pan round concentration (nM)",
+      field: "pan_round_concentration",
+      type: "text",
+    },
+    { label: "Comments", field: "comments", type: "text" },
     { label: "Added by", field: "added_by", hideOnForm: true },
     {
       label: "Added date",
