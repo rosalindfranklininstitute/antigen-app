@@ -126,6 +126,9 @@ const AddEditObjectPage = (props) => {
         .filter((field) => field.type === "selectmulti")
         .forEach((field) => setFormValue(field.field, []));
       props.schema.fields
+        .filter((field) => field.type === "boolean")
+        .forEach((field) => setFormValue(field.field, false));
+      props.schema.fields
         .filter((field) => field.type === "foreignkey")
         .forEach((field) =>
           setFormValue(
