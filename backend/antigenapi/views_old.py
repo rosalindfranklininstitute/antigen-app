@@ -259,6 +259,10 @@ class AntigenSerializer(ModelSerializer):
                 .distinct()
             )
 
+            # Handle case where no ELISAs available
+            if not elisa_plate_ids:
+                return SequencingRunSerializer(many=True).data
+
             # Try PostgreSQL JSONField filtering
             # Build a Q object to check if any given elisa_plate is inside the JSONField
             query = Q()
