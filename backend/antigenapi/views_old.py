@@ -1020,23 +1020,74 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         results = (
             SequencingRunResults.objects.filter(sequencing_run_id=int(pk))
             .order_by("seq")
+            .select_related("sequencing_run")
             .prefetch_related("nanobodies")
         )
 
         if not results:
             return JsonResponse({"records": []})
 
+        # Nanobody autoname format is:
+        # <short antigen name>_<pan conc>_<ELISA well_no>
+        # [.<ELISA plate number (index) if >1 plate]_C<cohort>
+
+        # Get ELISA wells as dict for lookup
+        seq_wells_to_elisa = {
+            (w["elisa_well"]["plate"], w["elisa_well"]["location"]): (
+                results[0].seq,
+                w["location"],
+            )
+            for w in results[0].sequencing_run.wells
+        }
+        # Get the ELISA plate IDs seen across this resultset -
+        # put in dict for an ordered set
+        elisa_plate_idxs = dict.fromkeys(w[0] for w in seq_wells_to_elisa.keys())
+
+        if len(elisa_plate_idxs) == 1:
+            # If there's only one ELISA plate in this set,
+            # don't include it in the nanobody identifier
+            elisa_plate_idxs = {list(elisa_plate_idxs.keys())[0]: ""}
+        else:
+            # Otherwise, we include a .(1-based index) suffix to disambiguate
+            elisa_plate_idxs = {
+                id: f".{idx + 1}" for idx, id in enumerate(elisa_plate_idxs.keys())
+            }
+
+        # Retrieve nanobody autonames associated with ELISA plates in this result set
+        nanobody_autonames_lookup = {
+            seq_wells_to_elisa[(ew.plate_id, ew.location)]: f"{ew.antigen.short_name}_"
+            f"{ew.plate.pan_round_concentration:g}_"
+            f"{PlateLocations.labels[ew.location - 1]}{elisa_plate_idxs[ew.plate_id]}_C"
+            + ("N" if ew.plate.library.cohort.is_naive else "")
+            + f"{ew.plate.library.cohort.cohort_num}"
+            for ew in ElisaWell.objects.filter(
+                plate__in=elisa_plate_idxs.keys()
+            ).select_related(
+                "antigen", "plate", "plate__library", "plate__library__cohort"
+            )
+            if (ew.plate_id, ew.location) in seq_wells_to_elisa.keys()
+        }
+
         csvs = []
-        nanobodies_rev_lookup = dict()
         for r in results:
-            csvs.append(read_airr_file(r.airr_file))
-            if r.nanobodies:
-                nanobodies_rev_lookup.update(
-                    {
-                        n.sequence: {"id": str(n.id), "name": n.name}
-                        for n in r.nanobodies.all()
-                    }
-                )
+            airr_file = read_airr_file(r.airr_file)
+            csvs.append(airr_file)
+
+            seq_plate_well_names = [
+                wn[1] for wn in airr_file["sequence_id"].str.rsplit("_", n=1).to_list()
+            ]
+            nanobody_autonames = []
+            for wn in seq_plate_well_names:
+                try:
+                    nanobody_autonames.append(
+                        nanobody_autonames_lookup[
+                            (r.seq, PlateLocations.labels.index(_extract_well(wn)) + 1)
+                        ]
+                    )
+                except ValueError:
+                    nanobody_autonames.append("n/a")
+            airr_file["nanobody_autoname"] = nanobody_autonames
+
         df = pd.concat(csvs)
 
         # Get number of matches per CDR3 sequence
@@ -1052,7 +1103,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
 
         # Ensure we have the right columns in the right order
-        df = df.loc[:, AIRR_IMPORTANT_COLUMNS]
+        df = df.loc[:, list(AIRR_IMPORTANT_COLUMNS) + ["nanobody_autoname"]]
 
         # Set index and replace NaN with None (null in JSON)
         df = df.replace({np.nan: None})
@@ -1069,22 +1120,8 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
         df["sequence"] = sequences
         df = df.drop("sequence_alignment_aa", axis=1)
-        nanobodies = []
-        for seq in sequences:
-            try:
-                nb = nanobodies_rev_lookup[seq]
-                nanobodies.append(nb["id"])
-            except KeyError:
-                nanobodies.append(None)
 
-        df["nanobody"] = nanobodies
-
-        return JsonResponse(
-            {
-                "records": df.to_dict(orient="records"),
-                "nanobodies": nanobodies_rev_lookup,
-            }
-        )
+        return JsonResponse({"records": df.to_dict(orient="records")})
 
     @action(
         detail=False,

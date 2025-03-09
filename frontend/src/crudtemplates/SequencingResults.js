@@ -61,6 +61,12 @@ const SequencingResults = (props) => {
                       scope="col"
                       className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                     >
+                      Nb autoname
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+                    >
                       Productive (Y/N)
                     </th>
                     <th
@@ -111,12 +117,6 @@ const SequencingResults = (props) => {
                     >
                       Sequence
                     </th>
-                    <th
-                      scope="col"
-                      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                    >
-                      Named nanobody
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white">
@@ -137,6 +137,9 @@ const SequencingResults = (props) => {
                     >
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">
                         {row.sequence_id}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {row.nanobody_autoname}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {row.productive}
@@ -164,13 +167,6 @@ const SequencingResults = (props) => {
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         {row.sequence}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {row.nanobody && (
-                          <a href={"/nanobodies/" + row.nanobody}>
-                            {sequencingResults.nanobodies[row.sequence].name}
-                          </a>
-                        )}
                       </td>
                     </tr>
                   ))}

@@ -44,7 +44,7 @@ const navigation = [
   { name: "Antigens", href: "/antigens" },
   { name: "Llamas", href: "/llamas" },
   { name: "Sequencing", href: "/sequencing" },
-  { name: "Nanobodies", href: "/nanobodies" },
+  // { name: "Nanobodies", href: "/nanobodies" },
 ];
 const userNavigation = [
   // { name: 'Your Profile', href: '#' },
