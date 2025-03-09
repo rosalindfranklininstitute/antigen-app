@@ -1034,7 +1034,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Get ELISA wells as dict for lookup
         elisa_wells_to_seq = {
             (w["elisa_well"]["plate"], w["elisa_well"]["location"]): (
-                results[0].seq,
+                w["plate"],
                 w["location"],
             )
             for w in results[0].sequencing_run.wells
