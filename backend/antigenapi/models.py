@@ -114,12 +114,15 @@ class Library(Model):
 
     project = ForeignKey(Project, on_delete=PROTECT)
     cohort = ForeignKey(Cohort, on_delete=PROTECT)
+    sublibrary = TextField(null=True, blank=False, max_length=32)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
     class Meta:  # noqa: D106
         constraints = [
-            UniqueConstraint(fields=["project", "cohort"], name="unique_project_cohort")
+            UniqueConstraint(
+                fields=["project", "cohort", "sublibrary"], name="unique_project_cohort"
+            )
         ]
 
     def __str__(self):  # noqa: D105
