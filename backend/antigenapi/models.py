@@ -2,6 +2,7 @@ from itertools import product
 
 from auditlog.registry import auditlog
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.validators import (
     FileExtensionValidator,
@@ -109,12 +110,20 @@ class Cohort(Model):
         return f"N{self.cohort_num}" if self.is_naive else f"{self.cohort_num}"
 
 
+def validate_sublibrary_prefix(value):
+    """Validate sublibraries have the SL_ prefix."""
+    if value is not None and not value.startswith("SL_"):
+        raise ValidationError("Sublibraries must start with SL_")
+
+
 class Library(Model):
     """Library model."""
 
     project = ForeignKey(Project, on_delete=PROTECT)
     cohort = ForeignKey(Cohort, on_delete=PROTECT)
-    sublibrary = TextField(null=True, blank=False, max_length=32)
+    sublibrary = TextField(
+        null=True, blank=False, max_length=32, validators=[validate_sublibrary_prefix]
+    )
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
     added_date = DateTimeField(auto_now_add=True)
 
@@ -127,6 +136,10 @@ class Library(Model):
 
     def __str__(self):  # noqa: D105
         return f"Library {self.id}"
+
+    def library_num(self):
+        """Prefixed cohort number with sublibrary suffix."""
+        return f"{self.cohort.cohort_num_prefixed()}{self.sublibrary or ''}"
 
 
 class ElisaPlate(Model):
