@@ -175,17 +175,25 @@ class LibrarySerializer(ModelSerializer):
 
     added_by = StringRelatedField()
     # llama_name = CharField(source='llama.name', read_only=True)
-    cohort_cohort_num = CharField(source="cohort.cohort_num", read_only=True)
+    cohort_cohort_num = SerializerMethodField(
+        read_only=True
+    )  # CharField(source="cohort.cohort_num", read_only=True)
     cohort_is_naive = BooleanField(source="cohort.is_naive", read_only=True)
-    cohort_cohort_num_prefixed = CharField(
-        source="cohort.cohort_num_prefixed", read_only=True
-    )
+    cohort_cohort_num_prefixed = SerializerMethodField(read_only=True)
     project_short_title = CharField(source="project.short_title", read_only=True)
 
     class Meta:  # noqa: D106
         model = Library
         fields = "__all__"
         read_only_fields = ["added_by", "added_date"]
+
+    def get_cohort_cohort_num(self, obj):
+        """Get the cohort number with sublibrary, if present."""
+        return f"{obj.cohort.cohort_num}{obj.sublibrary or ''}"
+
+    def get_cohort_cohort_num_prefixed(self, obj):
+        """Get the cohort number with sublibrary and N (naive) prefix."""
+        return f"{obj.cohort.cohort_num_prefixed()}{obj.sublibrary or ''}"
 
 
 class LibraryViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
@@ -383,6 +391,7 @@ class ElisaPlateWithoutWellsSerializer(ModelSerializer):
     library_cohort_is_naive = BooleanField(
         source="library.cohort.is_naive", read_only=True
     )
+    library_library_num = CharField(source="library.library_num", read_only=True)
     added_by = StringRelatedField()
     antigen = PrimaryKeyRelatedField(queryset=Antigen.objects.all(), write_only=True)
     read_only_fields = [
@@ -1029,7 +1038,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         # Nanobody autoname format is:
         # <short antigen name>_<pan conc>_<ELISA well_no>
-        # [.<ELISA plate number (index) if >1 plate]_C<cohort>
+        # [.<ELISA plate number (index) if >1 plate]_C<cohort><sublibrary>
 
         # Get ELISA wells as dict for lookup
         elisa_wells_to_seq = {
@@ -1060,6 +1069,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             f"{PlateLocations.labels[ew.location - 1]}{elisa_plate_idxs[ew.plate_id]}_C"
             + ("N" if ew.plate.library.cohort.is_naive else "")
             + f"{ew.plate.library.cohort.cohort_num}"
+            + f"{ew.plate.library.sublibrary or ''}"
             for ew in ElisaWell.objects.filter(
                 plate__in=elisa_plate_idxs.keys()
             ).select_related(
