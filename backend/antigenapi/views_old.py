@@ -181,6 +181,7 @@ class LibrarySerializer(ModelSerializer):
     cohort_is_naive = BooleanField(source="cohort.is_naive", read_only=True)
     cohort_cohort_num_prefixed = SerializerMethodField(read_only=True)
     project_short_title = CharField(source="project.short_title", read_only=True)
+    library_num = CharField(read_only=True)
 
     class Meta:  # noqa: D106
         model = Library
