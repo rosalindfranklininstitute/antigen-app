@@ -1,0 +1,51 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/auth-url: "http://oauth2-proxy.antigenapp.svc.cluster.local:4180/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"
+    nginx.ingress.kubernetes.io/auth-response-headers: >-
+      x-auth-request-user, x-auth-request-email,
+      x-auth-request-preferred-username, x-auth-request-access-token
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+  name: antigen-prod
+  namespace: antigenapp
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ...
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: antigen-prod-frontend
+                port:
+                  number: 3000
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: antigen-prod-backend
+                port:
+                  number: 8080
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: antigen-prod-backend
+                port:
+                  number: 8080
+          - path: /djangostatic
+            pathType: Prefix
+            backend:
+              service:
+                name: antigen-prod-backend
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - ...
+      secretName: antigen-prod-tls

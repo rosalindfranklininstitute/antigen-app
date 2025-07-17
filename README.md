@@ -1,8 +1,12 @@
 # AntigenApp
 
-## Development
+## Introduction
 
-### Setup
+AntigenApp is a laboratory data management system to capture, store and share nanobody experimental data. It consists of a web application (Python backend, React frontend, Postgres database) which can store data on projects, antigens, llamas, cohorts, libraries, ELISA assays and nanobody sequencing results.
+
+## Running the app
+
+### Set up a development environment
 
 To develop the app in a container environment, clone the repository as shown below:
 
@@ -38,3 +42,17 @@ To run the backend (Python+Django) test suite:
 To run the test suite:
 
     docker compose exec -e CI=true app npm test
+
+### Running in production
+
+AntigenApp could be run in production using Docker Compose or Kubernetes. In both cases, make sure:
+
+- `DJANGO_DEBUG` should be set to false.
+- A reverse proxy server or ingress should be used with HTTPS, e.g. nginx.
+- The reverse server should add authentication, e.g. using OpenID Connect (OIDC).
+- S3 file storage will be more scalable for larger installations.
+- Configure backups for the database and uploaded files.
+
+For Kubernetes, see the [example manifests](docs/kubernetes-manifests) which give a scaffold for
+configuring AntigenApp with ingress-nginx, CruncyData's Postgres Operator, OIDC authentication and
+an S3 bucket. These manifests can be adapted to integrate your organisations infrastructure.

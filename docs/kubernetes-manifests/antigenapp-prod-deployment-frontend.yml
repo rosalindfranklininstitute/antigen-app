@@ -1,0 +1,31 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: antigen-prod-frontend
+  name: antigen-prod-frontend
+  namespace: antigenapp
+spec:
+  selector:
+    matchLabels:
+      k8s-app: antigen-prod-frontend
+  template:
+    metadata:
+      labels:
+        k8s-app: antigen-prod-frontend
+    spec:
+      containers:
+        - image: ...
+          imagePullPolicy: Always
+          name: frontend
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+          env:
+            - name: REACT_APP_SENTRY_DSN
+              value: ...

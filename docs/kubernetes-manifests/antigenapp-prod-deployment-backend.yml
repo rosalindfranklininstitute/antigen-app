@@ -1,0 +1,141 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: antigen-prod-backend
+  name: antigen-prod-backend
+  namespace: antigenapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      k8s-app: antigen-prod-backend
+  template:
+    metadata:
+      labels:
+        k8s-app: antigen-prod-backend
+    spec:
+      initContainers:
+        - name: antigen-migrate
+          image: ...
+          imagePullPolicy: Always
+          command: [".venv/bin/python", "manage.py", "migrate"]
+          env:
+            - name: DJANGO_DEBUG
+              value: "false"
+            - name: DJANGO_ALLOWED_HOSTS
+              value: ...
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: antigen-app-prod
+                  key: secretkey
+                  optional: false
+            - name: DJANGO_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: antigenapp-prod-pguser-antigenapp-prod
+                  key: user
+                  optional: false
+            - name: DJANGO_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: antigenapp-prod-pguser-antigenapp-prod
+                  key: password
+                  optional: false
+            - name: DJANGO_DATABASE_HOST
+              value: antigenapp-prod-ha.antigenapp.svc
+            - name: DJANGO_DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: antigenapp-prod-pguser-antigenapp-prod
+                  key: dbname
+                  optional: false
+            - name: SENTRY_DSN
+              value: ...
+      containers:
+        - image: ...
+          imagePullPolicy: Always
+          name: backend
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /api/
+              port: 8080
+              httpHeaders:
+                - name: Host
+                  value: ...
+          env:
+            - name: UWSGI_THREADS
+              value: "10"
+            - name: UWSGI_PROCESSES
+              value: "2"
+            - name: UWSGI_OFFLOAD_THREADS
+              value: "10"
+            - name: UWSGI_MODULE
+              value: antigendjango.wsgi:application
+            - name: DJANGO_DEBUG
+              value: "false"
+            - name: DJANGO_ALLOWED_HOSTS
+              value: ...
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: antigen-app-prod
+                  key: secretkey
+                  optional: false
+            - name: DJANGO_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: antigenapp-prod-pguser-antigenapp-prod
+                  key: user
+                  optional: false
+            - name: DJANGO_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: antigenapp-prod-pguser-antigenapp-prod
+                  key: password
+                  optional: false
+            - name: DJANGO_DATABASE_HOST
+              value: antigenapp-prod-ha.antigenapp.svc
+            - name: DJANGO_DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: antigenapp-prod-pguser-antigenapp-prod
+                  key: dbname
+                  optional: false
+            - name: SENTRY_DSN
+              value: ...
+            - name: AWS_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: antigen-prod-s3-bucket
+                  key: aws-access-key-id
+                  optional: false
+            - name: AWS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: antigen-prod-s3-bucket
+                  key: aws-secret-key
+                  optional: false
+            - name: AWS_STORAGE_BUCKET_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: antigen-prod-s3-bucket
+                  key: aws-bucket-name
+                  optional: false
+            - name: AWS_S3_REGION_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: antigen-prod-s3-bucket
+                  key: aws-region
+                  optional: false
+            - name: AWS_S3_PREFIX
+              valueFrom:
+                secretKeyRef:
+                  name: antigen-prod-s3-bucket
+                  key: filename-prefix
+                  optional: false
