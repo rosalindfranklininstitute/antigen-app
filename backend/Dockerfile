@@ -11,6 +11,7 @@ WORKDIR /usr/src
 
 # Tell pipenv to create venv in the current directory
 ENV PIPENV_VENV_IN_PROJECT=1
+ENV PATH="/usr/src/.venv/bin:$PATH"
 
 COPY Pipfile Pipfile.lock pyproject.toml setup.cfg /usr/src/
 
@@ -37,6 +38,7 @@ RUN apt-get update && apt-get install -y \
 RUN adduser --uid 10191 --group --system --no-create-home nonroot
 RUN chown -R nonroot:nonroot /usr/src
 USER nonroot
+ENV PATH="/usr/src/.venv/bin:$PATH"
 WORKDIR /usr/src
 
 # blastp and makeblastdb commands
