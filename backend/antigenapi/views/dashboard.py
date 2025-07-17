@@ -42,9 +42,12 @@ def _schema(content_type):
 
 def _schemalink(log_entry):
     if log_entry.content_type.model_class() == SequencingRunResults:
-        return SequencingRunResults.objects.filter(id=log_entry.object_id).values_list(
-            "sequencing_run_id", flat=True
-        )[0]
+        try:
+            return SequencingRunResults.objects.filter(
+                id=log_entry.object_id
+            ).values_list("sequencing_run_id", flat=True)[0]
+        except IndexError:
+            return None
 
     return log_entry.object_id
 
