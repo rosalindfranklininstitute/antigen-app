@@ -1038,7 +1038,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             return JsonResponse({"records": []})
 
         # Nanobody autoname format is:
-        # <short antigen name>_<pan conc>_<ELISA well_no>
+        # <short antigen name>_<pan conc><ELISA well_no>
         # [.<ELISA plate number (index) if >1 plate]_C<cohort><sublibrary>
 
         # Get ELISA wells as dict for lookup
@@ -1047,18 +1047,29 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                 w["plate"],
                 w["location"],
             )
-            for w in results[0].sequencing_run.wells
+            for r in results
+            for w in r.sequencing_run.wells
         }
         # Get the ELISA plate IDs seen across this resultset -
         # put in dict for an ordered set
-        elisa_plate_idxs = dict.fromkeys(w[0] for w in elisa_wells_to_seq.keys())
+        elisa_plate_idxs = dict.fromkeys((w[0] for w in elisa_wells_to_seq.keys()), "")
 
-        if len(elisa_plate_idxs) == 1:
-            # If there's only one ELISA plate in this set,
-            # don't include it in the nanobody identifier
-            elisa_plate_idxs = {list(elisa_plate_idxs.keys())[0]: ""}
-        else:
-            # Otherwise, we include a .(1-based index) suffix to disambiguate
+        # For each (short_antigen_name, pan_conc) combination, check on which plate(s)
+        # it occurs to determine if we need a suffix to disambiguate
+        elisa_well_query = ElisaWell.objects.filter(
+            plate__in=elisa_plate_idxs.keys()
+        ).select_related("antigen", "plate", "plate__library", "plate__library__cohort")
+
+        plate_disambig_check = {}
+        for ew in elisa_well_query:
+            plate_disambig_check.setdefault(
+                (ew.antigen.short_name, ew.plate.pan_round_concentration), set()
+            ).add(ew.plate_id)
+
+        if any(len(plate_ids) > 1 for plate_ids in plate_disambig_check.values()):
+            # Ambiguous plate ID if antigen_short_name and pan_round_concentration
+            # doesn't disambiguate - in that case, we need a suffix.
+            # We include a .(1-based index) suffix to disambiguate.
             elisa_plate_idxs = {
                 id: f".{idx + 1}" for idx, id in enumerate(elisa_plate_idxs.keys())
             }
@@ -1066,16 +1077,12 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Retrieve nanobody autonames associated with ELISA plates in this result set
         nanobody_autonames_lookup = {
             elisa_wells_to_seq[(ew.plate_id, ew.location)]: f"{ew.antigen.short_name}_"
-            f"{ew.plate.pan_round_concentration:g}_"
+            f"{ew.plate.pan_round_concentration:g}"
             f"{PlateLocations.labels[ew.location - 1]}{elisa_plate_idxs[ew.plate_id]}_C"
             + ("N" if ew.plate.library.cohort.is_naive else "")
             + f"{ew.plate.library.cohort.cohort_num}"
             + f"{ew.plate.library.sublibrary or ''}"
-            for ew in ElisaWell.objects.filter(
-                plate__in=elisa_plate_idxs.keys()
-            ).select_related(
-                "antigen", "plate", "plate__library", "plate__library__cohort"
-            )
+            for ew in elisa_well_query
             if (ew.plate_id, ew.location) in elisa_wells_to_seq.keys()
         }
 
