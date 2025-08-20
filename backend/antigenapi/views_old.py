@@ -1038,7 +1038,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             return JsonResponse({"records": []})
 
         # Nanobody autoname format is:
-        # <short antigen name>_<pan conc>_<ELISA well_no>
+        # <short antigen name>_<pan conc><ELISA well_no>
         # [.<ELISA plate number (index) if >1 plate]_C<cohort><sublibrary>
 
         # Get ELISA wells as dict for lookup
@@ -1066,7 +1066,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Retrieve nanobody autonames associated with ELISA plates in this result set
         nanobody_autonames_lookup = {
             elisa_wells_to_seq[(ew.plate_id, ew.location)]: f"{ew.antigen.short_name}_"
-            f"{ew.plate.pan_round_concentration:g}_"
+            f"{ew.plate.pan_round_concentration:g}"
             f"{PlateLocations.labels[ew.location - 1]}{elisa_plate_idxs[ew.plate_id]}_C"
             + ("N" if ew.plate.library.cohort.is_naive else "")
             + f"{ew.plate.library.cohort.cohort_num}"
