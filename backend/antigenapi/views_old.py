@@ -751,7 +751,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             elisa_well = elisa_wells[(well["plate"], well["location"])]
             ws[f"B{row}"] = (
                 f"{elisa_well.antigen.short_name}_"
-                f"EP{elisa_well.plate_id}_"
+                f"{elisa_well.plate.pan_round_concentration:g}"
                 f"{PlateLocations.labels[elisa_well.location - 1]}"
             )
             # Own primer name

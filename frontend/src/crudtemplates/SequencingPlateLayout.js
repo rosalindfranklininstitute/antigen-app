@@ -26,7 +26,8 @@ const SequencingPlateLayout = (props) => {
                 "/" +
                 arr[index].library_cohort_cohort_num +
                 "/" +
-                arr[index].id;
+                arr[index].pan_round_concentration +
+                "nM";
             });
             setElisaPlates(data);
           },
