@@ -16,7 +16,7 @@ def _create_zip(zip_data):
     return zip_buffer
 
 
-class TestSequenceParseres(unittest.TestCase):
+class TestSequenceParsers(unittest.TestCase):
     def test_load_sequences(self):
         seq_input_data = {
             "asdfA01.seq": "atgacgt",
