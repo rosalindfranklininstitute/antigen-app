@@ -58,7 +58,10 @@ class AuditLogLatestEvents(APIView):
         logs = [
             {
                 "pk": le.pk,
-                "user": {"username": le.actor.username, "email": le.actor.email},
+                "user": {
+                    "username": le.actor.username if le.actor else "<None>",
+                    "email": le.actor.email if le.actor else "<None>",
+                },
                 "object": {
                     "name": le.object_repr,
                     "type": le.content_type.name,
