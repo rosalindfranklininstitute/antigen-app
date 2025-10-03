@@ -87,7 +87,7 @@ def get_sequencing_run_fasta(sequencing_run_id: int, query_type: str):
     return get_db_fasta(include_run=sequencing_run_id, query_type=query_type)
 
 
-def run_blastp(
+def run_blastp_seq_run(
     sequencing_run_id: int,
     query_type: str = "full",
     outfmt: str = BLAST_FMT_MULTIPLE_FILE_BLAST_JSON,
@@ -101,11 +101,29 @@ def run_blastp(
     Returns:
         JSONResponse: Single file BLAST JSON
     """
-    db_data = get_db_fasta()
-    if not db_data:
-        return None
     query_data = get_sequencing_run_fasta(sequencing_run_id, query_type=query_type)
     if not query_data:
+        return None
+
+    return run_blastp(query_data, query_type, outfmt)
+
+
+def run_blastp(
+    query_data: str,
+    query_type: str = "full",
+    outfmt: str = BLAST_FMT_MULTIPLE_FILE_BLAST_JSON,
+):
+    """Run blastp  vs database.
+
+    Args:
+        sequencing_run_id (int): Sequencing run ID.
+        query_type (str): Query type - "full" sequence or "cdr3"
+
+    Returns:
+        JSONResponse: Single file BLAST JSON
+    """
+    db_data = get_db_fasta(query_type=query_type)
+    if not db_data:
         return None
 
     # Write the DB to disk as .fasta format
