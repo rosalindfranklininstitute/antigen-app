@@ -48,7 +48,7 @@ const ViewObjectPage = (props) => {
               }
             },
             () => {
-              props.onSetError("HTTP response code " + res.status);
+              props.onSetError("[VO] HTTP code " + res.status);
             },
           );
         }

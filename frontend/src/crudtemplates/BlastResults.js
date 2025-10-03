@@ -57,11 +57,17 @@ const BlastResults = (props) => {
       .then((res) => {
         res.json().then(
           (data) => {
-            setBlastResults(data);
+            if (res.status === 404) {
+              setBlastResults({ hits: [] });
+            } else if (res.status >= 400) {
+              props.onSetError("[BR] HTTP code " + res.status);
+            } else {
+              setBlastResults(data);
+            }
           },
           (err) => {
             console.log(res, err);
-            props.onSetError("HTTP code " + res.status);
+            props.onSetError("[BR] HTTP code " + res.status);
           },
         );
       })

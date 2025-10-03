@@ -20,19 +20,23 @@ const SequencingPlateLayout = (props) => {
       .then((res) => {
         res.json().then(
           (data) => {
-            data.forEach(function (_, index, arr) {
-              arr[index].displayLabel =
-                arr[index].project_short_title +
-                "/" +
-                arr[index].library_cohort_cohort_num +
-                "/" +
-                arr[index].pan_round_concentration +
-                "nM";
-            });
-            setElisaPlates(data);
+            if (res.status >= 400) {
+              props.onSetError("[FEP] HTTP code " + res.status);
+            } else {
+              data.forEach(function (_, index, arr) {
+                arr[index].displayLabel =
+                  arr[index].project_short_title +
+                  "/" +
+                  arr[index].library_cohort_cohort_num +
+                  "/" +
+                  arr[index].pan_round_concentration +
+                  "nM";
+              });
+              setElisaPlates(data);
+            }
           },
           () => {
-            props.onSetError("HTTP code " + res.status);
+            props.onSetError("[FEP] HTTP code " + res.status);
           },
         );
       })

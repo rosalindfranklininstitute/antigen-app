@@ -59,6 +59,8 @@ const AddEditObjectPage = (props) => {
               (data) => {
                 if (res.status === 404) {
                   setError(404);
+                } else if (res.status > 400) {
+                  props.onSetError("[GR] HTTP code " + res.status);
                 } else {
                   // Set antigen for elisa plates
                   if (props.schema.viewUrl === "/elisas") {
@@ -73,7 +75,7 @@ const AddEditObjectPage = (props) => {
               },
               () => {
                 setError(res.status);
-                props.onSetError("HTTP code " + res.status);
+                props.onSetError("[GR] HTTP code " + res.status);
                 setLoading(false);
               },
             );
@@ -97,13 +99,17 @@ const AddEditObjectPage = (props) => {
         .then((res) => {
           res.json().then(
             (data) => {
-              setRelatedTables((prev) => ({
-                ...prev,
-                [table]: data,
-              }));
+              if (res.status >= 400) {
+                props.onSetError("[FT] HTTP code " + res.status);
+              } else {
+                setRelatedTables((prev) => ({
+                  ...prev,
+                  [table]: data,
+                }));
+              }
             },
             () => {
-              props.setError("HTTP code " + res.status);
+              props.setError("[FT] HTTP code " + res.status);
             },
           );
         })
@@ -202,12 +208,10 @@ const AddEditObjectPage = (props) => {
         if (res.status >= 300 && res.status !== 400) {
           if (res.status === 500) {
             // Sentry should capture this on the backend
-            props.onSetError(
-              "Internal server error - probably a bug we'll have to fix!",
-            );
+            props.onSetError("[AEOP] HTTP 500 - please report this bug!");
           } else {
             props.onSetError(
-              "Error code " + res.status + " - please report this to support!",
+              "[AEOP] Error code " + res.status + " - please report this bug!",
             );
           }
         } else {
@@ -216,6 +220,8 @@ const AddEditObjectPage = (props) => {
               // form validation error
               setFormErrors(data);
               document.body.scrollTop = document.documentElement.scrollTop = 0;
+            } else if (res.status > 400) {
+              props.onSetError("[AEOP] HTTP code " + res.status);
             } else {
               // succeeded
               redirectToRecordsPage(data.id);
