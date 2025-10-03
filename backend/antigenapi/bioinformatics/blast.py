@@ -1,7 +1,10 @@
+import json
 import os
 import subprocess
 from tempfile import TemporaryDirectory
 from typing import Optional
+
+import pandas as pd
 
 from ..models import SequencingRunResults
 from .imgt import as_fasta_files, read_airr_file
@@ -9,6 +12,10 @@ from .imgt import as_fasta_files, read_airr_file
 # https://www.ncbi.nlm.nih.gov/books/NBK279684/table/appendices.T.options_common_to_all_blast/
 BLAST_FMT_MULTIPLE_FILE_BLAST_JSON = "15"
 BLAST_NUM_THREADS = 4
+
+# Thresholds for BLAST search results
+ALIGN_PERC_THRESHOLD = 90
+E_VALUE_THRESHOLD = 0.05
 
 
 def get_db_fasta(
@@ -99,7 +106,7 @@ def run_blastp_seq_run(
         query_type (str): Query type - "full" sequence or "cdr3"
 
     Returns:
-        JSONResponse: Single file BLAST JSON
+        str: Single file BLAST results as a string
     """
     query_data = get_sequencing_run_fasta(sequencing_run_id, query_type=query_type)
     if not query_data:
@@ -120,7 +127,7 @@ def run_blastp(
         query_type (str): Query type - "full" sequence or "cdr3"
 
     Returns:
-        JSONResponse: Single file BLAST JSON
+        str: Single file BLAST results as a string
     """
     db_data = get_db_fasta(query_type=query_type)
     if not db_data:
@@ -190,3 +197,78 @@ def run_blastp(
         # Read in the results file
         with open(os.path.join(tmp_dir, "antigen.results"), "r") as f:
             return f.read()
+
+
+def parse_blast_results(
+    blast_str: str,
+    query_type: str,
+    airr_df=None,
+    align_perc_theshold=ALIGN_PERC_THRESHOLD,
+    e_value_threshold=E_VALUE_THRESHOLD,
+):
+    """Parse a BLASTp results string into JSON.
+
+    Args:
+        blast_str (int): BLASTp results.
+        query_type (str): Query type - "full" sequence or "cdr3"
+        airr_df (pd.DataFrame or None): AIRR file to match up CDR3s (optional)
+        align_perc_threshold (float or int): minimum alignment percentage
+        e_value_threshold (float or int): maximum e-value
+
+    Returns:
+        JSONResponse: Single file BLAST JSON
+    """
+    # Parse the JSON and keep the important bits
+    blast_result = json.loads(blast_str)
+    res = []
+    for blast_run in blast_result["BlastOutput2"]:
+        run_res = blast_run["report"]["results"]["search"]
+        for blast_hit_set in run_res["hits"]:
+            subject_title = blast_hit_set["description"][0]["title"]
+            query_title = run_res["query_title"]
+            if query_type == "cdr3":
+                # TODO: Make more robust
+                query_cdr3 = query_title[6:]
+            else:
+                query_cdr3 = None
+                if airr_df is not None:
+                    query_cdr3 = airr_df.at[query_title, "cdr3_aa"]
+                    if pd.isna(query_cdr3):
+                        query_cdr3 = None
+            if subject_title.strip() == query_title.strip():
+                continue
+            hsps = blast_hit_set["hsps"][0]
+            assert len(blast_hit_set["description"]) == 1
+            for hsps in blast_hit_set["hsps"]:
+                align_perc = round((hsps["align_len"] / run_res["query_len"]) * 100, 2)
+                if align_perc < align_perc_theshold:
+                    continue
+                e_value = hsps["evalue"]
+                if e_value > e_value_threshold:
+                    continue
+                res.append(
+                    {
+                        "query_title": query_title.strip(),
+                        "query_cdr3": query_cdr3,
+                        "subject_title": subject_title.strip(),
+                        "submatch_no": hsps["num"],
+                        "query_seq": hsps["qseq"],
+                        "subject_seq": hsps["hseq"],
+                        "midline": hsps["midline"],
+                        "bit_score": hsps["bit_score"],
+                        "e_value": e_value,
+                        "align_len": hsps["align_len"],
+                        "align_perc": align_perc,
+                        "ident_perc": round(
+                            (hsps["identity"] / hsps["align_len"]) * 100, 2
+                        ),
+                    }
+                )
+
+    # Sort the results
+    res = sorted(
+        res,
+        key=lambda r: (r["query_cdr3"] or "", -r["align_perc"], -r["ident_perc"]),
+    )
+
+    return res
