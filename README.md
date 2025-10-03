@@ -33,7 +33,7 @@ To load example data directly, run the following command on a clean installation
 
     docker compose exec api python manage.py loaddata example-smcd1
 
-To go through the data entry process to gain familiarity with AntigenApp, see the [tutorial](docs/TUTORIAL.md).
+Alternatively, to go through the data entry process manually (to gain familiarity with AntigenApp), see the [tutorial](docs/TUTORIAL.md).
 
 ### Tests - backend
 
