@@ -38,7 +38,7 @@ from rest_framework.serializers import (
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from antigenapi.bioinformatics.blast import get_db_fasta, run_blastp
+from antigenapi.bioinformatics.blast import get_db_fasta, run_blastp_seq_run
 from antigenapi.bioinformatics.imgt import (
     AIRR_IMPORTANT_COLUMNS,
     as_fasta_files,
@@ -1152,18 +1152,27 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         detail=False,
         methods=["GET"],
         name="Search sequencing results by sequence.",
-        url_path="searchcdr3/(?P<query>[A-Za-z]+)",
+        url_path="searchseq/(?P<query>[A-Za-z]+)",
     )
     def search_sequencing_run_results(self, request, query):
-        """Get sequencing run results by CDR3 sequence search."""
+        """Get sequencing run results by sequence search."""
+        search_region = self.request.query_params.get("searchRegion", "full")
         srs = SequencingRunResults.objects.select_related("sequencing_run")
         results = []
         query = query.upper()
         for sr in srs:
             airr_file = read_airr_file(sr.airr_file)
-            airr_file = airr_file[airr_file.cdr3_aa.notna()]
+            if search_region == "cdr3":
+                airr_file = airr_file[airr_file.cdr3_aa.notna()]
+            else:
+                airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
             if not airr_file.empty:
-                airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
+                if search_region == "cdr3":
+                    airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
+                else:
+                    airr_file = airr_file[
+                        airr_file.sequence_alignment_aa.str.contains(query)
+                    ]
             if not airr_file.empty:
                 airr_file.insert(
                     loc=0, column="sequencing_run", value=sr.sequencing_run_id
@@ -1185,7 +1194,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         query_type = self.request.query_params.get("queryType", "full")
         if query_type not in ("full", "cdr3"):
             raise ValueError(f"Unknown queryType: {query_type}")
-        blast_str = run_blastp(pk, query_type=query_type)
+        blast_str = run_blastp_seq_run(pk, query_type=query_type)
         if not blast_str:
             return JsonResponse({"hits": []}, status=status.HTTP_404_NOT_FOUND)
 
