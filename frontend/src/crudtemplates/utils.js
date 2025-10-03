@@ -154,12 +154,12 @@ export const uploadSequencingResults = (event, props) => {
           } else if ("file" in json) {
             props.setError("Problem with file: " + json["file"]);
           } else {
-            props.setError("Error code " + res.status);
+            props.setError("[USR] Error code " + res.status);
           }
         }
       },
       () => {
-        props.setError("Failed with HTTP response code " + res.status);
+        props.setError("[USR] HTTP code " + res.status);
       },
     );
   });

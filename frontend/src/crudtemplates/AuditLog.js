@@ -65,12 +65,14 @@ const AuditLog = (props) => {
           (data) => {
             if (res.status === 404) {
               props.onSetError("404 object not found");
+            } else if (res.status > 400) {
+              props.onSetError("[AL] HTTP code " + res.status);
             } else {
               // Put logs in chronological order
               data = data.reverse();
               setAuditLog(data);
-              setLoading(false);
             }
+            setLoading(false);
           },
           () => {
             setAuditLog([]);

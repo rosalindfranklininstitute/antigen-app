@@ -25,11 +25,15 @@ const SearchSequencing = (props) => {
         .then((res) => {
           res.json().then(
             (data) => {
-              setRecords(data.matches);
+              if (res.status >= 400) {
+                props.onSetError("[SS] HTTP code " + res.status);
+              } else {
+                setRecords(data.matches);
+              }
               setLoading(false);
             },
             () => {
-              props.onSetError("HTTP response code " + res.status);
+              props.onSetError("[SS] HTTP code " + res.status);
               setLoading(false);
             },
           );

@@ -24,10 +24,14 @@ const SequencingResults = (props) => {
       .then((res) => {
         res.json().then(
           (data) => {
-            setSequencingResults(data);
+            if (res.status >= 400) {
+              props.onSetError("[SR] HTTP code " + res.status);
+            } else {
+              setSequencingResults(data);
+            }
           },
           () => {
-            props.onSetError("HTTP code " + res.status);
+            props.onSetError("[SR] HTTP code " + res.status);
           },
         );
       })

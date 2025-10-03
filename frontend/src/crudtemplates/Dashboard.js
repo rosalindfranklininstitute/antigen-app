@@ -31,10 +31,14 @@ const Dashboard = (props) => {
         .then((res) => {
           res.json().then(
             (data) => {
-              setStats(data.stats);
+              if (res.status >= 400) {
+                props.onSetError("[DS] HTTP code " + res.status);
+              } else {
+                setStats(data.stats);
+              }
             },
             () => {
-              props.onSetError("HTTP response code " + res.status);
+              props.onSetError("HTTP code " + res.status);
             },
           );
         })
@@ -56,10 +60,14 @@ const Dashboard = (props) => {
         .then((res) => {
           res.json().then(
             (data) => {
-              setActivityItems(data.logs);
+              if (res.status >= 400) {
+                props.onSetError("[DL] HTTP code " + res.status);
+              } else {
+                setActivityItems(data.logs);
+              }
             },
             () => {
-              props.onSetError("HTTP response code " + res.status);
+              props.onSetError("[DL] HTTP response code " + res.status);
             },
           );
         })

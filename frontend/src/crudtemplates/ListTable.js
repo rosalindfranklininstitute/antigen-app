@@ -40,11 +40,15 @@ const ListTable = (props) => {
         .then((res) => {
           res.json().then(
             (data) => {
-              setRecords(data);
+              if (res.status >= 400) {
+                props.onSetError("[LT] HTTP code " + res.status);
+              } else {
+                setRecords(data);
+              }
               setLoading(false);
             },
             () => {
-              props.onSetError("HTTP response code " + res.status);
+              props.onSetError("[LT] HTTP code " + res.status);
               setLoading(false);
             },
           );
