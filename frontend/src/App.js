@@ -10,6 +10,7 @@ import AuditLog from "./crudtemplates/AuditLog.js";
 import schemas from "./schema.js";
 import ErrorHandler from "./ErrorHandler.js";
 import SearchSequencing from "./SearchSequencing.js";
+import BlastSequencing from "./BlastSequencing.js";
 import React, { Fragment, useState, useEffect } from "react";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
@@ -702,6 +703,14 @@ const App = () => {
                             Search by sequence
                           </button>
                         </NavLink>
+                        <NavLink to={"/sequencing/blast"}>
+                          <button
+                            type="button"
+                            className="w-full sm:w-auto mr-2 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
+                          >
+                            BLAST by sequence
+                          </button>
+                        </NavLink>
                       </>
                     }
                   ></ListTable>
@@ -771,6 +780,15 @@ const App = () => {
               element={
                 <HeadedPage title="Search by sequence">
                   <SearchSequencing onSetError={setError} />
+                </HeadedPage>
+              }
+            />
+            <Route
+              exact
+              path="/sequencing/blast"
+              element={
+                <HeadedPage title="BLAST by sequence">
+                  <BlastSequencing onSetError={setError} />
                 </HeadedPage>
               }
             />

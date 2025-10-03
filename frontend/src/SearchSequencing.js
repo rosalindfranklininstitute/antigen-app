@@ -72,14 +72,14 @@ const SearchSequencing = (props) => {
             <input
               id="searchseq"
               className="block w-full rounded-md border-0 bg-white py-1.5 pl-10 pr-3 text-gray-900 focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-600 sm:text-sm sm:leading-6"
-              placeholder="Enter search sequence"
+              placeholder="Enter search sequence (letters only)"
               type="search"
               name="search"
               onKeyUp={(evt) => {
                 setRecords([]);
                 setQueryUpdated(true);
                 setQuery(evt.target.value);
-                if (evt.key === "enter") runSearch();
+                if (evt.key === "Enter") runSearch();
               }}
             />
           </div>

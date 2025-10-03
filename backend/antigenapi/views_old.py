@@ -1,12 +1,10 @@
 import collections.abc
 import datetime
 import io
-import json
 import math
 import os
 import re
 import urllib.error
-import urllib.parse
 from tempfile import NamedTemporaryFile
 from wsgiref.util import FileWrapper
 
@@ -38,7 +36,12 @@ from rest_framework.serializers import (
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from antigenapi.bioinformatics.blast import get_db_fasta, run_blastp_seq_run
+from antigenapi.bioinformatics.blast import (
+    get_db_fasta,
+    parse_blast_results,
+    run_blastp,
+    run_blastp_seq_run,
+)
 from antigenapi.bioinformatics.imgt import (
     AIRR_IMPORTANT_COLUMNS,
     as_fasta_files,
@@ -1184,6 +1187,38 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
 
     @action(
+        detail=False,
+        methods=["GET"],
+        name="BLAST custom query vs DB.",
+        url_path="blastseq/(?P<query>[A-Za-z]+)",
+    )
+    def blast_sequencing_run_results(self, request, query):
+        """BLAST sequencing run vs database."""
+        search_region = self.request.query_params.get("searchRegion", "full")
+        if search_region not in ("full", "cdr3"):
+            raise ValueError(f"Unknown searchRegion: {search_region}")
+
+        if len(query) > 1024:
+            raise ValueError("Query string exceeds maximum length of 1024")
+
+        query_str = f"> QuerySequence\n{query}\n"
+        blast_str = run_blastp(query_str, query_type=search_region)
+
+        if not blast_str:
+            return JsonResponse({"hits": []}, status=status.HTTP_404_NOT_FOUND)
+
+        return JsonResponse(
+            {
+                "hits": parse_blast_results(
+                    blast_str,
+                    search_region,
+                    e_value_threshold=np.inf,
+                    align_perc_theshold=0,
+                )
+            }
+        )
+
+    @action(
         detail=True,
         methods=["GET"],
         name="BLAST sequencing run results vs DB.",
@@ -1204,63 +1239,9 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         airr_df = pd.concat(read_airr_file(r.airr_file) for r in results)
         airr_df = airr_df.set_index("sequence_id")
 
-        ALIGN_PERC_THRESHOLD = 90
-        E_VALUE_THRESHOLD = 0.05
-
-        # Parse the JSON and keep the important bits
-        blast_result = json.loads(blast_str)
-        res = []
-        for blast_run in blast_result["BlastOutput2"]:
-            run_res = blast_run["report"]["results"]["search"]
-            for blast_hit_set in run_res["hits"]:
-                subject_title = blast_hit_set["description"][0]["title"]
-                query_title = run_res["query_title"]
-                if query_type == "cdr3":
-                    # TODO: Make more robust
-                    query_cdr3 = query_title[6:]
-                else:
-                    query_cdr3 = airr_df.at[query_title, "cdr3_aa"]
-                    if pd.isna(query_cdr3):
-                        query_cdr3 = None
-                if subject_title.strip() == query_title.strip():
-                    continue
-                hsps = blast_hit_set["hsps"][0]
-                assert len(blast_hit_set["description"]) == 1
-                for hsps in blast_hit_set["hsps"]:
-                    align_perc = round(
-                        (hsps["align_len"] / run_res["query_len"]) * 100, 2
-                    )
-                    if align_perc < ALIGN_PERC_THRESHOLD:
-                        continue
-                    e_value = hsps["evalue"]
-                    if e_value > E_VALUE_THRESHOLD:
-                        continue
-                    res.append(
-                        {
-                            "query_title": query_title.strip(),
-                            "query_cdr3": query_cdr3,
-                            "subject_title": subject_title.strip(),
-                            "submatch_no": hsps["num"],
-                            "query_seq": hsps["qseq"],
-                            "subject_seq": hsps["hseq"],
-                            "midline": hsps["midline"],
-                            "bit_score": hsps["bit_score"],
-                            "e_value": e_value,
-                            "align_len": hsps["align_len"],
-                            "align_perc": align_perc,
-                            "ident_perc": round(
-                                (hsps["identity"] / hsps["align_len"]) * 100, 2
-                            ),
-                        }
-                    )
-
-        # Sort the results
-        res = sorted(
-            res,
-            key=lambda r: (r["query_cdr3"] or "", -r["align_perc"], -r["ident_perc"]),
+        return JsonResponse(
+            {"hits": parse_blast_results(blast_str, query_type, airr_df)}
         )
-
-        return JsonResponse({"hits": res})
 
 
 class GlobalFastaView(APIView):
