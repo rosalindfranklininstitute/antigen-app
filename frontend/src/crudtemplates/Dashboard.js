@@ -102,7 +102,7 @@ const Dashboard = (props) => {
 
   const Stats = () => {
     return (
-      <div>
+      <div className="pb-5">
         <dl
           className={"mt-5 grid grid-cols-1 gap-5 sm:grid-cols-" + stats.length}
         >
@@ -126,7 +126,7 @@ const Dashboard = (props) => {
 
   const ActivityList = () => {
     return (
-      <div className="border-t border-black/10 pt-11">
+      <div className="pt-5">
         <h2 className="px-4 text-base font-semibold leading-7">Recent edits</h2>
         <table className="mt-6 w-full whitespace-nowrap text-left">
           <colgroup>
@@ -215,6 +215,14 @@ const Dashboard = (props) => {
   return (
     <>
       <Stats />
+      <a href="/api/reports/projects" download="antigenapp-project-report.csv">
+        <button
+          type="button"
+          className="w-full sm:w-auto inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
+        >
+          Download Project Report (.csv)
+        </button>
+      </a>
       <ActivityList />
     </>
   );
