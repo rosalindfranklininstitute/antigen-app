@@ -56,7 +56,12 @@ const SearchSequencing = (props) => {
   };
 
   const runSearch = () => {
-    if (query.length < minQueryLength) return;
+    let valError = validateSeq(query, minQueryLength);
+    setValidationError(valError);
+    if (valError !== null) {
+      return;
+    }
+
     setQueryUpdated(false);
     if (query !== undefined && query !== "") {
       setLoading(true);
@@ -140,9 +145,7 @@ const SearchSequencing = (props) => {
         </div>
       </div>
 
-      {queryUpdated && query.length < minQueryLength && (
-        <b>Enter {minQueryLength} or more letters for search query</b>
-      )}
+      {queryUpdated && validationError !== null && <b>{validationError}</b>}
 
       <div className="mt-8 flex flex-col">
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
