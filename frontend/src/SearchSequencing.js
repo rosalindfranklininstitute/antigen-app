@@ -6,6 +6,7 @@ import { Radio, RadioGroup } from "@headlessui/react";
 import * as Sentry from "@sentry/browser";
 
 const SearchSequencing = (props) => {
+  const minQueryLength = 4;
   const searchRegions = [
     { id: "cdr3", name: "CDR3" },
     { id: "full", name: "Full Sequence" },
@@ -53,6 +54,7 @@ const SearchSequencing = (props) => {
   };
 
   const runSearch = () => {
+    if (query.length < minQueryLength) return;
     setQueryUpdated(false);
     if (query !== undefined && query !== "") {
       setLoading(true);
@@ -135,6 +137,10 @@ const SearchSequencing = (props) => {
           </button>
         </div>
       </div>
+
+      {queryUpdated && query.length < minQueryLength && (
+        <b>Enter {minQueryLength} or more letters for search query</b>
+      )}
 
       <div className="mt-8 flex flex-col">
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
