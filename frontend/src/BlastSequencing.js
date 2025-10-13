@@ -4,6 +4,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { Radio, RadioGroup } from "@headlessui/react";
 import * as Sentry from "@sentry/browser";
 import BlastResultsTable from "./crudtemplates/BlastResultsTable.js";
+import { validateSeq } from "./crudtemplates/utils.js";
 
 const BlastSequencing = (props) => {
   const minQueryLength = 6;
@@ -11,6 +12,7 @@ const BlastSequencing = (props) => {
     { id: "cdr3", name: "CDR3" },
     { id: "full", name: "Full Sequence" },
   ];
+  const [validationError, setValidationError] = useState(null);
   const [searchRegion, setSearchRegion] = useState(searchRegions[0]);
   const [queryUpdated, setQueryUpdated] = useState(false);
   const [records, setRecords] = useState();
@@ -54,7 +56,12 @@ const BlastSequencing = (props) => {
   };
 
   const runSearch = () => {
-    if (query.length < minQueryLength) return;
+    let valError = validateSeq(query, minQueryLength);
+    setValidationError(valError);
+    if (valError !== null) {
+      return;
+    }
+
     setQueryUpdated(false);
     if (query !== undefined && query !== "") {
       setLoading(true);
@@ -138,9 +145,7 @@ const BlastSequencing = (props) => {
         </div>
       </div>
 
-      {queryUpdated && query.length < minQueryLength && (
-        <b>Enter {minQueryLength} or more letters for BLAST search</b>
-      )}
+      {queryUpdated && validationError !== null && <b>{validationError}</b>}
       <BlastResultsTable
         blastResults={records}
         isLoading={loading}

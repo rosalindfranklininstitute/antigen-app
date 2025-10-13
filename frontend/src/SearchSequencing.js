@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { MagnifyingGlassIcon } from "@heroicons/react/20/solid";
 import { Radio, RadioGroup } from "@headlessui/react";
 import * as Sentry from "@sentry/browser";
+import { validateSeq } from "./crudtemplates/utils.js";
 
 const SearchSequencing = (props) => {
   const minQueryLength = 4;
@@ -11,6 +12,7 @@ const SearchSequencing = (props) => {
     { id: "cdr3", name: "CDR3" },
     { id: "full", name: "Full Sequence" },
   ];
+  const [validationError, setValidationError] = useState(null);
   const [searchRegion, setSearchRegion] = useState(searchRegions[0]);
   const [queryUpdated, setQueryUpdated] = useState(false);
   const [records, setRecords] = useState([]);
