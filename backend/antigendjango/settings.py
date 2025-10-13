@@ -19,6 +19,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
 
 IS_CI = os.environ.get("DJANGO_CI", "false").lower() == "true"
 
