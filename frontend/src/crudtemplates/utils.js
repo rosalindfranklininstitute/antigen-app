@@ -460,3 +460,13 @@ export const usePrevious = (value) => {
   // Return previous value (happens before update in useEffect above)
   return ref.current;
 };
+
+export const validateSeq = (value, minLength) => {
+  if (value.length < minLength) {
+    return "Search query must contain " + minLength + " or more letters";
+  }
+  if (!value.match(/^[A-Za-z]+$/)) {
+    return "Search query must contain A-Z letters only";
+  }
+  return null;
+};
