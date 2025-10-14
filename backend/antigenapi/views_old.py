@@ -1065,15 +1065,14 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         """Get sequencing run results by sequence search."""
         search_region = self.request.query_params.get("searchRegion", "full")
 
-        df_dict = {
-            seqrun: read_seqrun_results(
-                seqrun, usecols=("sequence_id", "sequence_alignment_aa", "cdr3_aa")
-            )
-            for seqrun in SequencingRun.objects.values_list("pk", flat=True)
-        }
-        for seqrun, df in df_dict.items():
-            df.insert(0, "sequencing_run", seqrun)
-        df = pd.concat(df_dict.values())
+        df = pd.concat(
+            [
+                read_seqrun_results(
+                    seqrun, usecols=("sequence_id", "sequence_alignment_aa", "cdr3_aa")
+                )
+                for seqrun in SequencingRun.objects.values_list("pk", flat=True)
+            ]
+        )
 
         if df.empty:
             return JsonResponse({"matches": []})
