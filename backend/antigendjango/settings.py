@@ -113,7 +113,7 @@ if IS_CI or "DJANGO_USE_SQLITE" in os.environ:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "db.sqlite3",
+            "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
         }
     }
 else:

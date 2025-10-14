@@ -14,7 +14,7 @@ from auditlog.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import default_storage
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Prefetch, Q
 from django.db.models.deletion import ProtectedError
 from django.db.utils import IntegrityError, NotSupportedError
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
@@ -684,7 +684,17 @@ class SequencingRunShortSerializer(SequencingRunSerializer):
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for sequencing runs."""
 
-    queryset = SequencingRun.objects.all().order_by("-added_date")
+    queryset = (
+        SequencingRun.objects.all()
+        .order_by("-added_date")
+        .select_related("added_by")
+        .prefetch_related(
+            Prefetch(
+                "sequencingrunresults_set",
+                queryset=SequencingRunResults.objects.select_related("added_by"),
+            )
+        )
+    )
     serializer_class = SequencingRunSerializer
 
     def perform_create(self, serializer):  # noqa: D102
