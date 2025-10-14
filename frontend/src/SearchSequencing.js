@@ -16,7 +16,7 @@ const SearchSequencing = (props) => {
   const [searchRegion, setSearchRegion] = useState(searchRegions[0]);
   const [queryUpdated, setQueryUpdated] = useState(false);
   const [records, setRecords] = useState([]);
-  const [query, setQuery] = useState();
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
 
   const searchSequence = () => {
