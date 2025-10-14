@@ -3,7 +3,7 @@ import unittest
 import zipfile
 
 from antigenapi.bioinformatics.imgt import load_sequences, trim_sequence
-from antigenapi.views_old import _extract_well
+from antigenapi.utils.helpers import extract_well
 
 
 def _create_zip(zip_data):
@@ -57,7 +57,7 @@ class TestSequenceParsers(unittest.TestCase):
         }
 
         self.assertEqual(
-            list([_extract_well(w) for w in wells.keys()]), list(wells.values())
+            list([extract_well(w) for w in wells.keys()]), list(wells.values())
         )
 
         wells_expected_errors = (
@@ -70,4 +70,4 @@ class TestSequenceParsers(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             for well in wells_expected_errors:
-                _extract_well(well)
+                extract_well(well)

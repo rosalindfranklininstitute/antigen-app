@@ -3,7 +3,6 @@ import datetime
 import io
 import math
 import os
-import re
 import urllib.error
 from tempfile import NamedTemporaryFile
 from wsgiref.util import FileWrapper
@@ -62,6 +61,7 @@ from antigenapi.models import (
     SequencingRun,
     SequencingRunResults,
 )
+from antigenapi.utils.helpers import extract_well, read_seqrun_results
 from antigenapi.utils.uniprot import get_protein
 
 from .parsers import parse_elisa_file
@@ -681,19 +681,6 @@ class SequencingRunShortSerializer(SequencingRunSerializer):
         read_only_fields = ["added_by", "added_date"]
 
 
-def _extract_well(well):
-    well = well.upper()
-    try:
-        # Match A1-H12, including A01 etc.
-        well_match = re.search("[A-H]((1[0-2])|(0?[1-9]))$", well).group(0)
-    except AttributeError:
-        raise ValueError("Unable to extract well name from filename")
-    # Remove zero-padding if present
-    if well_match[1] == "0":
-        well_match = well_match[0] + well_match[2]
-    return well_match
-
-
 class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     """A view set for sequencing runs."""
 
@@ -880,7 +867,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             )
         # Validate wells expected vs wells supplied
         try:
-            wells_supplied_list = [_extract_well(w) for w in seq_data.keys()]
+            wells_supplied_list = [extract_well(w) for w in seq_data.keys()]
         except IndexError:
             raise ValidationError(
                 {
@@ -1030,93 +1017,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     )
     def get_sequencing_run_results(self, request, pk):
         """Get sequencing results."""
-        results = (
-            SequencingRunResults.objects.filter(sequencing_run_id=int(pk))
-            .order_by("seq")
-            .select_related("sequencing_run")
-            .prefetch_related("nanobodies")
-        )
+        df = read_seqrun_results(pk, usecols=AIRR_IMPORTANT_COLUMNS)
 
-        if not results:
+        if df.empty:
             return JsonResponse({"records": []})
-
-        # Nanobody autoname format is:
-        # <short antigen name>_<pan conc><ELISA well_no>
-        # [.<ELISA plate number (index) if >1 plate]_C<cohort><sublibrary>
-
-        # Get ELISA wells as dict for lookup
-        elisa_wells_to_seq = {
-            (w["elisa_well"]["plate"], w["elisa_well"]["location"]): (
-                w["plate"],
-                w["location"],
-            )
-            for r in results
-            for w in r.sequencing_run.wells
-        }
-        # Get the ELISA plate IDs seen across this resultset -
-        # put in dict for an ordered set
-        elisa_plate_idxs = dict.fromkeys((w[0] for w in elisa_wells_to_seq.keys()), "")
-
-        # For each (short_antigen_name, pan_conc) combination, check on which plate(s)
-        # it occurs to determine if we need a suffix to disambiguate
-        elisa_well_query = ElisaWell.objects.filter(
-            plate__in=elisa_plate_idxs.keys()
-        ).select_related("antigen", "plate", "plate__library", "plate__library__cohort")
-
-        plate_disambig_check = {}
-        for ew in elisa_well_query:
-            plate_disambig_check.setdefault(
-                (ew.antigen.short_name, ew.plate.pan_round_concentration), set()
-            ).add(ew.plate_id)
-
-        if any(len(plate_ids) > 1 for plate_ids in plate_disambig_check.values()):
-            # Ambiguous plate ID if antigen_short_name and pan_round_concentration
-            # doesn't disambiguate - in that case, we need a suffix.
-            # We include a .(1-based index) suffix to disambiguate.
-            elisa_plate_idxs = {
-                id: f".{idx + 1}" for idx, id in enumerate(elisa_plate_idxs.keys())
-            }
-
-        # Retrieve nanobody autonames associated with ELISA plates in this result set
-        nanobody_autonames_lookup = {
-            elisa_wells_to_seq[(ew.plate_id, ew.location)]: f"{ew.antigen.short_name}_"
-            f"{ew.plate.pan_round_concentration:g}"
-            f"{PlateLocations.labels[ew.location - 1]}{elisa_plate_idxs[ew.plate_id]}_C"
-            + ("N" if ew.plate.library.cohort.is_naive else "")
-            + f"{ew.plate.library.cohort.cohort_num}"
-            + f"{ew.plate.library.sublibrary or ''}"
-            for ew in elisa_well_query
-            if (ew.plate_id, ew.location) in elisa_wells_to_seq.keys()
-        }
-
-        csvs = []
-        for r in results:
-            airr_file = read_airr_file(r.airr_file)
-            csvs.append(airr_file)
-
-            seq_plate_well_names = [
-                wn[1] for wn in airr_file["sequence_id"].str.rsplit("_", n=1).to_list()
-            ]
-            nanobody_autonames = []
-            for wn in seq_plate_well_names:
-                try:
-                    nanobody_autonames.append(
-                        nanobody_autonames_lookup[
-                            (
-                                r.seq,
-                                PlateLocations.labels.index(_extract_well(wn))
-                                + 1
-                                - r.well_pos_offset,
-                            )
-                        ]
-                    )
-                except ValueError:
-                    nanobody_autonames.append("n/a (well unparseable)")
-                except KeyError:
-                    nanobody_autonames.append("n/a (index not found)")
-            airr_file["nanobody_autoname"] = nanobody_autonames
-
-        df = pd.concat(csvs)
 
         # Get number of matches per CDR3 sequence
         cdr3_counts = df["cdr3_aa"].value_counts()
@@ -1160,31 +1064,34 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     def search_sequencing_run_results(self, request, query):
         """Get sequencing run results by sequence search."""
         search_region = self.request.query_params.get("searchRegion", "full")
-        srs = SequencingRunResults.objects.select_related("sequencing_run")
-        results = []
-        query = query.upper()
-        for sr in srs:
-            airr_file = read_airr_file(sr.airr_file)
-            if search_region == "cdr3":
-                airr_file = airr_file[airr_file.cdr3_aa.notna()]
-            else:
-                airr_file = airr_file[airr_file.sequence_alignment_aa.notna()]
-            if not airr_file.empty:
-                if search_region == "cdr3":
-                    airr_file = airr_file[airr_file.cdr3_aa.str.contains(query)]
-                else:
-                    airr_file = airr_file[
-                        airr_file.sequence_alignment_aa.str.contains(query)
-                    ]
-            if not airr_file.empty:
-                airr_file.insert(
-                    loc=0, column="sequencing_run", value=sr.sequencing_run_id
-                )
-                results.append(airr_file)
 
-        return JsonResponse(
-            {"matches": pd.concat(results).to_dict(orient="records") if results else []}
-        )
+        df_dict = {
+            seqrun: read_seqrun_results(
+                seqrun, usecols=("sequence_id", "sequence_alignment_aa", "cdr3_aa")
+            )
+            for seqrun in SequencingRun.objects.values_list("pk", flat=True)
+        }
+        for seqrun, df in df_dict.items():
+            df.insert(0, "sequencing_run", seqrun)
+        df = pd.concat(df_dict.values())
+
+        if df.empty:
+            return JsonResponse({"matches": []})
+
+        query = query.upper()
+
+        if search_region == "cdr3":
+            df = df[df.cdr3_aa.notna()]
+            df = df[df["cdr3_aa"].str.contains(query)]
+        else:
+            df = df[df.sequence_alignment_aa.notna()]
+            df = df[df["sequence_alignment_aa"].str.contains(query)]
+
+        df = df[
+            ["sequencing_run", "nanobody_autoname", "sequence_alignment_aa", "cdr3_aa"]
+        ]
+
+        return JsonResponse({"matches": df.to_dict(orient="records")})
 
     @action(
         detail=False,
@@ -1237,10 +1144,8 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             return JsonResponse({"hits": []}, status=status.HTTP_404_NOT_FOUND)
 
         # Read query AIRR files for CDRs
-        results = SequencingRunResults.objects.filter(sequencing_run_id=int(pk))
-
-        airr_df = pd.concat(read_airr_file(r.airr_file) for r in results)
-        airr_df = airr_df.set_index("sequence_id")
+        airr_df = read_seqrun_results(pk, usecols=("sequence_id", "cdr3_aa"))
+        airr_df = airr_df.set_index("nanobody_autoname")
 
         return JsonResponse(
             {"hits": parse_blast_results(blast_str, query_type, airr_df)}
