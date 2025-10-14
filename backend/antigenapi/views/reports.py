@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 
 from antigenapi.bioinformatics.imgt import read_airr_file
 from antigenapi.models import PlateLocations, Project, SequencingRun
-from antigenapi.views_old import _extract_well
+from antigenapi.utils.helpers import extract_well
 
 
 class ProjectReport(APIView):
@@ -108,7 +108,7 @@ class ProjectReport(APIView):
                     )
                     airr_file = read_airr_file(srr.airr_file)
                     airr_file["well"] = [
-                        _extract_well(w[1])
+                        extract_well(w[1])
                         for w in airr_file["sequence_id"].str.rsplit("_", n=1).to_list()
                     ]
 

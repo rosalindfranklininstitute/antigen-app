@@ -6,8 +6,10 @@ from typing import Optional
 
 import pandas as pd
 
-from ..models import SequencingRunResults
-from .imgt import as_fasta_files, read_airr_file
+from antigenapi.utils.helpers import read_seqrun_results
+
+from ..models import SequencingRun
+from .imgt import as_fasta_files
 
 # https://www.ncbi.nlm.nih.gov/books/NBK279684/table/appendices.T.options_common_to_all_blast/
 BLAST_FMT_MULTIPLE_FILE_BLAST_JSON = "15"
@@ -20,15 +22,12 @@ E_VALUE_THRESHOLD = 0.05
 
 def get_db_fasta(
     include_run: Optional[int] = None,
-    exclude_run: Optional[int] = None,
     query_type: str = "full",
 ):
     """Get the sequencing database in fasta format.
 
     Args:
         include_run (int, optional): Sequencing run ID to include.
-          Defaults to None.
-        exclude_run (int, optional): Sequencing run ID to exclude.
           Defaults to None.
         query_type (str): Query type - "full" sequence, "cdr3"
           (aggregate by CDR3), or "cdr3_unagg" (use CDR3 sequence,
@@ -39,47 +38,50 @@ def get_db_fasta(
         str: Sequencing run as a FASTA format string
     """
     fasta_data: dict[str, str] = {}
-    query = SequencingRunResults.objects.all()
+
+    usecols = (
+        "sequence_id",
+        "cdr3_aa" if query_type.startswith("cdr3") else "sequence_alignment_aa",
+    )
+
     if include_run:
-        query = query.filter(sequencing_run_id=include_run)
-    if exclude_run:
-        query = query.exclude(sequencing_run_id=exclude_run)
-    for sr in query:
-        airr_file = read_airr_file(
-            sr.airr_file,
-            usecols=(
-                "sequence_id",
-                "cdr3_aa" if query_type.startswith("cdr3") else "sequence_alignment_aa",
-            ),
+        airr_file = read_seqrun_results(include_run, usecols=usecols)
+    else:
+        airr_file = pd.concat(
+            [
+                read_seqrun_results(seqrun, usecols=usecols)
+                for seqrun in SequencingRun.objects.values_list("pk", flat=True)
+            ]
         )
-        airr_file = airr_file[
-            (
-                airr_file.cdr3_aa.notna()
-                if query_type.startswith("cdr3")
-                else airr_file.sequence_alignment_aa.notna()
-            )
-        ]
-        if not airr_file.empty:
-            if query_type == "cdr3":
-                cdr3s = set(airr_file.cdr3_aa.unique())
-                for cdr3 in cdr3s:
-                    fasta_data[f"CDR3: {cdr3}"] = cdr3
-            else:
-                for _, row in airr_file.iterrows():
-                    if query_type == "cdr3_unagg":
-                        seq = row.cdr3_aa.replace(".", "")
-                        seq_name = f"{row.sequence_id}[CDR3]"
-                    else:
-                        seq = row.sequence_alignment_aa.replace(".", "")
-                        seq_name = row.sequence_id
-                    try:
-                        if fasta_data[seq_name] != seq:
-                            raise ValueError(
-                                f"Different sequences with same name! {row.sequence_id}"
-                            )
-                        continue
-                    except KeyError:
-                        fasta_data[seq_name] = seq
+
+    airr_file = airr_file[
+        (
+            airr_file.cdr3_aa.notna()
+            if query_type.startswith("cdr3")
+            else airr_file.sequence_alignment_aa.notna()
+        )
+    ]
+    if not airr_file.empty:
+        if query_type == "cdr3":
+            cdr3s = set(airr_file.cdr3_aa.unique())
+            for cdr3 in cdr3s:
+                fasta_data[f"CDR3: {cdr3}"] = cdr3
+        else:
+            for _, row in airr_file.iterrows():
+                if query_type == "cdr3_unagg":
+                    seq = row.cdr3_aa.replace(".", "")
+                    seq_name = f"{row.nanobody_autoname}[CDR3]"
+                else:
+                    seq = row.sequence_alignment_aa.replace(".", "")
+                    seq_name = row.nanobody_autoname
+                try:
+                    if fasta_data[seq_name] != seq:
+                        raise ValueError(
+                            f"Different sequences with same name! {seq_name}"
+                        )
+                    continue
+                except KeyError:
+                    fasta_data[seq_name] = seq
 
     fasta_files = as_fasta_files(fasta_data, max_file_size=None)
     if fasta_files:

@@ -168,7 +168,7 @@ const SearchSequencing = (props) => {
                         " px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       }
                     >
-                      Sequence identifier
+                      Nb autoname
                     </th>
                     <th
                       scope="col"
@@ -207,7 +207,7 @@ const SearchSequencing = (props) => {
                           )}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {record.sequence_id}
+                          {record.nanobody_autoname}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {searchRegion.id === "cdr3"
