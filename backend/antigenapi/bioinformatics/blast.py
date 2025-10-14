@@ -30,7 +30,9 @@ def get_db_fasta(
           Defaults to None.
         exclude_run (int, optional): Sequencing run ID to exclude.
           Defaults to None.
-        query_type (str): Query type - "full" sequence or "cdr3"
+        query_type (str): Query type - "full" sequence, "cdr3"
+          (aggregate by CDR3), or "cdr3_unagg" (use CDR3 sequence,
+          but original labels and unaggregated)
           Defaults to "full".
 
     Returns:
@@ -47,13 +49,13 @@ def get_db_fasta(
             sr.airr_file,
             usecols=(
                 "sequence_id",
-                "cdr3_aa" if query_type == "cdr3" else "sequence_alignment_aa",
+                "cdr3_aa" if query_type.startswith("cdr3") else "sequence_alignment_aa",
             ),
         )
         airr_file = airr_file[
             (
                 airr_file.cdr3_aa.notna()
-                if query_type == "cdr3"
+                if query_type.startswith("cdr3")
                 else airr_file.sequence_alignment_aa.notna()
             )
         ]
@@ -64,15 +66,20 @@ def get_db_fasta(
                     fasta_data[f"CDR3: {cdr3}"] = cdr3
             else:
                 for _, row in airr_file.iterrows():
-                    seq = row.sequence_alignment_aa.replace(".", "")
+                    if query_type == "cdr3_unagg":
+                        seq = row.cdr3_aa.replace(".", "")
+                        seq_name = f"{row.sequence_id}[CDR3]"
+                    else:
+                        seq = row.sequence_alignment_aa.replace(".", "")
+                        seq_name = row.sequence_id
                     try:
-                        if fasta_data[row.sequence_id] != seq:
+                        if fasta_data[seq_name] != seq:
                             raise ValueError(
                                 f"Different sequences with same name! {row.sequence_id}"
                             )
                         continue
                     except KeyError:
-                        fasta_data[row.sequence_id] = seq
+                        fasta_data[seq_name] = seq
 
     fasta_files = as_fasta_files(fasta_data, max_file_size=None)
     if fasta_files:
@@ -86,7 +93,7 @@ def get_sequencing_run_fasta(sequencing_run_id: int, query_type: str):
 
     Args:
         sequencing_run_id (int): Sequencing run ID
-        query_type (str): Query type - "full" sequence or "cdr3"
+        query_type (str): Query type - "full" sequence, "cdr3", or "cdr3_unagg"
 
     Returns:
         str: Sequencing run as a FASTA format string
@@ -112,6 +119,10 @@ def run_blastp_seq_run(
     if not query_data:
         return None
 
+    # Don't aggregate the database CDR3s, so we can see the sequence names
+    if query_type == "cdr3":
+        query_type = "cdr3_unagg"
+
     return run_blastp(query_data, query_type, outfmt)
 
 
@@ -120,7 +131,7 @@ def run_blastp(
     query_type: str = "full",
     outfmt: str = BLAST_FMT_MULTIPLE_FILE_BLAST_JSON,
 ):
-    """Run blastp  vs database.
+    """Run blastp vs database.
 
     Args:
         sequencing_run_id (int): Sequencing run ID.

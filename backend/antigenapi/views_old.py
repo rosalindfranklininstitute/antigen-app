@@ -1202,7 +1202,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             raise ValueError("Query string exceeds maximum length of 1024")
 
         query_str = f"> QuerySequence\n{query}\n"
-        blast_str = run_blastp(query_str, query_type=search_region)
+        blast_str = run_blastp(
+            query_str,
+            query_type="cdr3_unagg" if search_region == "cdr3" else search_region,
+        )
 
         if not blast_str:
             return JsonResponse({"hits": []}, status=status.HTTP_404_NOT_FOUND)

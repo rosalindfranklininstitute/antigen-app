@@ -30,7 +30,7 @@ class ProjectReport(APIView):
                 "# Wells sent for sequencing",
                 "# Sequencing runs",
                 "Sequencing run IDs",
-                "# Productive hits",
+                "# Productive hits",
                 "# Of which unique sequences",
             ]
         )
