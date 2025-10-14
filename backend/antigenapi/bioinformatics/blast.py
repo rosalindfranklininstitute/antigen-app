@@ -62,24 +62,34 @@ def get_db_fasta(
         )
     ]
     if not airr_file.empty:
+        # Get list of ambiguous autonames
+        nb_autoname_ambig = tuple(
+            airr_file.loc[
+                airr_file["nanobody_autoname"].duplicated(), "nanobody_autoname"
+            ].unique()
+        )
+
         if query_type == "cdr3":
             cdr3s = set(airr_file.cdr3_aa.unique())
             for cdr3 in cdr3s:
                 fasta_data[f"CDR3: {cdr3}"] = cdr3
         else:
+
             for _, row in airr_file.iterrows():
+                seq_name = row.nanobody_autoname
+                if seq_name in nb_autoname_ambig:
+                    seq_name += f".SR{row.sequencing_run}"
+
                 if query_type == "cdr3_unagg":
                     seq = row.cdr3_aa.replace(".", "")
-                    seq_name = f"{row.nanobody_autoname}[CDR3]"
+                    seq_name += "[CDR3]"
                 else:
                     seq = row.sequence_alignment_aa.replace(".", "")
-                    seq_name = row.nanobody_autoname
                 try:
                     if fasta_data[seq_name] != seq:
                         raise ValueError(
                             f"Different sequences with same name! {seq_name}"
                         )
-                    continue
                 except KeyError:
                     fasta_data[seq_name] = seq
 

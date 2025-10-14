@@ -130,5 +130,6 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
             except KeyError:
                 nanobody_autonames.append("n/a (index not found)")
         airr_file["nanobody_autoname"] = nanobody_autonames
+        airr_file["sequencing_run"] = pk
 
     return pd.concat(csvs)
