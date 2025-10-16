@@ -8,6 +8,13 @@ from antigenapi.models import PlateLocations, Project, SequencingRun
 from antigenapi.utils.helpers import extract_well
 
 
+def _extract_well_or_none(well):
+    try:
+        return extract_well(well)
+    except ValueError:
+        return None
+
+
 class ProjectReport(APIView):
     def get(self, request, format=None):
         """Get CSV report on projects."""
@@ -108,12 +115,14 @@ class ProjectReport(APIView):
                     )
                     airr_file = read_airr_file(srr.airr_file)
                     airr_file["well"] = [
-                        extract_well(w[1])
+                        _extract_well_or_none(w[1])
                         for w in airr_file["sequence_id"].str.rsplit("_", n=1).to_list()
                     ]
 
                     # Filter for wells included in this project
-                    airr_file = airr_file[airr_file["well"].isin(wells_sequenced_plate)]
+                    airr_file = airr_file[
+                        airr_file["well"].notna().isin(wells_sequenced_plate)
+                    ]
 
                     # Filter for productive wells
                     airr_file = airr_file[airr_file["productive"] == "T"]
