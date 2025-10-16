@@ -119,10 +119,11 @@ class ProjectReport(APIView):
                         for w in airr_file["sequence_id"].str.rsplit("_", n=1).to_list()
                     ]
 
+                    # Drop missing/unparseable wells
+                    airr_file = airr_file.dropna(subset=["well"])
+
                     # Filter for wells included in this project
-                    airr_file = airr_file[
-                        airr_file["well"].dropna().isin(wells_sequenced_plate)
-                    ]
+                    airr_file = airr_file[airr_file["well"].isin(wells_sequenced_plate)]
 
                     # Filter for productive wells
                     airr_file = airr_file[airr_file["productive"] == "T"]
