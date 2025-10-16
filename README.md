@@ -13,27 +13,33 @@ To develop the app in a container environment, clone the repository as shown bel
     git clone https://github.com/rosalindfranklininstitute/antigen-app
     cd antigen-app
 
-Then start the development environment using `docker-compose`:
+Then start the development environment using `docker compose`:
 
     docker compose up -d
 
-On first use, or after pulling (in case database schema has changed), initialise/migrate the database:
+**Linux only:** On Linux, set file permissions correctly:
+
+    docker compose run --rm -u root api chgrp -R nonroot /usr/src
+
+On first use, or after a `git pull` (in case database schema has changed), initialise/migrate the database:
 
     docker compose exec api python manage.py migrate
-
-You should then be able to access the development site at http://localhost:8000/
-
-The API will be available at http://localhost:8000/api/
 
 ## Example data and tutorial
 
 You can either load the example data directly into the database in a single step, or you can load it step-by-step using the [data files](docs/example-data/) if you prefer.
 
-To load example data directly, run the following command on a clean installation:
+To load example data directly, run the following command on a clean installation (make sure to do this before loading the web interface for the first time):
 
     docker compose exec api python manage.py load_fixtures example-smcd1
 
 Alternatively, to go through the data entry process manually (to gain familiarity with AntigenApp), see the [tutorial](docs/TUTORIAL.md).
+
+## Access the interface
+
+After setting up the development environment above and optionally loading example data, you can access the development site at http://localhost:8000/
+
+The API will be available at http://localhost:8000/api/
 
 ## Update the development environment
 
