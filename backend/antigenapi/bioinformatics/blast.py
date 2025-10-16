@@ -77,7 +77,7 @@ def get_db_fasta(
 
             for _, row in airr_file.iterrows():
                 seq_name = row.nanobody_autoname
-                if seq_name == "n/a (index not found)":
+                if seq_name in ("n/a (index not found)", "n/a (well unparseable)"):
                     # Fallback if ELISA data couldn't be matched
                     seq_name = row.sequence_id
                 if seq_name in nb_autoname_ambig:
