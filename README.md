@@ -35,6 +35,14 @@ To load example data directly, run the following command on a clean installation
 
 Alternatively, to go through the data entry process manually (to gain familiarity with AntigenApp), see the [tutorial](docs/TUTORIAL.md).
 
+## Update the development environment
+
+To update the development environment:
+
+    git pull
+    docker compose up -d --build
+    docker compose exec api python manage.py migrate
+
 ### Tests - backend
 
 To run the backend (Python+Django) test suite:
