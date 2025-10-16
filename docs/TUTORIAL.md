@@ -126,3 +126,13 @@ You can then view the sequencing results by clicking on the Results tab.
 You can also perform a BLAST search by clicking on the BLAST tab. When more datasets are added to AntigenApp, this will search the entire database, allowing comparison with previously seen nanobody sequences.
 
 ![AntigenApp View Sequencing Run Results BLAST search by CDR3](screenshots/antigenapp-sequencing-run-results-blast-cdr3.png)
+
+## Search the database using a custom sequence
+
+AntigenApp provides the ability to search its database using a user-supplied sequence.
+
+Click the Sequencing tab, then either Search by sequence (uses substring match for the supplied sequence against the database), or BLAST by sequence.
+
+Enter a search sequence, select whether to search the CDR3 or the full sequence, and click search.
+
+![AntigenApp BLAST search database using user-supplied sequence](screenshots/antigenapp-sequencing-results-blast-by-user-supplied-sequence.png)
