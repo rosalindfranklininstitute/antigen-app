@@ -121,7 +121,7 @@ class ProjectReport(APIView):
 
                     # Filter for wells included in this project
                     airr_file = airr_file[
-                        airr_file["well"].notna().isin(wells_sequenced_plate)
+                        airr_file["well"].dropna().isin(wells_sequenced_plate)
                     ]
 
                     # Filter for productive wells
