@@ -105,7 +105,7 @@ Click Save.
 
 Click the sequencing tab, then select Add Sequencing Run. Enter the following information:
 
-- Plate layout: select SmCD1/15/1 and SmCD1/15/2. Two 96 well plates will appear with sliders to adjust their thresholds. Select 0.101 and 0.450 on the sliders for the first and second plates respectively.
+- Plate layout: select SmCD1/15/10nM and SmCD1/15/50nM. Two 96 well plates will appear with sliders to adjust their thresholds. Select 0.101 and 0.450 on the sliders for the first and second plates respectively.
 - Notes: leave blank
 - Sent out date: leave blank
 
@@ -134,5 +134,6 @@ AntigenApp provides the ability to search its database using a user-supplied seq
 Click the Sequencing tab, then either Search by sequence (uses substring match for the supplied sequence against the database), or BLAST by sequence.
 
 Enter a search sequence, select whether to search the CDR3 or the full sequence, and click search.
+An example of using CDR3 region AADRRQYSWPPWNYDY is shown in the figure.
 
 ![AntigenApp BLAST search database using user-supplied sequence](screenshots/antigenapp-sequencing-results-blast-by-user-supplied-sequence.png)
