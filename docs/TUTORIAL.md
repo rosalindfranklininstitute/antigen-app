@@ -134,5 +134,6 @@ AntigenApp provides the ability to search its database using a user-supplied seq
 Click the Sequencing tab, then either Search by sequence (uses substring match for the supplied sequence against the database), or BLAST by sequence.
 
 Enter a search sequence, select whether to search the CDR3 or the full sequence, and click search.
+An example of using CDR3 region AADRRQYSWPPWNYDY is shown in the figure.
 
 ![AntigenApp BLAST search database using user-supplied sequence](screenshots/antigenapp-sequencing-results-blast-by-user-supplied-sequence.png)
