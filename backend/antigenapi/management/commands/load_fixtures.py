@@ -80,7 +80,13 @@ class Command(BaseCommand):
                             "exists but differs."
                         )
                 else:
-                    shutil.copy2(source_path, dest_path)
+                    try:
+                        shutil.copy(source_path, dest_path)
+                    except OSError:
+                        # Possibly hit this WSL bug https://bugs.python.org/issue38633
+                        # Check if file has actually copied, otherwise raise
+                        if not filecmp.cmp(source_path, dest_path, shallow=False):
+                            raise
 
         self.stdout.write(
             self.style.SUCCESS("Fixture and media files loaded successfully.")
