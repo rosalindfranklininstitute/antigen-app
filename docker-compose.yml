@@ -10,6 +10,9 @@ services:
     volumes:
       - ./frontend/src:/antigenapp/src:ro
       - ./frontend/public:/antigenapp/public:ro
+    environment:
+      # https://github.com/facebook/create-react-app/issues/7251#issuecomment-827602712
+      BROWSER: none
   api:
     container_name: antigenapp_api
     build:
