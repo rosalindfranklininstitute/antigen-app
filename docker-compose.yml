@@ -9,7 +9,6 @@ services:
       - 3000:3000
     volumes:
       - ./frontend/src:/antigenapp/src:ro
-      - ./frontend/tests:/antigenapp/tests:ro
       - ./frontend/public:/antigenapp/public:ro
   api:
     container_name: antigenapp_api
