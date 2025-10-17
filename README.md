@@ -49,6 +49,16 @@ To update the development environment:
     docker compose up -d --build
     docker compose exec api python manage.py migrate
 
+## Troubleshoot the development environment
+
+If you encounter an error when first running AntigenApp, please check that you've run the `migrate` command described earlier.
+
+If you see an HTTP error 500, this indicates an error with the backend service. Please look at the logs for further information:
+
+    docker compose logs api
+
+If you believe it looks like a bug, please open an issue in this repo. Please include logs and a description of how to recreate the issue.
+
 ### Tests - backend
 
 To run the backend (Python+Django) test suite:
