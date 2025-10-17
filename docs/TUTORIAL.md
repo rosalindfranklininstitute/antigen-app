@@ -105,7 +105,7 @@ Click Save.
 
 Click the sequencing tab, then select Add Sequencing Run. Enter the following information:
 
-- Plate layout: select SmCD1/15/1 and SmCD1/15/2. Two 96 well plates will appear with sliders to adjust their thresholds. Select 0.101 and 0.450 on the sliders for the first and second plates respectively.
+- Plate layout: select SmCD1/15/10nM and SmCD1/15/50nM. Two 96 well plates will appear with sliders to adjust their thresholds. Select 0.101 and 0.450 on the sliders for the first and second plates respectively.
 - Notes: leave blank
 - Sent out date: leave blank
 
