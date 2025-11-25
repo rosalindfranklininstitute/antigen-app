@@ -1579,6 +1579,15 @@
       "markers": "python_version >= '3.9'",
       "version": "==8.4.2"
     },
+    "pytest-black-ng": {
+      "hashes": [
+        "sha256:20c1d671b2535e5cf6f8fe03d175887a04f549cb2455264bbb81150c941bd701",
+        "sha256:d4ef8945ff410e3cb915e82420a67256aaca4e9b60cc68c7da1cd3cc85c27315"
+      ],
+      "index": "pypi",
+      "markers": "python_version >= '3.5'",
+      "version": "==0.4.1"
+    },
     "pytest-cov": {
       "hashes": [
         "sha256:4f0764a1219df53214206bf1feea4633c3b558a2925c8b59f144f682861ce652",
