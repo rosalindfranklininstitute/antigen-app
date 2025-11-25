@@ -29,8 +29,11 @@ def trim_sequence(seq):
     if seq.startswith(">"):
         seq = "".join(seq.splitlines()[1:])
 
+    if ">" in seq:
+        raise ValueError("File contains multiple sequences")
+
     # Remove whitespace, move to upper case
-    seq = seq.strip().upper()
+    seq = re.sub(r"\s+", "", seq.upper())
     if "\n" in seq:
         raise ValueError("Sequence contains multiple lines")
 
