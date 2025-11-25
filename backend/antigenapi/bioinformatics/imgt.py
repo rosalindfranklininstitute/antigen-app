@@ -34,8 +34,6 @@ def trim_sequence(seq):
 
     # Remove whitespace, move to upper case
     seq = re.sub(r"\s+", "", seq.upper())
-    if "\n" in seq:
-        raise ValueError("Sequence contains multiple lines")
 
     # Check codons
     if not re.match("^[ACGTN]*$", seq):
