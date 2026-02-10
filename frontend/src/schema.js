@@ -300,6 +300,13 @@ const sequencingRuns = {
       field: "sent_date",
       type: "date",
     },
+    {
+      label: "Fill horizontally?",
+      field: "fill_horizontal",
+      type: "boolean",
+      hideOnForm: true,
+      showOnViewPage: false,
+    },
   ],
 };
 

@@ -189,6 +189,7 @@ class SequencingRun(Model):
 
     plate_thresholds: JSONField = JSONField()
     wells: JSONField = JSONField()
+    fill_horizontal = BooleanField(default=False)
     notes = TextField(null=True, blank=True)
     sent_date = DateField(null=True)
     added_by = ForeignKey(settings.AUTH_USER_MODEL, on_delete=PROTECT)
