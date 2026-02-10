@@ -2,7 +2,12 @@ import ComboBox from "./ComboBox";
 import config from "../config.js";
 import { plateMapOfValues } from "./utils.js";
 import { useState, useEffect } from "react";
+import { Field, Label, Switch } from "@headlessui/react";
 import * as Sentry from "@sentry/browser";
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
 const SequencingPlateLayout = (props) => {
   const [elisaPlates, setElisaPlates] = useState();
@@ -83,7 +88,7 @@ const SequencingPlateLayout = (props) => {
             location: w + 1,
           },
           plate: plateIdx,
-          location: posFillVertical(pos),
+          location: props.fillHorizontal ? pos : posFillVertical(pos),
         });
         pos++;
         if (pos > 96) {
@@ -98,6 +103,11 @@ const SequencingPlateLayout = (props) => {
   useEffect(() => {
     fetchElisaPlates();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!elisaPlates) return;
+    setWells(props.plateThresholds);
+  }, [props.fillHorizontal, elisaPlates]);
 
   return (
     <>
@@ -130,6 +140,34 @@ const SequencingPlateLayout = (props) => {
             displayField="displayLabel"
             selected={props.plateThresholds.map((thr) => thr.elisa_plate)}
           />
+
+          <Field>
+            <Switch
+              checked={props.fillHorizontal === true}
+              onChange={(val) => {
+                props.setFillHorizontal(val);
+              }}
+              className={classNames(
+                props.fillHorizontal === true ? "bg-indigo-600" : "bg-gray-200",
+                "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 mt-4 mr-2",
+              )}
+            >
+              <span className="sr-only">
+                Fill sequencing plate horizontally?
+              </span>
+              <span
+                aria-hidden="true"
+                className={classNames(
+                  props.fillHorizontal === true
+                    ? "translate-x-5"
+                    : "translate-x-0",
+                  "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                )}
+              />
+            </Switch>
+            <Label className="pt-0">Fill sequencing plate horizontally?</Label>
+          </Field>
+
           {props.plateThresholds.map((thr) => (
             <div key={thr.elisa_plate}>
               {plateMapOfValues(

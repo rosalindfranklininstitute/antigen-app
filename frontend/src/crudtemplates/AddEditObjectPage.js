@@ -497,8 +497,17 @@ const AddEditObjectPage = (props) => {
                                     setFormValue("plate_thresholds", thr)
                                   }
                                   wells={record ? record["wells"] : []}
+                                  fillHorizontal={
+                                    record ? record["fill_horizontal"] : false
+                                  }
                                   setWells={(wells) =>
                                     setFormValue("wells", wells)
+                                  }
+                                  setFillHorizontal={(fillHorizontal) =>
+                                    setFormValue(
+                                      "fill_horizontal",
+                                      fillHorizontal,
+                                    )
                                   }
                                 />
                               )}
