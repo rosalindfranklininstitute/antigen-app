@@ -104,32 +104,74 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
         if (ew.plate_id, ew.location) in elisa_wells_to_seq.keys()
     }
 
+    if "elisa_plate_id" in usecols or "elisa_optical_density" in usecols:
+        elisa_lookup = {
+            elisa_wells_to_seq[(ew.plate_id, ew.location)]: (
+                ew.plate_id,
+                ew.optical_density,
+            )
+            for ew in elisa_well_query
+            if (ew.plate_id, ew.location) in elisa_wells_to_seq.keys()
+        }
+
     csvs = []
     for r in results:
-        airr_file = read_airr_file(r.airr_file, usecols=usecols)
+        airr_file = read_airr_file(
+            r.airr_file,
+            usecols=set(usecols) - set(["elisa_plate_id", "elisa_optical_density"]),
+        )
         csvs.append(airr_file)
 
         seq_plate_well_names = [
             wn[1] for wn in airr_file["sequence_id"].str.rsplit("_", n=1).to_list()
         ]
         nanobody_autonames = []
+        if "elisa_plate_id" in usecols:
+            elisa_plate_ids = []
+        if "elisa_optical_density" in usecols:
+            elisa_optical_density = []
         for wn in seq_plate_well_names:
             try:
+                well_lookup = (
+                    PlateLocations.labels.index(extract_well(wn))
+                    + 1
+                    - r.well_pos_offset
+                )
                 nanobody_autonames.append(
-                    nanobody_autonames_lookup[
-                        (
-                            r.seq,
-                            PlateLocations.labels.index(extract_well(wn))
-                            + 1
-                            - r.well_pos_offset,
-                        )
-                    ]
+                    nanobody_autonames_lookup[(r.seq, well_lookup)]
                 )
             except ValueError:
                 nanobody_autonames.append("n/a (well unparseable)")
+                if "elisa_plate_id" in usecols:
+                    elisa_plate_ids.append("n/a (well unparseable)")
+                if "elisa_optical_density" in usecols:
+                    elisa_optical_density.append("n/a (well unparseable)")
             except KeyError:
                 nanobody_autonames.append("n/a (index not found)")
+                if "elisa_plate_id" in usecols:
+                    elisa_plate_ids.append("n/a (index not found)")
+                if "elisa_optical_density" in usecols:
+                    elisa_optical_density.append("n/a (well unparseable)")
+            else:
+                if "elisa_plate_id" in usecols:
+                    try:
+                        elisa_plate_ids.append(elisa_lookup[r.seq, well_lookup][0])
+                    except KeyError:
+                        elisa_plate_ids.append("n/a (index not found)")
+                if "elisa_optical_density" in usecols:
+                    try:
+                        elisa_optical_density.append(
+                            elisa_lookup[r.seq, well_lookup][1]
+                        )
+                    except KeyError:
+                        elisa_optical_density.append("n/a (index not found)")
+
         airr_file["nanobody_autoname"] = nanobody_autonames
         airr_file["sequencing_run"] = pk
+
+        if "elisa_plate_id" in usecols:
+            airr_file["elisa_plate_id"] = elisa_plate_ids
+        if "elisa_optical_density" in usecols:
+            airr_file["elisa_optical_density"] = elisa_optical_density
 
     return pd.concat(csvs)
