@@ -106,8 +106,10 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
 
     if "elisa_plate_id" in usecols or "elisa_optical_density" in usecols:
         elisa_lookup = {
-            elisa_wells_to_seq[(ew.plate_id, ew.location)]:
-            (ew.plate_id, ew.optical_density)
+            elisa_wells_to_seq[(ew.plate_id, ew.location)]: (
+                ew.plate_id,
+                ew.optical_density,
+            )
             for ew in elisa_well_query
             if (ew.plate_id, ew.location) in elisa_wells_to_seq.keys()
         }
@@ -115,8 +117,8 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
     csvs = []
     for r in results:
         airr_file = read_airr_file(
-            r.airr_file, usecols=set(usecols) -
-            set(["elisa_plate_id", "elisa_optical_density"])
+            r.airr_file,
+            usecols=set(usecols) - set(["elisa_plate_id", "elisa_optical_density"]),
         )
         csvs.append(airr_file)
 
@@ -130,15 +132,13 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
             elisa_optical_density = []
         for wn in seq_plate_well_names:
             try:
-                well_lookup = PlateLocations.labels.index(extract_well(wn)) \
-                    + 1 - r.well_pos_offset
+                well_lookup = (
+                    PlateLocations.labels.index(extract_well(wn))
+                    + 1
+                    - r.well_pos_offset
+                )
                 nanobody_autonames.append(
-                    nanobody_autonames_lookup[
-                        (
-                            r.seq,
-                            well_lookup
-                        )
-                    ]
+                    nanobody_autonames_lookup[(r.seq, well_lookup)]
                 )
             except ValueError:
                 nanobody_autonames.append("n/a (well unparseable)")
@@ -161,7 +161,8 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
                 if "elisa_optical_density" in usecols:
                     try:
                         elisa_optical_density.append(
-                            elisa_lookup[r.seq, well_lookup][1])
+                            elisa_lookup[r.seq, well_lookup][1]
+                        )
                     except KeyError:
                         elisa_optical_density.append("n/a (index not found)")
 
