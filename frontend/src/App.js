@@ -4,6 +4,7 @@ import HeadedPage from "./HeadedPage.js";
 import ListTable from "./crudtemplates/ListTable.js";
 import ViewObjectPage from "./crudtemplates/ViewObjectPage.js";
 import AddEditObjectPage from "./crudtemplates/AddEditObjectPage.js";
+import Useful from './crudtemplates/Trivia.js';
 import Dashboard from "./crudtemplates/Dashboard.js";
 import Tabs from "./crudtemplates/Tabs.js";
 import AuditLog from "./crudtemplates/AuditLog.js";
@@ -149,6 +150,9 @@ const App = () => {
 
   return (
     <>
+      <div>
+        <Useful />
+      </div>
       <div className="min-h-full">
         <Router>
           <Disclosure as="nav" className="bg-gray-800">
