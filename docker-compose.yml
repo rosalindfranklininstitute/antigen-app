@@ -33,6 +33,7 @@ services:
       UWSGI_OFFLOAD_THREADS: 2
       UWSGI_MODULE: antigendjango.wsgi:application
       DJANGO_SECRET_KEY: __insecure__ahTiicei4Quauk7d__
+      UV_CACHE_DIR: /tmp/uv-cache
   ws:
     container_name: antigenapp_ws
     image: registry.hub.docker.com/library/nginx:stable

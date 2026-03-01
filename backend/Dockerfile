@@ -71,4 +71,4 @@ USER nonroot
 COPY --from=blast /blast/ReleaseMT/bin/blastp /usr/local/bin/blastp
 COPY --from=blast /blast/ReleaseMT/bin/makeblastdb /usr/local/bin/makeblastdb
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
+CMD ["sh", "-c", "uv sync --frozen --no-install-project && exec python manage.py runserver 0.0.0.0:8080"]

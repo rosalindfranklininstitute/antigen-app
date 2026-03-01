@@ -43,13 +43,12 @@ dev = [
     { name = "flake8-isort" },
     { name = "isort" },
     { name = "pytest" },
-    { name = "pytest-black" },
+    { name = "pytest-black-ng" },
     { name = "pytest-cov" },
     { name = "pytest-django" },
     { name = "pytest-flake8" },
     { name = "pytest-mypy" },
     { name = "pytest-pydocstyle" },
-    { name = "types-pytz" },
 ]
 
 [package.metadata]
@@ -82,13 +81,12 @@ dev = [
     { name = "flake8-isort" },
     { name = "isort" },
     { name = "pytest" },
-    { name = "pytest-black" },
+    { name = "pytest-black-ng" },
     { name = "pytest-cov" },
     { name = "pytest-django" },
     { name = "pytest-flake8" },
     { name = "pytest-mypy" },
     { name = "pytest-pydocstyle" },
-    { name = "types-pytz" },
 ]
 
 [[package]]
@@ -1130,17 +1128,17 @@ wheels = [
 ]
 
 [[package]]
-name = "pytest-black"
-version = "0.6.0"
+name = "pytest-black-ng"
+version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "black" },
     { name = "pytest" },
     { name = "toml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/11/20/b0a2b3e1c09b61831d5c702d9e0579fc935e6a2527ce66dec1ba580a722b/pytest_black-0.6.0.tar.gz", hash = "sha256:ecb77455f379805cb4bd8f45a813a3754c3bbee3199adf1b3665c0dfd086b511", size = 6281, upload-time = "2024-12-15T17:15:26.329Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/91/25b9d8a1ae32f481f3584338b31be6599940bc1b7ff0898b3c1c6271e509/pytest-black-ng-0.4.1.tar.gz", hash = "sha256:20c1d671b2535e5cf6f8fe03d175887a04f549cb2455264bbb81150c941bd701", size = 6399, upload-time = "2022-10-20T09:49:58.928Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/0f/71303b06ef91f6e9447efb14cc37755b2224ff7109422fef125cb357d7d3/pytest_black-0.6.0-py3-none-any.whl", hash = "sha256:7eb747f54b6c997497b5cbc66a988be114b92016dbfa66d210d1d1f9f6b2dc76", size = 4592, upload-time = "2024-12-15T17:15:22.891Z" },
+    { url = "https://files.pythonhosted.org/packages/52/9e/8487c641eda9b272d11fdf1cfc7f27c8496b4c3dbe97ad8349fc68c7fbfc/pytest_black_ng-0.4.1-py3-none-any.whl", hash = "sha256:d4ef8945ff410e3cb915e82420a67256aaca4e9b60cc68c7da1cd3cc85c27315", size = 4410, upload-time = "2022-10-20T09:49:57.67Z" },
 ]
 
 [[package]]
@@ -1406,15 +1404,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/09/a9/6ba95a270c6f1fbcd8dac228323f2777d886cb206987444e4bce66338dd4/tqdm-4.67.3.tar.gz", hash = "sha256:7d825f03f89244ef73f1d4ce193cb1774a8179fd96f31d7e1dcde62092b960bb", size = 169598, upload-time = "2026-02-03T17:35:53.048Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/16/e1/3079a9ff9b8e11b846c6ac5c8b5bfb7ff225eee721825310c91b3b50304f/tqdm-4.67.3-py3-none-any.whl", hash = "sha256:ee1e4c0e59148062281c49d80b25b67771a127c85fc9676d3be5f243206826bf", size = 78374, upload-time = "2026-02-03T17:35:50.982Z" },
-]
-
-[[package]]
-name = "types-pytz"
-version = "2025.2.0.20251108"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/40/ff/c047ddc68c803b46470a357454ef76f4acd8c1088f5cc4891cdd909bfcf6/types_pytz-2025.2.0.20251108.tar.gz", hash = "sha256:fca87917836ae843f07129567b74c1929f1870610681b4c92cb86a3df5817bdb", size = 10961, upload-time = "2025-11-08T02:55:57.001Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e7/c1/56ef16bf5dcd255155cc736d276efa6ae0a5c26fd685e28f0412a4013c01/types_pytz-2025.2.0.20251108-py3-none-any.whl", hash = "sha256:0f1c9792cab4eb0e46c52f8845c8f77cf1e313cb3d68bf826aa867fe4717d91c", size = 10116, upload-time = "2025-11-08T02:55:56.194Z" },
 ]
 
 [[package]]

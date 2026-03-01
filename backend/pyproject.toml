@@ -29,9 +29,6 @@ dependencies = [
     "lxml[html_clean]",
 ]
 
-[project.scripts]
-antigenapp = "manage:main"
-
 [dependency-groups]
 dev = [
     "black",
@@ -39,12 +36,11 @@ dev = [
     "flake8",
     "pytest",
     "pytest-cov",
-    "pytest-black",
+    "pytest-black-ng",
     "pytest-django",
     "pytest-mypy",
     "pytest-flake8",
     "pytest-pydocstyle",
-    "types-pytz",
     "flake8-isort",
 ]
 
