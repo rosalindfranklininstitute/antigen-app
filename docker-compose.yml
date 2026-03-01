@@ -19,7 +19,7 @@ services:
       context: backend
       target: dev
       args:
-        PIPENV_SYNC_FLAGS: --dev
+        UV_SYNC_FLAGS: ""
     restart: always
     volumes:
       - api_venv:/usr/src/.venv

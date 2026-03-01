@@ -63,7 +63,7 @@ If you believe it looks like a bug, please open an issue in this repo. Please in
 
 To run the backend (Python+Django) test suite:
 
-    docker compose exec api pipenv run tests
+    docker compose exec api python -m pytest
 
 ### Tests - frontend
 
