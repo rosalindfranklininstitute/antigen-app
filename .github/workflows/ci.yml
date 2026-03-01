@@ -72,8 +72,17 @@ jobs:
       - name: Run frontend tests
         if: ${{ matrix.component == 'frontend' }}
         run: |
-          docker run --rm -e CI=true "${IMAGE_BASE}:dev" npm test
-          docker run --rm "${IMAGE_BASE}:dev" npx prettier --check .
+          docker run --name frontend-tests -e CI=true "${IMAGE_BASE}:dev" sh -c "npm test -- --coverage && npx prettier --check ."
+          docker cp frontend-tests:/antigenapp/coverage/lcov.info ./frontend/lcov.info
+          docker rm frontend-tests
+
+      - name: Upload frontend coverage to Codecov
+        if: ${{ matrix.component == 'frontend' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./frontend/lcov.info
+          flags: frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Push dev image tags
         if: ${{ github.event_name != 'pull_request' }}
