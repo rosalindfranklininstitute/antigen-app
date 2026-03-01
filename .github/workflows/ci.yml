@@ -39,7 +39,7 @@ jobs:
           context: ${{ matrix.component }}
           target: dev
           build-args: |
-            PIPENV_SYNC_FLAGS=--dev
+            UV_SYNC_FLAGS=
           platforms: linux/amd64
           load: true
           tags: antigen-app-dev-${{ matrix.component }}:latest
@@ -47,7 +47,7 @@ jobs:
       - name: Run backend tests
         if: ${{ matrix.component == 'backend' }}
         run: |
-          docker run --rm -e DJANGO_CI=true antigen-app-dev-backend:latest pipenv run tests
+          docker run --rm -e DJANGO_CI=true antigen-app-dev-backend:latest python -m pytest
 
       - name: Run frontend tests
         if: ${{ matrix.component == 'frontend' }}

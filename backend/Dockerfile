@@ -2,27 +2,31 @@ FROM quay.io/rosalindfranklininstitute/blast:2.16.0 AS blast
 
 FROM python:3.12-bookworm AS builder
 
-RUN pip install --upgrade pip wheel pipenv
+COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /usr/local/bin/uv
 
 RUN adduser --uid 10191 --group --system --no-create-home nonroot
 RUN chown -R nonroot:nonroot /usr/src
 USER nonroot
 WORKDIR /usr/src
 
-# Tell pipenv to create venv in the current directory
-ENV PIPENV_VENV_IN_PROJECT=1
+ENV UV_PROJECT_ENVIRONMENT=/usr/src/.venv
 ENV PATH="/usr/src/.venv/bin:$PATH"
 
-COPY Pipfile Pipfile.lock pyproject.toml setup.cfg /usr/src/
+COPY pyproject.toml uv.lock setup.cfg /usr/src/
 
-ARG PIPENV_SYNC_FLAGS=
-RUN pipenv sync ${PIPENV_SYNC_FLAGS}
+ARG UV_SYNC_FLAGS=--no-dev
+RUN --mount=type=cache,target=/usr/src/.uv-cache,uid=10191 \
+    UV_CACHE_DIR=/usr/src/.uv-cache \
+    uv sync --frozen --no-install-project ${UV_SYNC_FLAGS}
 
 COPY manage.py /usr/src/
 COPY antigendjango /usr/src/antigendjango
 COPY antigenapi /usr/src/antigenapi
+RUN --mount=type=cache,target=/usr/src/.uv-cache,uid=10191 \
+    UV_CACHE_DIR=/usr/src/.uv-cache \
+    uv sync --frozen --no-editable ${UV_SYNC_FLAGS}
 
-RUN DJANGO_CI=true .venv/bin/python manage.py collectstatic --noinput
+RUN DJANGO_CI=true python manage.py collectstatic --noinput
 
 FROM python:3.12-slim-bookworm AS prod
 
@@ -67,4 +71,4 @@ USER nonroot
 COPY --from=blast /blast/ReleaseMT/bin/blastp /usr/local/bin/blastp
 COPY --from=blast /blast/ReleaseMT/bin/makeblastdb /usr/local/bin/makeblastdb
 
-CMD ["pipenv", "run", "python", "manage.py", "runserver", "0.0.0.0:8080"]
+CMD ["sh", "-c", "uv sync --frozen --no-install-project && exec python manage.py runserver 0.0.0.0:8080"]

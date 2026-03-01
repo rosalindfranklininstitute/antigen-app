@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from pytz import UTC
+from datetime import UTC, datetime
 
 
 def time_ago(time):

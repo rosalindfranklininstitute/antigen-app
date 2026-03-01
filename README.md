@@ -49,6 +49,20 @@ To update the development environment:
     docker compose up -d --build
     docker compose exec api python manage.py migrate
 
+## Updating dependencies
+
+Dependency updates are normally handled automatically by Dependabot. The commands below are for reference when manually updating.
+
+Backend (Python):
+
+    docker compose exec api uv lock
+    docker compose restart api
+
+Frontend (npm):
+
+    docker run --rm -v ./frontend:/app -w /app node:22-alpine npm update
+    docker compose up -d --build
+
 ## Troubleshoot the development environment
 
 If you encounter an error when first running AntigenApp, please check that you've run the `migrate` command described earlier.
@@ -63,7 +77,7 @@ If you believe it looks like a bug, please open an issue in this repo. Please in
 
 To run the backend (Python+Django) test suite:
 
-    docker compose exec api pipenv run tests
+    docker compose exec api python -m pytest
 
 ### Tests - frontend
 

@@ -1,3 +1,51 @@
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "antigenapp"
+description = "A webapp for managing nanobody and antigen datasets"
+version = "0.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "django~=5.2.11",
+    "djangorestframework",
+    "django-auditlog",
+    "django-cleanup",
+    "django-cors-headers",
+    "django-guardian",
+    "django-filter",
+    "django-storages[s3]",
+    "boto3",
+    "numpy",
+    "uwsgi",
+    "xmlschema",
+    "openpyxl",
+    "psycopg2-binary",
+    "pandas",
+    "sentry-sdk",
+    "vquest",
+    "urllib3>2",
+    "lxml[html_clean]",
+]
+
+[dependency-groups]
+dev = [
+    "black",
+    "isort",
+    "flake8",
+    "pytest",
+    "pytest-cov",
+    "pytest-black-ng",
+    "pytest-django",
+    "pytest-mypy",
+    "pytest-flake8",
+    "pytest-pydocstyle",
+    "flake8-isort",
+]
+
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
+
+[tool.setuptools]
+include-package-data = false
