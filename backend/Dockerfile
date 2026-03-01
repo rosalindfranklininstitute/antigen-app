@@ -12,7 +12,7 @@ WORKDIR /usr/src
 ENV UV_PROJECT_ENVIRONMENT=/usr/src/.venv
 ENV PATH="/usr/src/.venv/bin:$PATH"
 
-COPY pyproject.toml uv.lock setup.cfg /usr/src/
+COPY pyproject.toml uv.lock /usr/src/
 
 ARG UV_SYNC_FLAGS=--no-dev
 RUN --mount=type=cache,target=/usr/src/.uv-cache,uid=10191 \

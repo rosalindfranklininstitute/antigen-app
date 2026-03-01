@@ -49,6 +49,11 @@ jobs:
           load: true
           tags: ${{ env.IMAGE_BASE }}:dev
 
+      - name: Run backend lint
+        if: ${{ matrix.component == 'backend' }}
+        run: |
+          docker run --rm "${IMAGE_BASE}:dev" sh -c "ruff check . && ruff format --check ."
+
       - name: Run backend tests
         if: ${{ matrix.component == 'backend' }}
         run: |

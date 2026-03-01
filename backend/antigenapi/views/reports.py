@@ -54,7 +54,6 @@ class ProjectReport(APIView):
             "library_set__cohort__antigens",
             "library_set__elisaplate_set",
         ):
-
             llama_names = "; ".join(
                 sorted(
                     list(

@@ -31,17 +31,11 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black",
-    "isort",
-    "flake8",
+    "ruff",
     "pytest",
     "pytest-cov",
-    "pytest-black-ng",
     "pytest-django",
     "pytest-mypy",
-    "pytest-flake8",
-    "pytest-pydocstyle",
-    "flake8-isort",
 ]
 
 [tool.setuptools.packages.find]
@@ -49,3 +43,48 @@ exclude = ["tests*"]
 
 [tool.setuptools]
 include-package-data = false
+
+[tool.ruff]
+line-length = 88
+exclude = ["migrations", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "D"]
+ignore = [
+    "E203",  # whitespace before ':'
+    "E231",  # missing whitespace after ','
+    "E702",  # multiple statements on one line
+    "D100",  # missing docstring in public module
+    "D101",  # missing docstring in public class
+    "D104",  # missing docstring in public package
+    "D107",  # missing docstring in __init__
+    "D417",  # missing argument descriptions in docstring
+    "D418",  # missing docstring in dunder method
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "F811"]
+"test_*.py" = ["D", "F811"]
+"conftest.py" = ["F811"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "antigendjango.settings"
+testpaths = ["antigendjango", "antigenapi"]
+norecursedirs = ["migrations"]
+python_files = ["tests.py", "test_*.py", "*_tests.py"]
+addopts = "--tb=native -vv --mypy --ds=antigendjango.settings --cov=. --cov-report term --cov-report xml:cov.xml"
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if sys.version_info",
+    "if TYPE_CHECKING",
+    "if False",
+    "pass",
+]

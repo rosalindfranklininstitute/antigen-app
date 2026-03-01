@@ -74,7 +74,6 @@ def get_db_fasta(
             for cdr3 in cdr3s:
                 fasta_data[f"CDR3: {cdr3}"] = cdr3
         else:
-
             for _, row in airr_file.iterrows():
                 seq_name = row.nanobody_autoname
                 if seq_name in ("n/a (index not found)", "n/a (well unparseable)"):
