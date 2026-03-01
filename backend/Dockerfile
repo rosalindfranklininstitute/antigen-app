@@ -1,6 +1,6 @@
 FROM quay.io/rosalindfranklininstitute/blast:2.16.0 AS blast
 
-FROM python:3.12-bookworm AS builder
+FROM python:3.14-bookworm AS builder
 
 COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /usr/local/bin/uv
 
@@ -28,7 +28,7 @@ RUN --mount=type=cache,target=/usr/src/.uv-cache,uid=10191 \
 
 RUN DJANGO_CI=true python manage.py collectstatic --noinput
 
-FROM python:3.12-slim-bookworm AS prod
+FROM python:3.14-slim-bookworm AS prod
 
 # liblmdb-dev and libgomp1 required by BLAST
 RUN apt-get update && apt-get install -y \
