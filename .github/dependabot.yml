@@ -12,6 +12,13 @@ updates:
     directory: "/backend"
     schedule:
       interval: "weekly"
+    ignore:
+      # Stay on Python 3.12 — uWSGI crashes on 3.13+ due to PyMutex_Unlock
+      # incompatibility with CPython's new mutex internals (free-threaded build).
+      # See: https://github.com/unbit/uwsgi/issues/2688
+      - dependency-name: "library/python"
+        update-types:
+          ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "docker"
     directory: "/frontend"
     schedule:
