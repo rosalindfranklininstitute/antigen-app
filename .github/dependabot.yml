@@ -4,6 +4,10 @@ updates:
     directory: "/backend"
     schedule:
       interval: "weekly"
+    ignore:
+      # Stay on Django 5.2 LTS
+      - dependency-name: "django"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "docker"
     directory: "/backend"
     schedule:
@@ -12,6 +16,10 @@ updates:
     directory: "/frontend"
     schedule:
       interval: "weekly"
+    ignore:
+      # Stay on Node 22 LTS
+      - dependency-name: "library/node"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
