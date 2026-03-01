@@ -1,4 +1,4 @@
-name: Build, test and push container
+name: Build, test and push dev container
 
 on:
   push:
@@ -8,19 +8,24 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ci-dev-${{ github.ref }}-${{ matrix.component }}
+      cancel-in-progress: true
     strategy:
       matrix:
         component: [backend, frontend]
+    env:
+      IMAGE_BASE: quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}
 
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -42,40 +47,23 @@ jobs:
             UV_SYNC_FLAGS=
           platforms: linux/amd64
           load: true
-          tags: antigen-app-dev-${{ matrix.component }}:latest
+          tags: ${{ env.IMAGE_BASE }}:dev
 
       - name: Run backend tests
         if: ${{ matrix.component == 'backend' }}
         run: |
-          docker run --rm -e DJANGO_CI=true antigen-app-dev-backend:latest python -m pytest
+          docker run --rm -e DJANGO_CI=true "${IMAGE_BASE}:dev" python -m pytest
 
       - name: Run frontend tests
         if: ${{ matrix.component == 'frontend' }}
         run: |
-          docker run --rm -e CI=true antigen-app-dev-frontend:latest npm test
-          docker run --rm antigen-app-dev-frontend:latest npx prettier --check .
+          docker run --rm -e CI=true "${IMAGE_BASE}:dev" npm test
+          docker run --rm "${IMAGE_BASE}:dev" npx prettier --check .
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}
-          # generate Docker tags based on the following events/attributes
-          tags: |
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-
-      - name: Build and push prod image
-        uses: docker/build-push-action@v6
-        with:
-          context: ${{ matrix.component }}
-          target: prod
-          platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Push dev image tags
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          docker tag "${IMAGE_BASE}:dev" "${IMAGE_BASE}:dev-${SHORT_SHA}"
+          docker push "${IMAGE_BASE}:dev"
+          docker push "${IMAGE_BASE}:dev-${SHORT_SHA}"
