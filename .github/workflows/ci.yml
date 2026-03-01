@@ -20,6 +20,8 @@ jobs:
     strategy:
       matrix:
         component: [backend, frontend]
+    env:
+      IMAGE_BASE: quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}
 
     steps:
       - name: Checkout Source
@@ -45,23 +47,22 @@ jobs:
             UV_SYNC_FLAGS=
           platforms: linux/amd64
           load: true
-          tags: quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}:dev
+          tags: ${{ env.IMAGE_BASE }}:dev
 
       - name: Run backend tests
         if: ${{ matrix.component == 'backend' }}
         run: |
-          docker run --rm -e DJANGO_CI=true quay.io/rosalindfranklininstitute/antigen-app-backend:dev python -m pytest
+          docker run --rm -e DJANGO_CI=true "${IMAGE_BASE}:dev" python -m pytest
 
       - name: Run frontend tests
         if: ${{ matrix.component == 'frontend' }}
         run: |
-          docker run --rm -e CI=true quay.io/rosalindfranklininstitute/antigen-app-frontend:dev npm test
-          docker run --rm quay.io/rosalindfranklininstitute/antigen-app-frontend:dev npx prettier --check .
+          docker run --rm -e CI=true "${IMAGE_BASE}:dev" npm test
+          docker run --rm "${IMAGE_BASE}:dev" npx prettier --check .
 
       - name: Push dev image tags
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          IMAGE_BASE=quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}
           SHORT_SHA="${GITHUB_SHA::7}"
           docker tag "${IMAGE_BASE}:dev" "${IMAGE_BASE}:dev-${SHORT_SHA}"
           docker push "${IMAGE_BASE}:dev"
