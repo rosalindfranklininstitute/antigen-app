@@ -63,7 +63,4 @@ jobs:
       - name: Push dev image tags
         if: ${{ github.event_name != 'pull_request' }}
         run: |
-          SHORT_SHA="${GITHUB_SHA::7}"
-          docker tag "${IMAGE_BASE}:dev" "${IMAGE_BASE}:dev-${SHORT_SHA}"
           docker push "${IMAGE_BASE}:dev"
-          docker push "${IMAGE_BASE}:dev-${SHORT_SHA}"
