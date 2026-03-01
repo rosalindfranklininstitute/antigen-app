@@ -54,9 +54,6 @@ ignore = [
     "E203",  # whitespace before ':'
     "E231",  # missing whitespace after ','
     "E702",  # multiple statements on one line
-    "E713",  # test for membership should be 'not in x'
-    "F811",  # redefinition of unused name
-    "F722",  # syntax error in forward annotation
     "D100",  # missing docstring in public module
     "D101",  # missing docstring in public class
     "D104",  # missing docstring in public package
@@ -66,8 +63,9 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D"]
-"test_*.py" = ["D"]
+"tests/**" = ["D", "F811"]
+"test_*.py" = ["D", "F811"]
+"conftest.py" = ["F811"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
