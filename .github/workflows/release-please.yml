@@ -59,10 +59,9 @@ jobs:
           images: |
             quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}
           tags: |
-            type=raw,value=${{ needs.release-please.outputs.tag_name }}
-            type=semver,pattern={{version}},value=${{ needs.release-please.outputs.tag_name }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ needs.release-please.outputs.tag_name }},enable=${{ !contains(needs.release-please.outputs.version, '-') }}
-            type=semver,pattern={{major}},value=${{ needs.release-please.outputs.tag_name }},enable=${{ !contains(needs.release-please.outputs.version, '-') }}
+            type=semver,pattern={{version}},prefix=v,value=${{ needs.release-please.outputs.tag_name }}
+            type=semver,pattern={{major}}.{{minor}},prefix=v,value=${{ needs.release-please.outputs.tag_name }},enable=${{ !contains(needs.release-please.outputs.version, '-') }}
+            type=semver,pattern={{major}},prefix=v,value=${{ needs.release-please.outputs.tag_name }},enable=${{ !contains(needs.release-please.outputs.version, '-') }}
             type=raw,value=latest,enable=${{ !contains(needs.release-please.outputs.version, '-') }}
 
       - name: Build and push prod image
