@@ -54,6 +54,7 @@ const AddEditObjectPage = (props) => {
         .then((res) => {
           if (res.status === 500) {
             setError(500);
+            setLoading(false);
           } else {
             res.json().then(
               (data) => {

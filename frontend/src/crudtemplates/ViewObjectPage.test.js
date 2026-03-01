@@ -1,0 +1,208 @@
+import React from "react";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import ViewObjectPage from "./ViewObjectPage";
+import { mockFetch, renderWithRouter } from "../testutils";
+import schemas from "../schema";
+
+jest.mock("@sentry/browser", () => ({
+  captureException: jest.fn(),
+  init: jest.fn(),
+}));
+
+const projectRecord = {
+  id: 1,
+  short_title: "PROJ-A",
+  title: "Alpha Project",
+  description: "A test project",
+  added_by: "alice",
+  added_date: "2024-01-15",
+};
+
+const defaultProps = {
+  schema: schemas.project,
+  csrfToken: "test-csrf",
+  onSetError: jest.fn(),
+};
+
+function renderViewPage(props = {}, { route, path } = {}) {
+  return renderWithRouter(<ViewObjectPage {...defaultProps} {...props} />, {
+    route: route || "/projects/1",
+    path: path || "/projects/:recordId",
+  });
+}
+
+describe("ViewObjectPage", () => {
+  afterEach(() => {
+    delete global.fetch;
+    jest.restoreAllMocks();
+  });
+
+  it("renders field labels from schema", async () => {
+    mockFetch({ "/project/1/": projectRecord });
+    renderViewPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("Short title")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Title")).toBeInTheDocument();
+    expect(screen.getByText("Description")).toBeInTheDocument();
+    expect(screen.getByText("Added by")).toBeInTheDocument();
+    expect(screen.getByText("Added date")).toBeInTheDocument();
+  });
+
+  it("renders field values from API data", async () => {
+    mockFetch({ "/project/1/": projectRecord });
+    renderViewPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("PROJ-A")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Alpha Project")).toBeInTheDocument();
+    expect(screen.getByText("A test project")).toBeInTheDocument();
+    expect(screen.getByText("alice")).toBeInTheDocument();
+    expect(screen.getByText("2024-01-15")).toBeInTheDocument();
+  });
+
+  it("renders the object name in heading and buttons", async () => {
+    mockFetch({ "/project/1/": projectRecord });
+    renderViewPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("Project Information")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Edit project")).toBeInTheDocument();
+    expect(screen.getByText("Delete project")).toBeInTheDocument();
+  });
+
+  it("renders Edit link pointing to edit URL", async () => {
+    mockFetch({ "/project/1/": projectRecord });
+    renderViewPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("Edit project")).toBeInTheDocument();
+    });
+    const editLink = screen.getByRole("link", { name: "Edit project" });
+    expect(editLink).toHaveAttribute("href", "/projects/1/edit");
+  });
+
+  it("opens delete confirmation dialog when Delete button is clicked", async () => {
+    mockFetch({ "/project/1/": projectRecord });
+    renderViewPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("Delete project")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("Delete project"));
+
+    expect(
+      screen.getByText("Are you sure you want to delete this project?"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Confirm Delete Project")).toBeInTheDocument();
+  });
+
+  it("calls DELETE endpoint when confirming delete", async () => {
+    mockFetch({
+      "/project/1/": (url, opts) => {
+        if (opts && opts.method === "DELETE") {
+          return Promise.resolve({
+            status: 204,
+            ok: true,
+            json: () => Promise.resolve({}),
+          });
+        }
+        return Promise.resolve({
+          status: 200,
+          ok: true,
+          json: () => Promise.resolve(projectRecord),
+        });
+      },
+    });
+
+    renderViewPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("Delete project")).toBeInTheDocument();
+    });
+
+    // Open dialog
+    await userEvent.click(screen.getByText("Delete project"));
+
+    // Confirm delete
+    await userEvent.click(screen.getByText("Delete Project"));
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining("/project/1/"),
+        expect.objectContaining({ method: "DELETE" }),
+      );
+    });
+  });
+
+  it("calls onSetError when GET returns 404", async () => {
+    const onSetError = jest.fn();
+    mockFetch({
+      "/project/1/": () =>
+        Promise.resolve({
+          status: 404,
+          ok: false,
+          json: () => Promise.resolve({ detail: "Not found" }),
+        }),
+    });
+
+    renderViewPage({ onSetError });
+
+    await waitFor(() => {
+      expect(onSetError).toHaveBeenCalledWith("404 object not found");
+    });
+  });
+
+  it("calls onSetError and Sentry when fetch throws", async () => {
+    const Sentry = require("@sentry/browser");
+    const onSetError = jest.fn();
+    const networkError = new TypeError("Failed to fetch");
+
+    global.fetch = jest.fn(() => Promise.reject(networkError));
+    renderViewPage({ onSetError });
+
+    await waitFor(() => {
+      expect(onSetError).toHaveBeenCalledWith("TypeError: Failed to fetch");
+    });
+    expect(Sentry.captureException).toHaveBeenCalledWith(networkError);
+  });
+
+  it("calls onSetError when DELETE returns error with message", async () => {
+    const onSetError = jest.fn();
+    mockFetch({
+      "/project/1/": (url, opts) => {
+        if (opts && opts.method === "DELETE") {
+          return Promise.resolve({
+            status: 400,
+            ok: false,
+            json: () =>
+              Promise.resolve({ message: "Cannot delete: has children" }),
+          });
+        }
+        return Promise.resolve({
+          status: 200,
+          ok: true,
+          json: () => Promise.resolve(projectRecord),
+        });
+      },
+    });
+
+    renderViewPage({ onSetError });
+
+    await waitFor(() => {
+      expect(screen.getByText("Delete project")).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByText("Delete project"));
+    await userEvent.click(screen.getByText("Delete Project"));
+
+    await waitFor(() => {
+      expect(onSetError).toHaveBeenCalledWith("Cannot delete: has children");
+    });
+  });
+});
