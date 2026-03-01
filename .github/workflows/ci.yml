@@ -52,7 +52,17 @@ jobs:
       - name: Run backend tests
         if: ${{ matrix.component == 'backend' }}
         run: |
-          docker run --rm -e DJANGO_CI=true "${IMAGE_BASE}:dev" python -m pytest
+          docker run --name backend-tests -e DJANGO_CI=true "${IMAGE_BASE}:dev" python -m pytest
+          docker cp backend-tests:/usr/src/cov.xml ./backend/cov.xml
+          docker rm backend-tests
+
+      - name: Upload backend coverage to Codecov
+        if: ${{ matrix.component == 'backend' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./backend/cov.xml
+          flags: backend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Run frontend tests
         if: ${{ matrix.component == 'frontend' }}
