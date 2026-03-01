@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.1](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.2.0...v0.2.1) (2026-03-01)
+
+
+### Bug Fixes
+
+* correct dependabot ignore rule to use 'python' not 'library/python' ([#199](https://github.com/rosalindfranklininstitute/antigen-app/issues/199)) ([5653ee7](https://github.com/rosalindfranklininstitute/antigen-app/commit/5653ee76c22ec653202728fce127e17570177632))
+* pin Python 3.12 in Dockerfile to fix uWSGI crash ([#192](https://github.com/rosalindfranklininstitute/antigen-app/issues/192)) ([07453af](https://github.com/rosalindfranklininstitute/antigen-app/commit/07453af58cc152da8a813ca2a220d46d5b4e8cbf))
+* **pre-commit:** disable prettier cache to avoid node_modules ([#190](https://github.com/rosalindfranklininstitute/antigen-app/issues/190)) ([5c33575](https://github.com/rosalindfranklininstitute/antigen-app/commit/5c33575aa6faf87c650d04f6914ad509d23b4408))
+
 ## [0.2.0](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.1.0...v0.2.0) (2026-03-01)
 
 
