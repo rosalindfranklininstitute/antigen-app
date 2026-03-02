@@ -42,9 +42,7 @@ describe("ViewObjectPage", () => {
     mockFetch({ "/project/1/": projectRecord });
     renderViewPage();
 
-    await waitFor(() => {
-      expect(screen.getByText("Short title")).toBeInTheDocument();
-    });
+    await screen.findByText("Short title");
     expect(screen.getByText("Title")).toBeInTheDocument();
     expect(screen.getByText("Description")).toBeInTheDocument();
     expect(screen.getByText("Added by")).toBeInTheDocument();
@@ -55,9 +53,7 @@ describe("ViewObjectPage", () => {
     mockFetch({ "/project/1/": projectRecord });
     renderViewPage();
 
-    await waitFor(() => {
-      expect(screen.getByText("PROJ-A")).toBeInTheDocument();
-    });
+    await screen.findByText("PROJ-A");
     expect(screen.getByText("Alpha Project")).toBeInTheDocument();
     expect(screen.getByText("A test project")).toBeInTheDocument();
     expect(screen.getByText("alice")).toBeInTheDocument();
@@ -68,9 +64,7 @@ describe("ViewObjectPage", () => {
     mockFetch({ "/project/1/": projectRecord });
     renderViewPage();
 
-    await waitFor(() => {
-      expect(screen.getByText("Project Information")).toBeInTheDocument();
-    });
+    await screen.findByText("Project Information");
     expect(screen.getByText("Edit project")).toBeInTheDocument();
     expect(screen.getByText("Delete project")).toBeInTheDocument();
   });
@@ -79,9 +73,7 @@ describe("ViewObjectPage", () => {
     mockFetch({ "/project/1/": projectRecord });
     renderViewPage();
 
-    await waitFor(() => {
-      expect(screen.getByText("Edit project")).toBeInTheDocument();
-    });
+    await screen.findByText("Edit project");
     const editLink = screen.getByRole("link", { name: "Edit project" });
     expect(editLink).toHaveAttribute("href", "/projects/1/edit");
   });
@@ -90,9 +82,7 @@ describe("ViewObjectPage", () => {
     mockFetch({ "/project/1/": projectRecord });
     renderViewPage();
 
-    await waitFor(() => {
-      expect(screen.getByText("Delete project")).toBeInTheDocument();
-    });
+    await screen.findByText("Delete project");
 
     await userEvent.click(screen.getByText("Delete project"));
 
@@ -122,9 +112,7 @@ describe("ViewObjectPage", () => {
 
     renderViewPage();
 
-    await waitFor(() => {
-      expect(screen.getByText("Delete project")).toBeInTheDocument();
-    });
+    await screen.findByText("Delete project");
 
     // Open dialog
     await userEvent.click(screen.getByText("Delete project"));
@@ -212,9 +200,7 @@ describe("ViewObjectPage", () => {
 
     renderViewPage({ onSetError });
 
-    await waitFor(() => {
-      expect(screen.getByText("Delete project")).toBeInTheDocument();
-    });
+    await screen.findByText("Delete project");
 
     await userEvent.click(screen.getByText("Delete project"));
     await userEvent.click(screen.getByText("Delete Project"));

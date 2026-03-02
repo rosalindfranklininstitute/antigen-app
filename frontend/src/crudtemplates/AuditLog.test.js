@@ -53,9 +53,7 @@ describe("AuditLog", () => {
     mockFetch({ "/project/1/auditlog/": auditLogData });
     renderAuditLog();
 
-    await waitFor(() => {
-      expect(screen.getByText(/alice/)).toBeInTheDocument();
-    });
+    await screen.findByText(/alice/);
     expect(screen.getByText(/alice@example.com/)).toBeInTheDocument();
     expect(screen.getByText(/bob/)).toBeInTheDocument();
     expect(screen.getByText(/bob@example.com/)).toBeInTheDocument();
@@ -65,9 +63,7 @@ describe("AuditLog", () => {
     mockFetch({ "/project/1/auditlog/": auditLogData });
     renderAuditLog();
 
-    await waitFor(() => {
-      expect(screen.getByText("created")).toBeInTheDocument();
-    });
+    await screen.findByText("created");
     expect(screen.getByText("updated")).toBeInTheDocument();
   });
 
@@ -75,9 +71,7 @@ describe("AuditLog", () => {
     mockFetch({ "/project/1/auditlog/": auditLogData });
     renderAuditLog();
 
-    await waitFor(() => {
-      expect(screen.getByText("Updated Title")).toBeInTheDocument();
-    });
+    await screen.findByText("Updated Title");
 
     expect(
       screen.getByText((_, element) => {
@@ -95,9 +89,7 @@ describe("AuditLog", () => {
     mockFetch({ "/project/1/auditlog/": auditLogData });
     renderAuditLog();
 
-    await waitFor(() => {
-      expect(screen.getByText("created")).toBeInTheDocument();
-    });
+    await screen.findByText("created");
 
     expect(
       screen.getByText((_, element) => {

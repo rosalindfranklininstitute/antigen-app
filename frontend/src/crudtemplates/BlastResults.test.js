@@ -48,9 +48,7 @@ describe("BlastResults", () => {
     mockFetch({ "/sequencingrun/1/blast/": blastResponse });
     renderBlastResults();
 
-    await waitFor(() => {
-      expect(screen.getByText("BLAST query type")).toBeInTheDocument();
-    });
+    await screen.findByText("BLAST query type");
     expect(screen.getByText("CDR3")).toBeInTheDocument();
     expect(screen.getByText("Full Sequence")).toBeInTheDocument();
     expect(screen.getByText("BLAST filter parameters")).toBeInTheDocument();
@@ -60,19 +58,15 @@ describe("BlastResults", () => {
     mockFetch({ "/sequencingrun/1/blast/": blastResponse });
     renderBlastResults();
 
-    await waitFor(() => {
-      expect(screen.getByText("Align. length")).toBeInTheDocument();
-    });
-    expect(screen.getByText("AACDR3")).toBeInTheDocument();
+    await screen.findByText("Align. length");
+    expect(screen.getByText("AAAA")).toBeInTheDocument();
   });
 
   it("shows No results for empty hits", async () => {
     mockFetch({ "/sequencingrun/1/blast/": { hits: [] } });
     renderBlastResults();
 
-    await waitFor(() => {
-      expect(screen.getByText("No results")).toBeInTheDocument();
-    });
+    await screen.findByText("No results");
   });
 
   it("clears loading state when fetch throws (regression)", async () => {

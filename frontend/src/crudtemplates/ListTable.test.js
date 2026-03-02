@@ -50,9 +50,7 @@ describe("ListTable", () => {
     mockFetch({ "/project/": projectRecords });
     renderListTable();
 
-    await waitFor(() => {
-      expect(screen.getByText("Short title")).toBeInTheDocument();
-    });
+    await screen.findByText("Short title");
     expect(screen.getByText("Title")).toBeInTheDocument();
     expect(screen.getByText("Description")).toBeInTheDocument();
   });
@@ -61,18 +59,14 @@ describe("ListTable", () => {
     mockFetch({ "/project/": projectRecords });
     renderListTable();
 
-    await waitFor(() => {
-      expect(screen.getByText("Projects")).toBeInTheDocument();
-    });
+    await screen.findByText("Projects");
   });
 
   it("renders rows from API data", async () => {
     mockFetch({ "/project/": projectRecords });
     renderListTable();
 
-    await waitFor(() => {
-      expect(screen.getByText("PROJ-A")).toBeInTheDocument();
-    });
+    await screen.findByText("PROJ-A");
     expect(screen.getByText("Alpha Project")).toBeInTheDocument();
     expect(screen.getByText("First project")).toBeInTheDocument();
     expect(screen.getByText("PROJ-B")).toBeInTheDocument();
@@ -83,9 +77,7 @@ describe("ListTable", () => {
     mockFetch({ "/project/": projectRecords });
     renderListTable();
 
-    await waitFor(() => {
-      expect(screen.getByText("PROJ-A")).toBeInTheDocument();
-    });
+    await screen.findByText("PROJ-A");
     const link = screen.getByRole("link", { name: "PROJ-A" });
     expect(link).toHaveAttribute("href", "/projects/1");
   });
@@ -94,18 +86,14 @@ describe("ListTable", () => {
     mockFetch({ "/project/": projectRecords });
     renderListTable();
 
-    await waitFor(() => {
-      expect(screen.getByText("Add project")).toBeInTheDocument();
-    });
+    await screen.findByText("Add project");
   });
 
   it("does not render Add button when readOnly", async () => {
     mockFetch({ "/project/": projectRecords });
     renderListTable({ readOnly: true });
 
-    await waitFor(() => {
-      expect(screen.getByText("PROJ-A")).toBeInTheDocument();
-    });
+    await screen.findByText("PROJ-A");
     expect(screen.queryByText("Add project")).not.toBeInTheDocument();
   });
 
@@ -113,11 +101,7 @@ describe("ListTable", () => {
     mockFetch({ "/project/": [] });
     renderListTable();
 
-    await waitFor(() => {
-      expect(
-        screen.getByText("No projects have been created yet"),
-      ).toBeInTheDocument();
-    });
+    await screen.findByText("No projects have been created yet");
   });
 
   it("calls onSetError when fetch returns HTTP error", async () => {
