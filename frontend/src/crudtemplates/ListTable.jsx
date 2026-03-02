@@ -12,9 +12,9 @@ const loadingSkeleton = [
 ];
 
 const randomWidth = () => {
-  let choices = [12, 16, 24, 32];
+  let choices = ["w-12", "w-16", "w-24", "w-32"];
   var index = Math.floor(Math.random() * choices.length);
-  return "w-" + choices[index];
+  return choices[index];
 };
 
 const ListTable = (props) => {
