@@ -50,9 +50,7 @@ describe("SequencingResults", () => {
     mockFetch({ "/sequencingrun/5/results/": resultsData });
     renderSeqResults();
 
-    await waitFor(() => {
-      expect(screen.getByText("Sequence ID")).toBeInTheDocument();
-    });
+    await screen.findByText("Sequence ID");
     expect(screen.getByText("Nb autoname")).toBeInTheDocument();
     expect(screen.getByText("Productive (Y/N)")).toBeInTheDocument();
     expect(screen.getByText("Stop Codon (Y/N)")).toBeInTheDocument();
@@ -69,9 +67,7 @@ describe("SequencingResults", () => {
     mockFetch({ "/sequencingrun/5/results/": resultsData });
     renderSeqResults();
 
-    await waitFor(() => {
-      expect(screen.getByText("SEQ001")).toBeInTheDocument();
-    });
+    await screen.findByText("SEQ001");
     expect(screen.getByText("Nb-001")).toBeInTheDocument();
     expect(screen.getByText("CDR3SEQ")).toBeInTheDocument();
     expect(screen.getByText("FULLSEQUENCE")).toBeInTheDocument();
@@ -81,9 +77,7 @@ describe("SequencingResults", () => {
     mockFetch({ "/sequencingrun/5/results/": { records: [] } });
     renderSeqResults();
 
-    await waitFor(() => {
-      expect(screen.getByText("No results")).toBeInTheDocument();
-    });
+    await screen.findByText("No results");
   });
 
   it("renders LoadingLlama before data loads", () => {

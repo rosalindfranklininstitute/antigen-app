@@ -72,9 +72,7 @@ describe("Dashboard", () => {
 
     renderDashboard();
 
-    await waitFor(() => {
-      expect(screen.getByText("5")).toBeInTheDocument();
-    });
+    await screen.findByText("5");
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("7")).toBeInTheDocument();
@@ -89,9 +87,7 @@ describe("Dashboard", () => {
 
     renderDashboard();
 
-    await waitFor(() => {
-      expect(screen.getByText("Projects")).toBeInTheDocument();
-    });
+    await screen.findByText("Projects");
     expect(screen.getByText("Antigens")).toBeInTheDocument();
     expect(screen.getByText("Llamas")).toBeInTheDocument();
     expect(screen.getByText("Sequencing Runs")).toBeInTheDocument();
@@ -106,9 +102,7 @@ describe("Dashboard", () => {
 
     renderDashboard();
 
-    await waitFor(() => {
-      expect(screen.getByText("alice (alice@example.com)")).toBeInTheDocument();
-    });
+    await screen.findByText("alice (alice@example.com)");
     expect(screen.getByText("bob (bob@example.com)")).toBeInTheDocument();
     expect(screen.getByText("Test Project")).toBeInTheDocument();
     expect(screen.getByText("Spike")).toBeInTheDocument();
@@ -122,9 +116,7 @@ describe("Dashboard", () => {
 
     renderDashboard();
 
-    await waitFor(() => {
-      expect(screen.getByText("create")).toBeInTheDocument();
-    });
+    await screen.findByText("create");
     expect(screen.getByText("update")).toBeInTheDocument();
   });
 
@@ -136,9 +128,7 @@ describe("Dashboard", () => {
 
     renderDashboard();
 
-    await waitFor(() => {
-      expect(screen.getByText("Test Project")).toBeInTheDocument();
-    });
+    await screen.findByText("Test Project");
     const projectLink = screen.getByRole("link", { name: "Test Project" });
     expect(projectLink).toHaveAttribute("href", "/projects/10");
 
@@ -154,9 +144,7 @@ describe("Dashboard", () => {
 
     renderDashboard();
 
-    await waitFor(() => {
-      expect(screen.getByText("Recent edits")).toBeInTheDocument();
-    });
+    await screen.findByText("Recent edits");
   });
 
   it("renders the download project report button", () => {
@@ -250,9 +238,7 @@ describe("Dashboard", () => {
 
     renderDashboard();
 
-    await waitFor(() => {
-      expect(screen.getByText("Deleted Project")).toBeInTheDocument();
-    });
+    await screen.findByText("Deleted Project");
     // Should not be a link since id is null
     expect(
       screen.queryByRole("link", { name: "Deleted Project" }),

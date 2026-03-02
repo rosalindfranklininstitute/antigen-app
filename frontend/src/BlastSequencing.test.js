@@ -84,9 +84,7 @@ describe("BlastSequencing", () => {
     await userEvent.type(input, "ACGTACGT");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-    await waitFor(() => {
-      expect(screen.getByText("50 (90%)")).toBeInTheDocument();
-    });
+    await screen.findByText("50 (90%)");
     expect(screen.getByText("2e-5")).toBeInTheDocument();
     expect(screen.getByText("150")).toBeInTheDocument();
   });

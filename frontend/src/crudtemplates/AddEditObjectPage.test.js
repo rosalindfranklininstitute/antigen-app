@@ -50,9 +50,7 @@ describe("AddEditObjectPage", () => {
       mockFetch({});
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Short title")).toBeInTheDocument();
-      });
+      await screen.findByText("Short title");
       expect(screen.getByText("Title")).toBeInTheDocument();
       expect(screen.getByText("Description")).toBeInTheDocument();
     });
@@ -61,9 +59,7 @@ describe("AddEditObjectPage", () => {
       mockFetch({});
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Short title")).toBeInTheDocument();
-      });
+      await screen.findByText("Short title");
       // "Added by" and "Added date" have hideOnForm: true
       expect(screen.queryByText("Added by")).not.toBeInTheDocument();
       expect(screen.queryByText("Added date")).not.toBeInTheDocument();
@@ -73,9 +69,7 @@ describe("AddEditObjectPage", () => {
       mockFetch({});
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Save")).toBeInTheDocument();
-      });
+      await screen.findByText("Save");
       expect(screen.getByText("Cancel")).toBeInTheDocument();
     });
 
@@ -83,9 +77,7 @@ describe("AddEditObjectPage", () => {
       mockFetch({});
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Short title")).toBeInTheDocument();
-      });
+      await screen.findByText("Short title");
 
       const textInputs = screen
         .getAllByRole("textbox")
@@ -97,9 +89,7 @@ describe("AddEditObjectPage", () => {
       mockFetch({});
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Description")).toBeInTheDocument();
-      });
+      await screen.findByText("Description");
 
       const textareas = screen
         .getAllByRole("textbox")
@@ -127,9 +117,7 @@ describe("AddEditObjectPage", () => {
 
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Save")).toBeInTheDocument();
-      });
+      await screen.findByText("Save");
 
       await userEvent.click(screen.getByText("Save"));
 
@@ -165,17 +153,11 @@ describe("AddEditObjectPage", () => {
 
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Save")).toBeInTheDocument();
-      });
+      await screen.findByText("Save");
 
       await userEvent.click(screen.getByText("Save"));
 
-      await waitFor(() => {
-        expect(
-          screen.getByText("Something went wrong overall."),
-        ).toBeInTheDocument();
-      });
+      await screen.findByText("Something went wrong overall.");
       expect(screen.getByText("This field is required.")).toBeInTheDocument();
     });
 
@@ -200,9 +182,7 @@ describe("AddEditObjectPage", () => {
 
       renderAddPage({ onSetError });
 
-      await waitFor(() => {
-        expect(screen.getByText("Save")).toBeInTheDocument();
-      });
+      await screen.findByText("Save");
 
       await userEvent.click(screen.getByText("Save"));
 
@@ -224,9 +204,7 @@ describe("AddEditObjectPage", () => {
 
       renderAddPage({ onSetError });
 
-      await waitFor(() => {
-        expect(screen.getByText("Save")).toBeInTheDocument();
-      });
+      await screen.findByText("Save");
 
       await userEvent.click(screen.getByText("Save"));
 
@@ -240,9 +218,7 @@ describe("AddEditObjectPage", () => {
       mockFetch({});
       renderAddPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("Cancel")).toBeInTheDocument();
-      });
+      await screen.findByText("Cancel");
 
       await userEvent.click(screen.getByText("Cancel"));
 
@@ -259,9 +235,7 @@ describe("AddEditObjectPage", () => {
       mockFetch({ "/project/1/": projectRecord });
       renderEditPage();
 
-      await waitFor(() => {
-        expect(screen.getByDisplayValue("PROJ-A")).toBeInTheDocument();
-      });
+      await screen.findByDisplayValue("PROJ-A");
 
       expect(screen.getByDisplayValue("Alpha Project")).toBeInTheDocument();
       expect(screen.getByDisplayValue("A test project")).toBeInTheDocument();
@@ -287,9 +261,7 @@ describe("AddEditObjectPage", () => {
 
       renderEditPage();
 
-      await waitFor(() => {
-        expect(screen.getByDisplayValue("PROJ-A")).toBeInTheDocument();
-      });
+      await screen.findByDisplayValue("PROJ-A");
 
       await userEvent.click(screen.getByText("Save"));
 
@@ -313,9 +285,7 @@ describe("AddEditObjectPage", () => {
 
       renderEditPage();
 
-      await waitFor(() => {
-        expect(screen.getByText("404 Not found")).toBeInTheDocument();
-      });
+      await screen.findByText("404 Not found");
     });
 
     it("enables Save when GET returns 500 after loading completes", async () => {
@@ -385,9 +355,7 @@ describe("AddEditObjectPage", () => {
         path: "/cohorts/add",
       });
 
-      await waitFor(() => {
-        expect(screen.getByText("Cohort no.")).toBeInTheDocument();
-      });
+      await screen.findByText("Cohort no.");
       expect(screen.getByText("Llama")).toBeInTheDocument();
       expect(screen.getByText("Is Naive?")).toBeInTheDocument();
       expect(screen.getByText("Immunisation date")).toBeInTheDocument();

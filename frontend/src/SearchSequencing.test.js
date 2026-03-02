@@ -80,9 +80,7 @@ describe("SearchSequencing", () => {
     await userEvent.type(input, "AARDVARK");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-    await waitFor(() => {
-      expect(screen.getByText("Nb-001")).toBeInTheDocument();
-    });
+    await screen.findByText("Nb-001");
     expect(screen.getByText("AARDVARK")).toBeInTheDocument();
     expect(screen.getByText("Nb-002")).toBeInTheDocument();
 
@@ -99,11 +97,7 @@ describe("SearchSequencing", () => {
     await userEvent.type(input, "XYZXYZ");
     await userEvent.click(screen.getByRole("button", { name: "Search" }));
 
-    await waitFor(() => {
-      expect(
-        screen.getByText(/no sequences found for XYZXYZ/i),
-      ).toBeInTheDocument();
-    });
+    await screen.findByText(/no sequences found for XYZXYZ/i);
   });
 
   it("calls onSetError when HTTP error occurs", async () => {

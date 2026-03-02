@@ -110,7 +110,7 @@ const AddEditObjectPage = (props) => {
               }
             },
             () => {
-              props.setError("[FT] HTTP code " + res.status);
+              props.onSetError("[FT] HTTP code " + res.status);
             },
           );
         })
