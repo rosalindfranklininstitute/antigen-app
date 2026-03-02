@@ -64,11 +64,21 @@ jobs:
             type=semver,pattern={{major}},prefix=v,value=${{ needs.release-please.outputs.tag_name }},enable=${{ !contains(needs.release-please.outputs.version, '-') }}
             type=raw,value=latest,enable=${{ !contains(needs.release-please.outputs.version, '-') }}
 
+      - name: Resolve component build args
+        id: build-args
+        run: |
+          if [ "${{ matrix.component }}" = "frontend" ]; then
+            printf 'value=VITE_SENTRY_DSN=%s\n' "$FRONTEND_SENTRY_DSN" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          FRONTEND_SENTRY_DSN: ${{ secrets.FRONTEND_SENTRY_DSN }}
+
       - name: Build and push prod image
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.component }}
           target: prod
+          build-args: ${{ steps.build-args.outputs.value }}
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

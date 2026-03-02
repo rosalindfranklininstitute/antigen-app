@@ -26,8 +26,25 @@ Serves the production build locally for testing.
 
 ## Environment Variables
 
-Vite exposes environment variables prefixed with `VITE_` via `import.meta.env`.
+### Build-time variables
+
+`VITE_*` variables are inlined into the JS bundle at build time by Vite. They must be
+set when running `docker build` (or `npm run build`), not at container runtime.
 
 | Variable          | Description                               |
 | ----------------- | ----------------------------------------- |
 | `VITE_SENTRY_DSN` | Sentry DSN for error reporting (optional) |
+
+To build a production image with Sentry enabled:
+
+```sh
+docker build --target prod --build-arg VITE_SENTRY_DSN=https://... -t antigenapp-frontend .
+```
+
+### Runtime variables
+
+These are applied by `nginx-check-env.sh` at container start via `sed` on `index.html`.
+
+| Variable      | Description                                                                                                                                                      |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ENVIRONMENT` | Deployment environment name (e.g. `staging`). When set to anything other than `production`, adds a `preproduction` CSS class to `<html>` for visual distinction. |
