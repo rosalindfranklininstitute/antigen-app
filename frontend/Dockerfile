@@ -14,6 +14,9 @@ CMD ["npm", "run", "dev", "--", "--host"]
 
 FROM dev AS build-stage
 
+ARG VITE_SENTRY_DSN
+ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
+
 RUN npm run build
 
 FROM nginx:stable-alpine AS prod
