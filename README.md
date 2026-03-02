@@ -83,7 +83,7 @@ To run the backend (Python+Django) test suite:
 
 To run the frontend test suite:
 
-    docker compose exec -e CI=true app npm test
+    docker compose exec app npx vitest run
 
 ### Running in production
 

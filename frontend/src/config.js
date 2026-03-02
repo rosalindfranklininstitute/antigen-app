@@ -10,5 +10,5 @@ const dev = {
   },
 };
 
-const config = process.env.NODE_ENV === "development" ? dev : prod;
+const config = import.meta.env.DEV ? dev : prod;
 export default config;

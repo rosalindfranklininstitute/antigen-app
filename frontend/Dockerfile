@@ -10,7 +10,7 @@ RUN npm install
 
 COPY . ${ANTIGENAPP_DIR}
 
-CMD ["npm", "start"]
+CMD ["npm", "run", "dev", "--", "--host"]
 
 FROM dev AS build-stage
 
