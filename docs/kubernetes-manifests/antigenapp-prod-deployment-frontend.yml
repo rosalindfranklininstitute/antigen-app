@@ -27,5 +27,5 @@ spec:
               path: /
               port: 3000
           env:
-            - name: REACT_APP_SENTRY_DSN
+            - name: VITE_SENTRY_DSN
               value: ...

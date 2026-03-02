@@ -72,7 +72,7 @@ jobs:
       - name: Run frontend tests
         if: ${{ matrix.component == 'frontend' }}
         run: |
-          docker run --name frontend-tests -e CI=true "${IMAGE_BASE}:dev" sh -c "npm test -- --coverage && npx prettier --check ."
+          docker run --name frontend-tests -e CI=true "${IMAGE_BASE}:dev" sh -c "npx vitest run --coverage && npx prettier --check ."
           docker cp frontend-tests:/antigenapp/coverage/lcov.info ./frontend/lcov.info
           docker rm frontend-tests
 
