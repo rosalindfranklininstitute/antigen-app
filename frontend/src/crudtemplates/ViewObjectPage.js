@@ -71,6 +71,8 @@ const ViewObjectPage = (props) => {
             (data) => {
               if (res.status === 404) {
                 props.onSetError("404 object not found");
+              } else if (res.status >= 400) {
+                props.onSetError("[VO] HTTP code " + res.status);
               } else {
                 setRecord(data);
               }

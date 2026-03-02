@@ -158,6 +158,24 @@ describe("ViewObjectPage", () => {
     });
   });
 
+  it("calls onSetError when GET returns non-404 HTTP error", async () => {
+    const onSetError = jest.fn();
+    mockFetch({
+      "/project/1/": () =>
+        Promise.resolve({
+          status: 500,
+          ok: false,
+          json: () => Promise.resolve({ detail: "Server error" }),
+        }),
+    });
+
+    renderViewPage({ onSetError });
+
+    await waitFor(() => {
+      expect(onSetError).toHaveBeenCalledWith("[VO] HTTP code 500");
+    });
+  });
+
   it("calls onSetError and Sentry when fetch throws", async () => {
     const Sentry = require("@sentry/browser");
     const onSetError = jest.fn();

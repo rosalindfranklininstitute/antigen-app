@@ -54,6 +54,7 @@ const BlastResults = (props) => {
       .catch((err) => {
         Sentry.captureException(err);
         props.onSetError(err.toString());
+        setIsLoading(false);
       });
   };
 
