@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.0](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.2.1...v0.3.0) (2026-03-02)
+
+
+### Features
+
+* **frontend:** migrate from CRA to Vite, upgrade to React 19 and React Router 7 ([#204](https://github.com/rosalindfranklininstitute/antigen-app/issues/204)) ([8d1c3b8](https://github.com/rosalindfranklininstitute/antigen-app/commit/8d1c3b85f98db984700b6e3c25f735cdcf1cad96))
+* **frontend:** upgrade Tailwind CSS v3 to v4 ([#206](https://github.com/rosalindfranklininstitute/antigen-app/issues/206)) ([f6c853b](https://github.com/rosalindfranklininstitute/antigen-app/commit/f6c853ba4a335f2ade0e1d96ec02782f822cd17f))
+
+
+### Bug Fixes
+
+* **frontend:** fix minor frontend error handling bugs ([#203](https://github.com/rosalindfranklininstitute/antigen-app/issues/203)) ([1ee62b2](https://github.com/rosalindfranklininstitute/antigen-app/commit/1ee62b240c0d22fb9ce13d56affb42646986a441))
+* **frontend:** pass VITE_SENTRY_DSN as a Docker build arg, not a runtime env var ([#205](https://github.com/rosalindfranklininstitute/antigen-app/issues/205)) ([29c9e79](https://github.com/rosalindfranklininstitute/antigen-app/commit/29c9e791a05714b4567f414e621b84bca5b86021))
+* **frontend:** reset edit loading on 500 and expand test coverage ([#202](https://github.com/rosalindfranklininstitute/antigen-app/issues/202)) ([20af1ee](https://github.com/rosalindfranklininstitute/antigen-app/commit/20af1ee5e6ea88fb3b2e513137a3e4dcd58d24c2))
+
+
+### Miscellaneous
+
+* make chore commits releasable in release-please ([#200](https://github.com/rosalindfranklininstitute/antigen-app/issues/200)) ([1749ad6](https://github.com/rosalindfranklininstitute/antigen-app/commit/1749ad6fee4c995b0712f57aec85902235f4e584))
+
 ## [0.2.1](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.2.0...v0.2.1) (2026-03-01)
 
 
