@@ -19,7 +19,7 @@ function useQuery() {
 }
 
 const LoadingSkeleton = () => (
-  <div className="h-7 w-full bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+  <div className="h-7 w-full bg-gray-300 rounded-full mb-2.5 rounded-sm shadow-sm animate-pulse"></div>
 );
 
 const AddEditObjectPage = (props) => {
@@ -276,13 +276,13 @@ const AddEditObjectPage = (props) => {
             dialogMessage="Leave this page and discard any changes?"
           />
           {formErrors["non_field_errors"] && (
-            <ul className="p-4 mb-4 block w-full bg-red-100 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md">
+            <ul className="p-4 mb-4 block w-full bg-red-100 border-red-300 text-red-900 placeholder-red-300 focus:outline-hidden focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md">
               {formErrors["non_field_errors"].map((err) => (
                 <li key={err}>{err}</li>
               ))}
             </ul>
           )}
-          <div className="bg-white shadow overflow-y-visible sm:rounded-lg">
+          <div className="bg-white shadow-sm overflow-y-visible sm:rounded-lg">
             <form id="recordForm">
               <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
                 <dl className="sm:divide-y sm:divide-gray-200">
@@ -322,7 +322,7 @@ const AddEditObjectPage = (props) => {
                                   autoComplete={field.field + "Field"}
                                   className={classNames(
                                     formErrors[field.field]
-                                      ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                                      ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-hidden focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
                                       : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300",
                                   )}
                                   defaultValue={record[field.field]}
@@ -340,7 +340,7 @@ const AddEditObjectPage = (props) => {
                                     record[field.field] === true
                                       ? "bg-indigo-600"
                                       : "bg-gray-200",
-                                    "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2",
+                                    "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2",
                                   )}
                                 >
                                   <span className="sr-only">Use setting</span>
@@ -350,7 +350,7 @@ const AddEditObjectPage = (props) => {
                                       record[field.field] === true
                                         ? "translate-x-5"
                                         : "translate-x-0",
-                                      "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                                      "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out",
                                     )}
                                   />
                                 </Switch>
@@ -386,7 +386,7 @@ const AddEditObjectPage = (props) => {
                                         <p>{record[field.field].toString()}</p>
                                         <button
                                           type="button"
-                                          className="inline-flex my-2 justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                          className="inline-flex my-2 justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                                           onClick={() =>
                                             setFormValue(field.field, null)
                                           }
@@ -431,7 +431,7 @@ const AddEditObjectPage = (props) => {
                                       disabled
                                       className={classNames(
                                         formErrors[field.field]
-                                          ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                                          ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-hidden focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
                                           : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300",
                                       )}
                                       defaultValue={
@@ -468,8 +468,8 @@ const AddEditObjectPage = (props) => {
                                   rows={3}
                                   className={classNames(
                                     formErrors[field.field]
-                                      ? "max-w shadow-sm block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                                      : "max-w shadow-sm block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md",
+                                      ? "max-w shadow-xs block w-full  border-red-300 text-red-900 placeholder-red-300 focus:outline-hidden focus:ring-red-500 focus:border-red-500"
+                                      : "max-w shadow-xs block w-full focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border border-gray-300 rounded-md",
                                   )}
                                   defaultValue={record[field.field]}
                                 />
@@ -482,7 +482,7 @@ const AddEditObjectPage = (props) => {
                                   id={field.field + "Field"}
                                   className={classNames(
                                     formErrors[field.field]
-                                      ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
+                                      ? "block w-full pr-10 border-red-300 text-red-900 placeholder-red-300 focus:outline-hidden focus:ring-red-500 focus:border-red-500 sm:text-sm rounded-md"
                                       : "flex-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300",
                                   )}
                                   defaultValue={record[field.field]}
@@ -534,7 +534,7 @@ const AddEditObjectPage = (props) => {
             <div className="flex justify-end">
               <button
                 type="button"
-                className="w-full sm:w-auto bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="w-full sm:w-auto bg-white py-2 px-4 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 onClick={cancelForm}
               >
                 Cancel
@@ -542,7 +542,7 @@ const AddEditObjectPage = (props) => {
               <button
                 type="submit"
                 disabled={saveInProgress || loading}
-                className="w-full sm:w-auto ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                className="w-full sm:w-auto ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                 onClick={submitForm}
               >
                 {saveInProgress ? "Saving..." : "Save"}
