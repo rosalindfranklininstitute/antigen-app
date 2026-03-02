@@ -124,7 +124,7 @@ const SearchSequencing = (props) => {
                         ? "opacity-50 cursor-not-allowed"
                         : "cursor-pointer"
                     }
-                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`
+                    focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2`
                   }
                 >
                   {option.name}
@@ -137,7 +137,7 @@ const SearchSequencing = (props) => {
           <label>Run search</label>
           <button
             type="button"
-            className="mt-2 w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="mt-2 w-full items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             onClick={runSearch}
           >
             Search
@@ -150,7 +150,7 @@ const SearchSequencing = (props) => {
       <div className="mt-8 flex flex-col">
         <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
           <div className="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <div className="overflow-hidden shadow-sm ring-1 ring-black/5 md:rounded-lg">
               <table className="min-w-full divide-y divide-gray-300 table-fixed">
                 <thead className="bg-gray-50">
                   <tr>
@@ -201,7 +201,7 @@ const SearchSequencing = (props) => {
                           {loading && (
                             <div
                               className={
-                                " h-2.5 bg-gray-300 rounded-full mb-2.5 rounded shadow animate-pulse"
+                                " h-2.5 bg-gray-300 rounded-full mb-2.5 rounded-sm shadow-sm animate-pulse"
                               }
                             ></div>
                           )}

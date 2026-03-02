@@ -93,7 +93,7 @@ const AuditLog = (props) => {
   }
 
   return (
-    <div className="overflow-hidden bg-white shadow sm:rounded-lg p-10">
+    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg p-10">
       <div className="flow-root">
         <ul className="-mb-8">
           {!auditLog && "Loading..."}
@@ -118,7 +118,7 @@ const AuditLog = (props) => {
                       <span
                         className={classNames(
                           auditLogIconColours[logEntry.action] ||
-                            "bg-gray-300 shadow animate-pulse",
+                            "bg-gray-300 shadow-sm animate-pulse",
                           "h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white",
                         )}
                       >
@@ -158,9 +158,9 @@ const AuditLog = (props) => {
                       <div>
                         {loading && (
                           <>
-                            <div className="mt-2 h-2.5 bg-gray-300 w-96 rounded-full rounded shadow animate-pulse"></div>
+                            <div className="mt-2 h-2.5 bg-gray-300 w-96 rounded-full rounded-sm shadow-sm animate-pulse"></div>
                             <br />
-                            <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                            <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded-sm shadow-sm animate-pulse"></div>
                           </>
                         )}
                         {!loading && (
@@ -255,9 +255,9 @@ const AuditLog = (props) => {
                         <time dateTime={logEntry.timestamp}>
                           {loading && (
                             <>
-                              <div className="h-2.5 mt-1 bg-gray-300 w-36 rounded-full rounded shadow animate-pulse"></div>
+                              <div className="h-2.5 mt-1 bg-gray-300 w-36 rounded-full rounded-sm shadow-sm animate-pulse"></div>
                               <br />
-                              <div className="h-2.5 bg-gray-300 w-18 rounded-full -mt-2 ml-12 mb-2.5 rounded shadow animate-pulse"></div>
+                              <div className="h-2.5 bg-gray-300 w-18 rounded-full -mt-2 ml-12 mb-2.5 rounded-sm shadow-sm animate-pulse"></div>
                             </>
                           )}
                           {!loading && formatDate(logEntry.timestamp)}

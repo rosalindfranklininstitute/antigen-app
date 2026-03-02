@@ -93,7 +93,7 @@ const ViewObjectPage = (props) => {
   }, [props, recordId]);
 
   return (
-    <div className="overflow-hidden bg-white shadow sm:rounded-lg">
+    <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
       <OkCancelDialog
         open={dialogOpen}
         setOpen={setDialogOpen}
@@ -115,14 +115,14 @@ const ViewObjectPage = (props) => {
         <NavLink to={props.schema.viewUrl + "/" + recordId + "/edit"}>
           <button
             type="button"
-            className="w-full sm:w-auto mb-2 sm:mb-0 relative float-right inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="w-full sm:w-auto mb-2 sm:mb-0 relative float-right inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Edit {props.schema.objectName}
           </button>
         </NavLink>
         <button
           type="button"
-          className="w-full sm:w-auto float-right mb-4 sm:mb-0 sm:mr-2 inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          className="w-full sm:w-auto float-right mb-4 sm:mb-0 sm:mr-2 inline-flex items-center justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           onClick={() => setDialogOpen(true)}
         >
           Delete {props.schema.objectName}
@@ -144,7 +144,7 @@ const ViewObjectPage = (props) => {
                 <dt className="text-sm font-medium text-gray-500">
                   {field.label}
                 </dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 break-words whitespace-pre-wrap">
+                <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 wrap-break-word whitespace-pre-wrap">
                   {!loading &&
                     displayField(field, record, "ViewObjectPage", {
                       setRecord: setRecord,
@@ -152,7 +152,7 @@ const ViewObjectPage = (props) => {
                       setError: props.onSetError,
                     })}
                   {loading && (
-                    <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded shadow animate-pulse"></div>
+                    <div className="h-2.5 bg-gray-300 w-12 rounded-full mb-2.5 rounded-sm shadow-sm animate-pulse"></div>
                   )}
                 </dd>
               </div>

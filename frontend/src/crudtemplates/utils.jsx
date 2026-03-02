@@ -189,7 +189,7 @@ export const displayFieldSingle = (field, record, context, props) => {
         >
           <button
             type="button"
-            className="w-full sm:w-auto mr-2 mt-2 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
+            className="w-full sm:w-auto mr-2 mt-2 inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
           >
             Download plate (.tsv)
           </button>
@@ -240,7 +240,7 @@ export const displayFieldSingle = (field, record, context, props) => {
         >
           <button
             type="button"
-            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Download sequencing submission file (.xlsx)
           </button>
@@ -250,7 +250,7 @@ export const displayFieldSingle = (field, record, context, props) => {
         <label
           key={"resultsFileUpload" + p}
           type="button"
-          className="w-full cursor-pointer sm:w-auto mb-2 mt-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+          className="w-full cursor-pointer sm:w-auto mb-2 mt-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-teal-700 focus:outline-hidden focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
         >
           <input
             type="file"
@@ -281,7 +281,7 @@ export const displayFieldSingle = (field, record, context, props) => {
         >
           <button
             type="button"
-            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Download plate layout (.tsv)
           </button>
@@ -303,7 +303,7 @@ export const displayFieldSingle = (field, record, context, props) => {
           >
             <button
               type="button"
-              className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               Download sequencing results file (.zip)
             </button>
@@ -325,7 +325,7 @@ export const displayFieldSingle = (field, record, context, props) => {
           >
             <button
               type="button"
-              className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              className="w-full sm:w-auto mb-2 mt-2 mr-2 sm:mb-0 relative inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               Download IMGT AIRR file (.tsv)
             </button>
