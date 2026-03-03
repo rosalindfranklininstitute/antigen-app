@@ -1047,9 +1047,6 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Ensure we have the right columns in the right order
         df = df.loc[:, list(AIRR_IMPORTANT_COLUMNS) + ["nanobody_autoname"]]
 
-        # Set index and replace NaN with None (null in JSON)
-        df = df.replace({np.nan: None})
-
         # Indicator to show when cdr3 has changed from previous row
         df["new_cdr3"] = df["cdr3_aa"].shift(1).ne(df["cdr3_aa"])
 
@@ -1062,6 +1059,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         )
         df["sequence"] = sequences
         df = df.drop("sequence_alignment_aa", axis=1)
+
+        # Replace NaN with None (null in JSON) - must be done AFTER all column
+        # processing, as str operations on None/NaN values re-introduce NaN
+        df = df.replace({np.nan: None})
 
         return JsonResponse({"records": df.to_dict(orient="records")})
 
