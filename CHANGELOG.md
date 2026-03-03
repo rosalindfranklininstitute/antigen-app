@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.1...v0.3.2) (2026-03-03)
+
+
+### Bug Fixes
+
+* **frontend:** ensure plate map values fit in cells ([#209](https://github.com/rosalindfranklininstitute/antigen-app/issues/209)) ([fb6824f](https://github.com/rosalindfranklininstitute/antigen-app/commit/fb6824f5dbe30d366f47be8b12c9d38bb13a1f3d))
+
 ## [0.3.1](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.0...v0.3.1) (2026-03-03)
 
 
