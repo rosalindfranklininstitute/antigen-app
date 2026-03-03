@@ -53,7 +53,7 @@ const displayTogetherFieldTypes = [
 
 export const plateMapOfValues = (elisaValues, colors) => {
   return (
-    <table className="w-full table-fixed border-collapse border border-slate-500 mt-4">
+    <table className="w-full table-fixed border-collapse border border-slate-500 mt-4 text-center">
       <thead>
         <tr>
           {elisaHeader.map((header) => (
@@ -469,4 +469,13 @@ export const validateSeq = (value, minLength) => {
     return "Search query must contain A-Z letters only";
   }
   return null;
+};
+
+export const limitToNDigits = (n, digLimit) => {
+  if (typeof n === "undefined" || n === null) return n;
+  n = Number(n);
+  if (isNaN(n)) return n;
+  const intDigits = String(Math.floor(Math.abs(n))).length;
+  if (intDigits >= digLimit) return n.toPrecision(digLimit);
+  return n.toFixed(digLimit - intDigits);
 };
