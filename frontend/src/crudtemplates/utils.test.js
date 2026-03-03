@@ -4,6 +4,7 @@ import {
   pluralise,
   timeSince,
   validateSeq,
+  limitToNDigits,
 } from "./utils";
 
 describe("getCookie", () => {
@@ -121,5 +122,97 @@ describe("validateSeq", () => {
 
   it("accepts lowercase letters", () => {
     expect(validateSeq("abcdef", 3)).toBeNull();
+  });
+});
+
+describe("limitToNDigits", () => {
+  it("returns undefined for undefined input", () => {
+    expect(limitToNDigits(undefined, 4)).toBeUndefined();
+  });
+
+  it("returns null for null input", () => {
+    expect(limitToNDigits(null, 4)).toBeNull();
+  });
+
+  it("returns NaN for a non-numeric string", () => {
+    expect(limitToNDigits("abc", 4)).toBeNaN();
+  });
+
+  it("uses toFixed when integer digits are fewer than digLimit (1-digit integer)", () => {
+    // intDigits=1, digLimit=4 → toFixed(3)
+    expect(limitToNDigits(1.23456, 4)).toBe("1.235");
+  });
+
+  it("uses toFixed when integer digits are fewer than digLimit (2-digit integer)", () => {
+    // intDigits=2, digLimit=4 → toFixed(2)
+    expect(limitToNDigits(12.3456, 4)).toBe("12.35");
+  });
+
+  it("uses toFixed when integer digits are fewer than digLimit (3-digit integer)", () => {
+    // intDigits=3, digLimit=4 → toFixed(1)
+    expect(limitToNDigits(123.456, 4)).toBe("123.5");
+  });
+
+  it("uses toPrecision when integer digits equal digLimit", () => {
+    // intDigits=4, digLimit=4 → toPrecision(4)
+    expect(limitToNDigits(1234.56, 4)).toBe("1235");
+  });
+
+  it("uses toPrecision (exponential) when integer digits exceed digLimit", () => {
+    // intDigits=5, digLimit=4 → toPrecision(4) → exponential notation
+    expect(limitToNDigits(12345.6, 4)).toBe("1.235e+4");
+  });
+
+  it("pads with trailing zeros when value has fewer decimal places than needed", () => {
+    // intDigits=1, digLimit=4 → toFixed(3) → "1.000"
+    expect(limitToNDigits(1, 4)).toBe("1.000");
+  });
+
+  it("handles zero", () => {
+    // intDigits=1 (String(0).length), digLimit=4 → toFixed(3)
+    expect(limitToNDigits(0, 4)).toBe("0.000");
+  });
+
+  it("handles negative numbers (uses Math.abs for digit count)", () => {
+    // intDigits=1, digLimit=4 → toFixed(3)
+    expect(limitToNDigits(-1.5, 4)).toBe("-1.500");
+  });
+
+  it("handles negative numbers when integer digits equal digLimit", () => {
+    // intDigits=4, digLimit=4 → toPrecision(4)
+    expect(limitToNDigits(-1234.56, 4)).toBe("-1235");
+  });
+
+  it("accepts numeric strings", () => {
+    expect(limitToNDigits("1.23456", 4)).toBe("1.235");
+  });
+
+  it("works with a digLimit of 2", () => {
+    // intDigits=1, digLimit=2 → toFixed(1)
+    expect(limitToNDigits(1.23, 2)).toBe("1.2");
+  });
+
+  // 0 < n < 1: Math.floor(Math.abs(n)) === 0, so intDigits is always 1,
+  // and the path is always toFixed(digLimit - 1).
+  it("pads trailing zeros for fractional values less than 1", () => {
+    expect(limitToNDigits(0.5, 4)).toBe("0.500");
+  });
+
+  it("pads trailing zeros for fractional values with one significant decimal", () => {
+    expect(limitToNDigits(0.1, 4)).toBe("0.100");
+  });
+
+  it("truncates fractional values that exceed digLimit decimal places", () => {
+    expect(limitToNDigits(0.123456, 4)).toBe("0.123");
+  });
+
+  it("loses significant digits for very small fractions that underflow the precision", () => {
+    // 0.0001 → toFixed(3) → all significant digits fall below the cutoff
+    expect(limitToNDigits(0.0001, 4)).toBe("0.000");
+  });
+
+  it("rounds up when rounding crosses the integer boundary", () => {
+    // 0.9999 → toFixed(3) rounds up to 1.000
+    expect(limitToNDigits(0.9999, 4)).toBe("1.000");
   });
 });

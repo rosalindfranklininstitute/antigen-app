@@ -1,6 +1,6 @@
 import ComboBox from "./ComboBox";
 import config from "../config.js";
-import { plateMapOfValues } from "./utils.jsx";
+import { plateMapOfValues, limitToNDigits } from "./utils.jsx";
 import { useState, useEffect } from "react";
 import { Field, Label, Switch } from "@headlessui/react";
 import * as Sentry from "@sentry/browser";
@@ -173,7 +173,9 @@ const SequencingPlateLayout = (props) => {
               {plateMapOfValues(
                 elisaPlates
                   .find((plate) => plate.id === thr.elisa_plate)
-                  .elisawell_set.map((well) => well.optical_density),
+                  .elisawell_set.map((well) =>
+                    limitToNDigits(well.optical_density, 4),
+                  ),
                 wellColors(
                   props.wells
                     .filter((well) => well.elisa_well.plate === thr.elisa_plate)
