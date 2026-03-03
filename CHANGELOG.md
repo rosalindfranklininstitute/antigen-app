@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.0...v0.3.1) (2026-03-03)
+
+
+### Bug Fixes
+
+* **backend:** fix invalid JSON with null sequences ([#207](https://github.com/rosalindfranklininstitute/antigen-app/issues/207)) ([92f2fb1](https://github.com/rosalindfranklininstitute/antigen-app/commit/92f2fb1420dd58d6864af83fc77e547c31f4a5e6))
+
 ## [0.3.0](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.2.1...v0.3.0) (2026-03-02)
 
 
