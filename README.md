@@ -2,7 +2,22 @@
 
 ## Introduction
 
-AntigenApp is a laboratory data management system to capture, store and share nanobody experimental data. It consists of a web application (Python backend, React frontend, Postgres database) which can store data on projects, antigens, llamas, cohorts, libraries, ELISA assays and nanobody sequencing results.
+AntigenApp is a laboratory data management system for nanobody generation and sequence analysis. Nanobodies are single-domain antibodies derived from the heavy chain-only immunoglobulins of camelids, with broad applications in biosciences as imaging probes, diagnostic agents, and research tools. Generating nanobodies is a multi-stage experimental process: immunisation, library construction, ELISA screening, sequencing, and hit selection. Keeping track of data across these stages is a recurring challenge for nanobody groups.
+
+AntigenApp provides a centralised web application and database that captures data at every step of the nanobody discovery pipeline. It is built with a Python/Django backend, React frontend, and PostgreSQL database, and is designed for straightforward self-hosting with Docker Compose or Kubernetes.
+
+AntigenApp was published in the _Bioinformatics_ journal. Please read the article to learn more: https://doi.org/10.1093/bioinformatics/btaf642
+
+## Features
+
+- **Project and sample tracking** — organise work by project, antigen, llama, and immunisation cohort, with a full audit log on every record
+- **Library management** — record panning libraries derived from each cohort
+- **ELISA data capture** — store optical density measurements per well for 96-well plates, with configurable thresholds for hit selection
+- **Sequencing run management** — configure plate layouts with per-plate OD thresholds, and record nanobody sequencing results against wells
+- **Automatic nanobody naming** — a standardised naming convention is applied automatically to nanobodies as they are stored
+- **Sequence search and clustering** — search or BLAST against all stored nanobody sequences directly from the interface
+- **FASTA export** — download the full nanobody database as a FASTA file
+- **Audit log** — every record change is tracked with user and timestamp
 
 ## Running the app
 
@@ -98,3 +113,12 @@ AntigenApp could be run in production using Docker Compose or Kubernetes. In bot
 For Kubernetes, see the [example manifests](docs/kubernetes-manifests) which give a scaffold for
 configuring AntigenApp with ingress-nginx, CruncyData's Postgres Operator, OIDC authentication and
 an S3 bucket. These manifests can be adapted to integrate your organisations infrastructure.
+
+## Citation
+
+If you use AntigenApp in your research, please cite:
+
+> Lubbock ALR, Eyssen LE-A, Parker K, Basham M, Shemilt LA, Owens RJ.
+> AntigenApp: a laboratory data management system for nanobody generation and sequence analysis.
+> _Bioinformatics_. 2025;41(12):btaf642.
+> https://doi.org/10.1093/bioinformatics/btaf642

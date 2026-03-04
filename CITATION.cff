@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite the accompanying journal article.
+title: AntigenApp
+abstract: >-
+  A laboratory data management system for nanobody generation and sequence
+  analysis. AntigenApp is a web application and database that captures data
+  generated during all steps of the nanobody discovery pipeline and provides
+  built-in analysis capabilities including ELISA optical density measurements,
+  sequencing results, nanobody domain labelling, and search/clustering via
+  protein BLAST.
+authors:
+  - family-names: Lubbock
+    given-names: Alexander L R
+  - family-names: Eyssen
+    given-names: Lauren E-A
+  - family-names: Parker
+    given-names: Kelly
+  - family-names: Basham
+    given-names: Mark
+  - family-names: Shemilt
+    given-names: Laura A
+  - family-names: Owens
+    given-names: Raymond J
+license: Apache-2.0
+repository-code: https://github.com/rosalindfranklininstitute/antigen-app
+preferred-citation:
+  type: article
+  title: >-
+    AntigenApp: a laboratory data management system for nanobody generation
+    and sequence analysis
+  authors:
+    - family-names: Lubbock
+      given-names: Alexander L R
+      orcid: https://orcid.org/0000-0002-6950-8908
+    - family-names: Eyssen
+      given-names: Lauren E-A
+    - family-names: Parker
+      given-names: Kelly
+    - family-names: Basham
+      given-names: Mark
+    - family-names: Shemilt
+      given-names: Laura A
+    - family-names: Owens
+      given-names: Raymond J
+  journal: Bioinformatics
+  volume: 41
+  issue: 12
+  year: 2025
+  article-number: btaf642
+  doi: 10.1093/bioinformatics/btaf642
+  url: https://academic.oup.com/bioinformatics/article/41/12/btaf642/8362265
