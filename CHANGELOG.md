@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.4](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.3...v0.3.4) (2026-03-04)
+
+
+### Bug Fixes
+
+* **frontend:** initialise plate_thresholds via state, set Sentry user, throttle session refresh ([#219](https://github.com/rosalindfranklininstitute/antigen-app/issues/219)) ([31cff0d](https://github.com/rosalindfranklininstitute/antigen-app/commit/31cff0dad87cffe174d623c5f4173d73738140c3))
+
+
+### Miscellaneous
+
+* **deps:** bump @heroicons/react from 2.1.5 to 2.2.0 in /frontend ([#213](https://github.com/rosalindfranklininstitute/antigen-app/issues/213)) ([0e10040](https://github.com/rosalindfranklininstitute/antigen-app/commit/0e100407372b2130729abd9b67be7d68a5771a7a))
+* **deps:** bump @sentry/react from 8.55.0 to 10.42.0 in /frontend ([#214](https://github.com/rosalindfranklininstitute/antigen-app/issues/214)) ([bd6fcfe](https://github.com/rosalindfranklininstitute/antigen-app/commit/bd6fcfe5e80090aac41ca62d1c243deb71db599b))
+* **deps:** bump django from 5.2.11 to 5.2.12 in /backend ([#216](https://github.com/rosalindfranklininstitute/antigen-app/issues/216)) ([1e10bd3](https://github.com/rosalindfranklininstitute/antigen-app/commit/1e10bd36339240f8b0cd63e1cef2e21e88cb08ff))
+
 ## [0.3.3](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.2...v0.3.3) (2026-03-04)
 
 
