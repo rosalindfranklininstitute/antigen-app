@@ -636,6 +636,7 @@ class SequencingRunSerializer(ModelSerializer):
 
     def validate_plate_thresholds(self, data):
         """Check JSONField for plate_thresholds is valid."""
+        seen_plate_ids = set()
         for idx, thr in enumerate(data):
             if len(thr.keys()) != 2:
                 raise ValidationError(f"Extraneous keys in plate_threshold {idx}")
@@ -659,11 +660,74 @@ class SequencingRunSerializer(ModelSerializer):
                 raise ValidationError(
                     f"Plate threshold {idx}'s elisa_plate is not an integer"
                 )
+            if thr["elisa_plate"] in seen_plate_ids:
+                raise ValidationError(
+                    f"Duplicate elisa_plate {thr['elisa_plate']}"
+                    f" in plate_threshold {idx}"
+                )
+            seen_plate_ids.add(thr["elisa_plate"])
 
-            # TODO: Check elisa_plate is valid plate
-            # TODO: Check elisa_plate is unique within list
-            # TODO: Check threshold is present for every plate listed in elisa_well
+        # One batch query to verify all referenced plates exist.
+        if seen_plate_ids:
+            existing_ids = set(
+                ElisaPlate.objects.filter(pk__in=seen_plate_ids).values_list(
+                    "pk", flat=True
+                )
+            )
+            missing = seen_plate_ids - existing_ids
+            if missing:
+                raise ValidationError(f"ELISA plate(s) not found: {sorted(missing)}")
 
+        return data
+
+    def validate(self, data):
+        """Object-level validation for SequencingRun."""
+        # Resolve effective values for PATCH (partial) requests so cross-field
+        # checks work correctly even when only one of the two fields is sent.
+        if self.instance is not None:
+            effective_wells = data.get("wells", self.instance.wells)
+            effective_thresholds = data.get(
+                "plate_thresholds", self.instance.plate_thresholds
+            )
+        else:
+            effective_wells = data.get("wells", [])
+            effective_thresholds = data.get("plate_thresholds", [])
+
+        # Cross-field: every ELISA plate referenced by a well must have a
+        # threshold entry.  Pure Python set comparison — no extra DB query.
+        threshold_plate_ids = {thr["elisa_plate"] for thr in effective_thresholds}
+        unlisted = {
+            w["elisa_well"]["plate"] for w in effective_wells
+        } - threshold_plate_ids
+        if unlisted:
+            raise ValidationError(
+                f"Wells reference ELISA plate(s) with no threshold: {sorted(unlisted)}"
+            )
+
+        # Layout lock: prevent changes to layout fields once results are attached.
+        # wells, plate_thresholds and fill_horizontal together define which ELISA
+        # wells map to which positions in the sequencing plates.  Changing any of
+        # them after results have been uploaded would silently mis-map results to
+        # the wrong source wells.
+        if self.instance is None or not self.instance.sequencingrunresults_set.exists():
+            return data
+
+        locked = {
+            "wells": "wells",
+            "plate_thresholds": "plate thresholds",
+            "fill_horizontal": "fill direction",
+        }
+        changed = [
+            label
+            for field, label in locked.items()
+            if field in data and data[field] != getattr(self.instance, field)
+        ]
+        if changed:
+            raise ValidationError(
+                "Cannot modify "
+                + ", ".join(changed)
+                + " on a SequencingRun that already has results attached."
+            )
         return data
 
     class Meta:  # noqa: D106
