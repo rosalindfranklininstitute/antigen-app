@@ -306,6 +306,30 @@ describe("AddEditObjectPage", () => {
     });
   });
 
+  describe("With sequencing schema", () => {
+    const sequencingProps = {
+      schema: schemas.sequencing,
+      csrfToken: "test-csrf",
+      onSetError: vi.fn(),
+    };
+
+    it("initialises plate_thresholds as [] so SequencingPlateLayout renders without TypeError", async () => {
+      // Regression: plate_thresholds was initialised via direct state mutation, leaving
+      // plateThresholds=undefined and crashing with "can't access property 'map'".
+      mockFetch({ "/elisa_plate/": [] });
+
+      renderWithRouter(<AddEditObjectPage {...sequencingProps} />, {
+        route: "/sequencing/add",
+        path: "/sequencing/add",
+      });
+
+      // SequencingPlateLayout renders "Total selected wells:" once elisaPlates loads.
+      // If plateThresholds is undefined the .map() call crashes before this renders.
+      await screen.findByText("Total selected wells:");
+      expect(screen.getByText("Save")).toBeInTheDocument();
+    });
+  });
+
   describe("With foreign key fields (cohort schema)", () => {
     const cohortProps = {
       schema: schemas.cohort,

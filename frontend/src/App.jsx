@@ -113,6 +113,10 @@ const App = () => {
               email: data.email,
               username: data.preferredUsername,
             });
+            Sentry.setUser({
+              username: data.preferredUsername,
+              email: data.email,
+            });
           });
         }
       });
@@ -121,9 +125,19 @@ const App = () => {
     getCSRF();
     refreshUserInfo();
 
+    // Only re-check the session if the tab was hidden for at least this long.
+    // Avoids a network round-trip on every tab switch; still catches oauth2-proxy
+    // session expiry when the user returns after an extended absence.
+    const MIN_HIDDEN_MS = 60_000;
+    let hiddenAt = null;
     document.onvisibilitychange = () => {
-      // Check the auth session is still valid
-      if (document.visibilityState === "visible") {
+      if (document.visibilityState === "hidden") {
+        hiddenAt = Date.now();
+      } else if (
+        document.visibilityState === "visible" &&
+        hiddenAt !== null &&
+        Date.now() - hiddenAt >= MIN_HIDDEN_MS
+      ) {
         refreshUserInfo();
       }
     };

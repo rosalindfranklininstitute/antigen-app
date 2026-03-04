@@ -145,8 +145,8 @@ const AddEditObjectPage = (props) => {
         );
       // Add blank plate_thresholds and wells for sequencing plates
       if (props.schema.viewUrl === "/sequencing") {
-        record["plate_thresholds"] = [];
-        record["wells"] = [];
+        setFormValue("plate_thresholds", []);
+        setFormValue("wells", []);
       }
       setLoading(false);
     }
