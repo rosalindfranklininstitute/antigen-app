@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.3](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.2...v0.3.3) (2026-03-04)
+
+
+### Bug Fixes
+
+* **backend:** validate SequencingRun layout fields and add test suite ([#211](https://github.com/rosalindfranklininstitute/antigen-app/issues/211)) ([49dd3ea](https://github.com/rosalindfranklininstitute/antigen-app/commit/49dd3ea7aa6fff0f0483bf8429230c920fb9e857))
+
 ## [0.3.2](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.1...v0.3.2) (2026-03-03)
 
 
