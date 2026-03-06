@@ -9,7 +9,7 @@ from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
 )
-from antigenapi.views_old import SequencingRunSerializer
+from antigenapi.views_old import SequencingRunSerializer, _wells_to_tsv
 
 
 def _fake_viewset(serializer):
@@ -329,3 +329,97 @@ def test_validate_cross_field_uses_instance_wells_on_patch_thresholds_only():
             {"plate_thresholds": [{"elisa_plate": 2, "optical_density_threshold": 0.5}]}
         )
     assert "1" in str(exc_info.value.detail)
+
+
+# ---------------------------------------------------------------------------
+# validate_wells — field-level validation of the wells JSON array
+# ---------------------------------------------------------------------------
+
+
+def _valid_well(plate=0, location=1, elisa_plate=1, elisa_location=1):
+    return {
+        "elisa_well": {"plate": elisa_plate, "location": elisa_location},
+        "plate": plate,
+        "location": location,
+    }
+
+
+def test_validate_wells_accepts_valid_wells_and_sorts_by_plate_then_location():
+    s = _threshold_serializer()
+    data = [
+        _valid_well(plate=0, location=5),
+        _valid_well(plate=0, location=2),
+    ]
+    result = s.validate_wells(data)
+    assert result[0]["location"] == 2
+    assert result[1]["location"] == 5
+
+
+def test_validate_wells_rejects_well_with_extra_keys():
+    s = _threshold_serializer()
+    well = _valid_well()
+    well["extra"] = "unexpected"
+    with pytest.raises(ValidationError):
+        s.validate_wells([well])
+
+
+def test_validate_wells_rejects_missing_elisa_well_key():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([{"plate": 0, "location": 1, "other": "x"}])
+
+
+def test_validate_wells_rejects_wrong_plate_index():
+    """Well at list index 0 must declare plate=0 (index // 96)."""
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(plate=1)])  # plate should be 0 for idx 0
+
+
+def test_validate_wells_rejects_location_below_one():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(location=0)])
+
+
+def test_validate_wells_rejects_location_above_96():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(location=97)])
+
+
+def test_validate_wells_rejects_non_mapping_elisa_well():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([{"elisa_well": "flat-string", "plate": 0, "location": 1}])
+
+
+def test_validate_wells_rejects_elisa_location_out_of_range():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(elisa_location=0)])
+
+
+# ---------------------------------------------------------------------------
+# _wells_to_tsv — plate grid formatter
+# ---------------------------------------------------------------------------
+
+
+def test_wells_to_tsv_formats_plate_grid():
+    wells = list(range(96))
+    output = _wells_to_tsv(wells)
+    lines = output.split("\n")
+    # Header: blank cell followed by column numbers 1-12
+    assert lines[0] == "\t" + "\t".join(str(i) for i in range(1, 13))
+    # Row A: label + values 0-11
+    assert lines[1] == "A\t" + "\t".join(str(i) for i in range(12))
+    # Row H: label + values 84-95
+    assert lines[8] == "H\t" + "\t".join(str(i) for i in range(84, 96))
+
+
+def test_wells_to_tsv_renders_none_as_empty_cell():
+    wells = [None] * 96
+    output = _wells_to_tsv(wells)
+    row_a = output.split("\n")[1]
+    # Row label "A" followed by 12 tab-separated empty cells
+    assert row_a == "A" + "\t" * 12
