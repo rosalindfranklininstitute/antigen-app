@@ -9,7 +9,8 @@ from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
 )
-from antigenapi.views_old import SequencingRunSerializer, _wells_to_tsv
+from antigenapi.views.elisa import _wells_to_tsv
+from antigenapi.views.sequencing import SequencingRunSerializer
 
 
 def _fake_viewset(serializer):
@@ -220,7 +221,7 @@ def test_validate_plate_thresholds_rejects_duplicate_elisa_plate():
     assert "1" in str(exc_info.value.detail)
 
 
-@patch("antigenapi.views_old.ElisaPlate.objects")
+@patch("antigenapi.views.sequencing.ElisaPlate.objects")
 def test_validate_plate_thresholds_rejects_nonexistent_plate(mock_objects):
     mock_objects.filter.return_value.values_list.return_value = []  # nothing found
     s = _threshold_serializer()
@@ -231,7 +232,7 @@ def test_validate_plate_thresholds_rejects_nonexistent_plate(mock_objects):
     assert "999" in str(exc_info.value.detail)
 
 
-@patch("antigenapi.views_old.ElisaPlate.objects")
+@patch("antigenapi.views.sequencing.ElisaPlate.objects")
 def test_validate_plate_thresholds_rejects_partial_missing_plates(mock_objects):
     """Only some of the referenced plates are missing."""
     mock_objects.filter.return_value.values_list.return_value = [1]  # plate 2 missing
@@ -246,7 +247,7 @@ def test_validate_plate_thresholds_rejects_partial_missing_plates(mock_objects):
     assert "1" not in str(exc_info.value.detail)
 
 
-@patch("antigenapi.views_old.ElisaPlate.objects")
+@patch("antigenapi.views.sequencing.ElisaPlate.objects")
 def test_validate_plate_thresholds_accepts_valid_unique_plates(mock_objects):
     mock_objects.filter.return_value.values_list.return_value = [1, 2]
     s = _threshold_serializer()

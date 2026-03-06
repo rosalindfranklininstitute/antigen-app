@@ -1,42 +1,26 @@
 import collections.abc
-import datetime
 import io
-import math
 import os
-import urllib.error
 from tempfile import NamedTemporaryFile
 from wsgiref.util import FileWrapper
 
 import numpy as np
 import openpyxl
 import pandas as pd
-from auditlog.models import LogEntry
-from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import default_storage
-from django.db import transaction
-from django.db.models import Prefetch, Q
-from django.db.models.deletion import ProtectedError
-from django.db.utils import IntegrityError, NotSupportedError
+from django.db.models import Prefetch
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.serializers import (
-    BooleanField,
-    CharField,
-    FileField,
     ModelSerializer,
-    PrimaryKeyRelatedField,
-    SerializerMethodField,
     StringRelatedField,
     ValidationError,
 )
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from antigenapi.bioinformatics.blast import (
-    get_db_fasta,
     parse_blast_results,
     run_blastp,
     run_blastp_seq_run,
@@ -49,513 +33,16 @@ from antigenapi.bioinformatics.imgt import (
     run_vquest,
 )
 from antigenapi.models import (
-    Antigen,
-    Cohort,
     ElisaPlate,
     ElisaWell,
-    Library,
-    Llama,
     Nanobody,
     PlateLocations,
-    Project,
     SequencingRun,
     SequencingRunResults,
 )
 from antigenapi.utils.helpers import extract_well, read_seqrun_results
-from antigenapi.utils.uniprot import get_protein
-
-from .parsers import parse_elisa_file
-
-
-# Audit logs #
-class AuditLogSerializer(ModelSerializer):
-    """A serializer for object audit logs."""
-
-    actor_username = StringRelatedField(source="actor.username", read_only=True)
-    actor_email = StringRelatedField(source="actor.email", read_only=True)
-
-    class Meta:  # noqa: D106
-        model = LogEntry
-        fields = [
-            "timestamp",
-            "object_id",
-            "action",
-            "changes_dict",
-            "actor",
-            "actor_username",
-            "actor_email",
-        ]
-
-
-# Mixins #
-class DeleteProtectionMixin(object):
-    """Show helpful error when delete protection is in place (on_delete=PROTECT)."""
-
-    def destroy(self, request, *args, **kwargs):
-        """Override destroy method to catch Django's ProtectedError, return HTTP 400."""
-        try:
-            return super().destroy(request, *args, **kwargs)
-        except ProtectedError as protected_error:
-            protected_elements = set()
-            for obj in protected_error.protected_objects:
-                if isinstance(obj, ElisaWell):
-                    protected_elements.add(str(obj.plate))
-                else:
-                    protected_elements.add(str(obj))
-            protected_elements = tuple(protected_elements)
-            msg = f"DeleteProtection: Object in use by {protected_elements[0]}"
-            if len(protected_elements) > 1:
-                msg += f" and {len(protected_elements) - 1} other object"
-                if len(protected_elements) > 2:
-                    msg += "s"
-            response_data = {"message": msg, "protected_elements": protected_elements}
-            return Response(data=response_data, status=status.HTTP_400_BAD_REQUEST)
-
-
-class AuditLogMixin(object):
-    """Allow fetching audit logs on individual objects."""
-
-    @action(detail=True, methods=["GET"], name="Get audit log")
-    def auditlog(self, request, pk):
-        """Get audit logs for an object."""
-        queryset = LogEntry.objects.filter(
-            content_type=ContentType.objects.get_for_model(self.queryset.model),
-            object_id=pk,
-        ).select_related("actor")
-
-        serializer = AuditLogSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-# Projects #
-class ProjectSerializer(ModelSerializer):
-    """A serializer for project data which serializes all internal fields."""
-
-    added_by = StringRelatedField()
-
-    class Meta:  # noqa: D106
-        model = Project
-        fields = "__all__"
-        read_only_fields = ["added_by", "added_date"]
-
-
-class ProjectViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
-    """A view set displaying all recorded projects."""
-
-    queryset = Project.objects.all().select_related("added_by").order_by("short_title")
-    serializer_class = ProjectSerializer
-
-    def perform_create(self, serializer):
-        """Overload the perform_create method."""
-        serializer.save(added_by=self.request.user)
-
-
-# Llamas #
-class LlamaSerializer(ModelSerializer):
-    """A serializer for llamas."""
-
-    added_by = StringRelatedField()
-
-    class Meta:  # noqa: D106
-        model = Llama
-        fields = "__all__"
-        read_only_fields = ["added_by", "added_date"]
-
-
-class LlamaViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
-    """A view set for llamas."""
-
-    queryset = Llama.objects.all().select_related("added_by").order_by("name")
-    serializer_class = LlamaSerializer
-
-    def perform_create(self, serializer):  # noqa: D102
-        serializer.save(added_by=self.request.user)
-
-
-# Library #
-class LibrarySerializer(ModelSerializer):
-    """A serializer for libraries."""
-
-    added_by = StringRelatedField()
-    # llama_name = CharField(source='llama.name', read_only=True)
-    cohort_cohort_num = SerializerMethodField(
-        read_only=True
-    )  # CharField(source="cohort.cohort_num", read_only=True)
-    cohort_is_naive = BooleanField(source="cohort.is_naive", read_only=True)
-    cohort_cohort_num_prefixed = SerializerMethodField(read_only=True)
-    project_short_title = CharField(source="project.short_title", read_only=True)
-    library_num = CharField(read_only=True)
-
-    class Meta:  # noqa: D106
-        model = Library
-        fields = "__all__"
-        read_only_fields = ["added_by", "added_date"]
-
-    def get_cohort_cohort_num(self, obj):
-        """Get the cohort number with sublibrary, if present."""
-        return f"{obj.cohort.cohort_num}{obj.sublibrary or ''}"
-
-    def get_cohort_cohort_num_prefixed(self, obj):
-        """Get the cohort number with sublibrary and N (naive) prefix."""
-        return f"{obj.cohort.cohort_num_prefixed()}{obj.sublibrary or ''}"
-
-
-class LibraryViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
-    """A view set for libraries."""
-
-    queryset = (
-        Library.objects.all()
-        .select_related("cohort")
-        .select_related("project")
-        .select_related("added_by")
-        .order_by("cohort__is_naive", "cohort__cohort_num")
-    )
-    serializer_class = LibrarySerializer
-    filterset_fields = ("project",)
-
-    def perform_create(self, serializer):  # noqa: D102
-        try:
-            serializer.save(added_by=self.request.user)
-        except IntegrityError as e:
-            raise ValidationError({"non_field_errors": [str(e)]})
-
-
-class AntigenSerializer(ModelSerializer):
-    """A serializer for antigen data.
-
-    A serializer for antigen data which serializes all internal fields, and includes the
-    serialzed related local or UniProt antigen data and provides a set of elisa well
-    which reference it.
-    """
-
-    added_by = StringRelatedField()
-    elisa_plates = SerializerMethodField()
-    sequencing_runs = SerializerMethodField()
-
-    class Meta:  # noqa: D106
-        model = Antigen
-        fields = "__all__"
-        read_only_fields = ["added_by", "added_date"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        request = self.context.get("request")
-        if request and not request.parser_context.get("kwargs", {}).get("pk"):
-            # If it's a list view, remove these fields
-            self.fields.pop("elisa_plates", None)
-            self.fields.pop("sequencing_runs", None)
-
-    def get_elisa_plates(self, obj):
-        """Get ELISA plates using this antigen in single-object requests."""
-        # Only include related data if this is a single-object request
-        request = self.context.get("request")
-        if request and request.parser_context.get("kwargs", {}).get("pk"):
-            return ElisaPlateWithoutWellsSerializer(
-                ElisaPlate.objects.filter(elisawell__antigen=obj.pk).distinct(),
-                many=True,
-            ).data
-        return None  # Omit in list views
-
-    def get_sequencing_runs(self, obj):
-        """Get sequencing runs using this antigen in single-object requests."""
-        # Only include related data if this is a single-object request
-        request = self.context.get("request")
-        if request and request.parser_context.get("kwargs", {}).get("pk"):
-            elisa_plate_ids = (
-                ElisaPlate.objects.filter(elisawell__antigen=obj.pk)
-                .values_list("id", flat=True)
-                .distinct()
-            )
-
-            # Handle case where no ELISAs available
-            if not elisa_plate_ids:
-                return SequencingRunSerializer(many=True).data
-
-            # Try PostgreSQL JSONField filtering
-            # Build a Q object to check if any given elisa_plate is inside the JSONField
-            query = Q()
-            for plate_id in elisa_plate_ids:
-                query |= Q(plate_thresholds__contains=[{"elisa_plate": plate_id}])
-
-            sequencing_runs = SequencingRun.objects.filter(query)
-
-            try:
-                return SequencingRunShortSerializer(sequencing_runs, many=True).data
-            except NotSupportedError:
-                # Fallback for SQLite: Manual filtering in Python
-                sequencing_runs = [
-                    run
-                    for run in SequencingRun.objects.all()
-                    if any(
-                        entry.get("elisa_plate") in elisa_plate_ids
-                        for entry in run.plate_thresholds
-                    )
-                ]
-                return SequencingRunShortSerializer(sequencing_runs, many=True).data
-        return None
-
-    def validate(self, data):
-        """Check the antigen is a valid uniprot ID."""
-        if data.get("uniprot_id"):
-            try:
-                protein_data = get_protein(data["uniprot_id"])
-            except urllib.error.HTTPError as e:
-                if e.code == 400:
-                    raise ValidationError(
-                        {"uniprot_id": "Couldn't validate this UniProt ID (code 400)"}
-                    )
-                elif e.code == 500:
-                    raise ValidationError(
-                        {"uniprot_id": "Couldn't validate this UniProt ID (code 500)"}
-                    )
-                else:
-                    raise
-            if not data.get("sequence") or data.get("sequence").strip() == "":
-                data["sequence"] = protein_data["sequence"]
-            if data.get("molecular_mass") is None:
-                data["molecular_mass"] = protein_data["molecular_mass"]
-            if not data.get("long_name") or data.get("long_name").strip() == "":
-                data["long_name"] = protein_data["protein_name"]
-
-        return data
-
-
-class AntigenViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
-    """A view set displaying all recorded antigens."""
-
-    queryset = Antigen.objects.all().select_related("added_by").order_by("short_name")
-    serializer_class = AntigenSerializer
-
-    def perform_create(self, serializer):  # noqa: D102
-        serializer.save(added_by=self.request.user)
-
-
-# Cohort #
-class CohortSerializer(ModelSerializer):
-    """A serializer for cohorts."""
-
-    added_by = StringRelatedField()
-    llama_name = CharField(source="llama.name", read_only=True)
-    antigen_details = AntigenSerializer(source="antigens", many=True, read_only=True)
-    # project_short_title = CharField(source='project.short_title', read_only=True)
-    cohort_num_prefixed = CharField(read_only=True)
-
-    class Meta:  # noqa: D106
-        model = Cohort
-        fields = "__all__"
-        read_only_fields = ["added_by", "added_date"]
-
-
-class CohortViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
-    """A view set for cohorts."""
-
-    queryset = (
-        Cohort.objects.all().select_related("llama").order_by("is_naive", "cohort_num")
-    )
-    serializer_class = CohortSerializer
-    filterset_fields = ("llama", "cohort_num")
-
-    def perform_create(self, serializer):  # noqa: D102
-        serializer.save(added_by=self.request.user)
-
-
-# ELISA plates #
-class NestedElisaWellSerializer(ModelSerializer):
-    """A serializer for elisa wells."""
-
-    optical_density = SerializerMethodField()
-
-    class Meta:  # noqa: D106
-        model = ElisaWell
-        exclude = ("id", "plate")
-
-    def get_optical_density(self, obj):
-        """Get optical density - convert NaN to None for JSON encoding."""
-        if obj.optical_density is not None and not math.isnan(obj.optical_density):
-            return obj.optical_density
-        return None
-
-
-class ElisaPlateWithoutWellsSerializer(ModelSerializer):
-    """A serializer for elisa plates without well data included.
-
-    A serializer for elisa plates which serializes all internal fields.
-    """
-
-    project_short_title = CharField(
-        source="library.project.short_title", read_only=True
-    )
-    library_cohort_cohort_num = CharField(
-        source="library.cohort.cohort_num", required=False
-    )
-    library_cohort_cohort_num_prefixed = CharField(
-        source="library.cohort.cohort_num_prefixed", required=False
-    )
-    library_cohort_is_naive = BooleanField(
-        source="library.cohort.is_naive", read_only=True
-    )
-    library_library_num = CharField(source="library.library_num", read_only=True)
-    added_by = StringRelatedField()
-    antigen = PrimaryKeyRelatedField(queryset=Antigen.objects.all(), write_only=True)
-    read_only_fields = [
-        "library_cohort_cohort_num",
-        "elisawell_set",
-        "added_by",
-        "added_date",
-    ]
-    plate_file = FileField(use_url=False)
-
-    class Meta:  # noqa: D106
-        model = ElisaPlate
-        fields = "__all__"
-
-
-class ElisaPlateSerializer(ElisaPlateWithoutWellsSerializer):
-    elisawell_set = NestedElisaWellSerializer(many=True, required=False)
-
-    """A serializer for elisa plates included well data.
-    """
-
-    def validate(self, data):
-        """Validate plate (load and parse file)."""
-        if "plate_file" in data:
-            try:
-                data["elisawell_set"] = parse_elisa_file(data["plate_file"])
-            except Exception as e:
-                raise ValidationError({"plate_file": e})
-        return data
-
-    @staticmethod
-    def _create_wells(plate, antigen, well_set):
-        ElisaWell.objects.bulk_create(
-            ElisaWell(plate=plate, optical_density=od, location=loc, antigen=antigen)
-            for (od, loc) in zip(well_set, PlateLocations)
-        )
-
-    @transaction.atomic
-    def create(self, validated_data):
-        """Create plate. For now, every well shares the same antigen."""
-        antigen = validated_data.pop("antigen")
-        well_set = validated_data.pop("elisawell_set")
-        validated_data["plate_file"].seek(0)
-        plate = super(ElisaPlateSerializer, self).create(validated_data)
-        self._create_wells(plate, antigen, well_set)
-        return plate
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        """Update plate. For now, every well shares the same antigen."""
-        antigen = validated_data["antigen"]
-        if "elisawell_set" in validated_data:
-            well_set = validated_data.pop("elisawell_set")
-        else:
-            well_set = None
-        if "plate_file" in validated_data:
-            try:
-                validated_data["plate_file"].seek(0)
-            except ValueError:
-                # File has already been read during create, so skip it
-                validated_data.pop("plate_file")
-                well_set = None
-        plate = super(ElisaPlateSerializer, self).update(instance, validated_data)
-        if well_set is not None:
-            # Faster, fewer DB queries to bulk delete & re-insert
-            # than conditionally update
-            ElisaWell.objects.filter(plate=plate).delete()
-            self._create_wells(plate, antigen, well_set)
-        else:
-            ElisaWell.objects.filter(plate=plate).update(antigen=antigen)
-        return instance
-
-
-def _wells_to_tsv(wells):
-    UPPER_CASE_A = 65
-    ROW_LENGTH = 12
-    NUM_ROWS = 8
-
-    output = "\t".join([""] + [str(i) for i in range(1, ROW_LENGTH + 1)]) + "\n"
-    for row in range(NUM_ROWS):
-        start = row * ROW_LENGTH
-        row = [chr(UPPER_CASE_A + row)]
-        row += [
-            str(w) if w is not None else "" for w in wells[start : (start + ROW_LENGTH)]
-        ]
-        output += "\t".join(row) + "\n"
-
-    return output
-
-
-class ElisaPlateViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
-    """A view set displaying all recorded elisa plates."""
-
-    queryset = (
-        ElisaPlate.objects.all()
-        .select_related("library__cohort")
-        .select_related("library__project")
-        .select_related("added_by")
-        .prefetch_related("elisawell_set")
-        .order_by("-added_date")
-    )
-    serializer_class = ElisaPlateSerializer
-    filterset_fields = ("library", "library__cohort")
-
-    def perform_create(self, serializer):  # noqa: D102
-        serializer.save(added_by=self.request.user)
-
-    @action(
-        detail=True,
-        methods=["GET"],
-        name="Download ELISA plate as TSV.",
-        url_path="tsv",
-    )
-    def download_elisa_tsv(self, request, pk):
-        """Download ELISA plate as .tsv file."""
-        wells = list(
-            ElisaWell.objects.filter(
-                plate_id=pk,
-            )
-            .order_by("location")
-            .values_list("optical_density", flat=True)
-        )
-
-        output = _wells_to_tsv(wells)
-
-        response = HttpResponse(output, content_type="text/tab-separated-values")
-
-        response["Content-Disposition"] = f'attachment; filename="elisa_plate_{pk}.tsv"'
-
-        return response
-
-
-class ElisaWellInlineSerializer(ModelSerializer):
-    """A serializer to represent elisa wells by plate id and location."""
-
-    class Meta:  # noqa: D106
-        model = ElisaWell
-        fields = ("plate", "location")
-
-
-# Nanobodies #
-class NanobodySerializer(ModelSerializer):
-    """A serializer for nanobodies."""
-
-    added_by = StringRelatedField()
-
-    class Meta:  # noqa: D106
-        model = Nanobody
-        fields = "__all__"
-        read_only_fields = ["seqruns", "added_by", "added_date"]
-
-
-class NanobodyViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
-    """A view set for nanobodies."""
-
-    queryset = Nanobody.objects.all().select_related("added_by").order_by("name")
-    serializer_class = NanobodySerializer
-
-    def perform_create(self, serializer):  # noqa: D102
-        serializer.save(added_by=self.request.user)
+from antigenapi.views.elisa import _wells_to_tsv
+from antigenapi.views.mixins import AuditLogMixin, DeleteProtectionMixin
 
 
 class SequencingRunResultSerializer(ModelSerializer):
@@ -772,9 +259,9 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
     )
     def download_submission_xlsx(self, request, pk, submission_idx):
         """Download sequencing run submission file (xlsx)."""
-        # Load the Excel template
+        # Load the Excel template — one directory up from this file (views/)
         fn = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
+            os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             "files",
             "sequencing-submission-form-v1.xlsx",
         )
@@ -923,7 +410,6 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
             )
 
         # Run bioinformatics using .zip file
-        # print("Extracting zip file...")
         try:
             seq_data_fh = results_file.temporary_file_path()
         except AttributeError:
@@ -1001,7 +487,6 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         fasta_file = as_fasta_files(seq_data, max_file_size=None)[0]
 
         # Submit to vquest
-        # print("Running vquest...")
         vquest_results = run_vquest(fasta_file)
 
         parameters_file_data = vquest_results["Parameters.txt"]
@@ -1224,21 +709,3 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         return JsonResponse(
             {"hits": parse_blast_results(blast_str, query_type, airr_df)}
         )
-
-
-class GlobalFastaView(APIView):
-    def get(self, request, format=None):
-        """Download entire database as .fasta file."""
-        fasta_data = get_db_fasta()
-
-        fasta_filename = (
-            f"antigenapp_database_{datetime.datetime.now().isoformat()}.fasta"
-        )
-        response = FileResponse(
-            fasta_data,
-            as_attachment=True,
-            content_type="text/x-fasta",
-            filename=fasta_filename,
-        )
-        response["Content-Disposition"] = f'attachment; filename="{fasta_filename}"'
-        return response
