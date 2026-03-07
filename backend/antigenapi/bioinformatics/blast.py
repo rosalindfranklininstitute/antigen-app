@@ -62,7 +62,7 @@ def get_db_fasta(
                 else airr_file.sequence_alignment_aa.notna()
             )
         ]
-    if not airr_file.empty:
+
         # Get list of ambiguous autonames
         nb_autoname_ambig = tuple(
             airr_file.loc[
