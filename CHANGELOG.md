@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.5](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.4...v0.3.5) (2026-03-07)
+
+
+### Bug Fixes
+
+* backend coverage, views refactor, and bug fixes ([#224](https://github.com/rosalindfranklininstitute/antigen-app/issues/224)) ([a84a0a4](https://github.com/rosalindfranklininstitute/antigen-app/commit/a84a0a4ac188539053ba55a77f7d89ec461d6c14))
+* websocket on dev server ([#225](https://github.com/rosalindfranklininstitute/antigen-app/issues/225)) ([f188fce](https://github.com/rosalindfranklininstitute/antigen-app/commit/f188fce97b511494d3b9ac889a97e0754b8eb730))
+
+
+### Miscellaneous
+
+* **deps:** bump @tailwindcss/forms from 0.5.9 to 0.5.11 in /frontend ([#215](https://github.com/rosalindfranklininstitute/antigen-app/issues/215)) ([b925d9f](https://github.com/rosalindfranklininstitute/antigen-app/commit/b925d9f9d977f76c527a958461f098196b91607d))
+* **deps:** bump boto3 from 1.42.59 to 1.42.60 in /backend ([#217](https://github.com/rosalindfranklininstitute/antigen-app/issues/217)) ([e1b9dcd](https://github.com/rosalindfranklininstitute/antigen-app/commit/e1b9dcdbca1144d6f764e6df16aa3eddb5c6b9e5))
+* **deps:** bump sentry-sdk from 2.53.0 to 2.54.0 in /backend ([#218](https://github.com/rosalindfranklininstitute/antigen-app/issues/218)) ([f4eb512](https://github.com/rosalindfranklininstitute/antigen-app/commit/f4eb512ed9d17644f42085236a5915ce2eaea3ce))
+* fix validation error in CITATION.cff ([#222](https://github.com/rosalindfranklininstitute/antigen-app/issues/222)) ([5466fc1](https://github.com/rosalindfranklininstitute/antigen-app/commit/5466fc1780ecabf3abfae086c22bf9b83d1a2410))
+
 ## [0.3.4](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.3...v0.3.4) (2026-03-04)
 
 
