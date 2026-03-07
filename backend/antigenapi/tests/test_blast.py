@@ -310,3 +310,35 @@ def test_get_db_fasta_includes_all_runs_when_include_run_not_set(monkeypatch):
         (1, ("sequence_id", "sequence_alignment_aa")),
         (2, ("sequence_id", "sequence_alignment_aa")),
     ]
+
+
+# ---------------------------------------------------------------------------
+# Regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_get_db_fasta_returns_empty_string_when_run_has_no_results(monkeypatch):
+    """Regression: a run with no uploaded results must return '' not AttributeError.
+
+    Previously, read_seqrun_results returned an empty DataFrame (no columns) when
+    there were no results, and the column access on the next line crashed with
+    AttributeError: 'DataFrame' object has no attribute 'sequence_alignment_aa'.
+    """
+    monkeypatch.setattr(
+        blast, "read_seqrun_results", lambda pk, usecols: pd.DataFrame()
+    )
+
+    result = blast.get_db_fasta(include_run=999, query_type="full")
+
+    assert result == ""
+
+
+def test_get_db_fasta_returns_empty_string_when_run_has_no_cdr3_results(monkeypatch):
+    """Same regression, covering the cdr3 query path (.cdr3_aa column access)."""
+    monkeypatch.setattr(
+        blast, "read_seqrun_results", lambda pk, usecols: pd.DataFrame()
+    )
+
+    result = blast.get_db_fasta(include_run=999, query_type="cdr3")
+
+    assert result == ""

@@ -1,7 +1,8 @@
+from django.http import Http404
 from rest_framework.serializers import CharField, ModelSerializer, StringRelatedField
 from rest_framework.viewsets import ModelViewSet
 
-from antigenapi.models import Cohort
+from antigenapi.models import Cohort, Llama
 from antigenapi.views.antigens import AntigenSerializer
 from antigenapi.views.mixins import AuditLogMixin, DeleteProtectionMixin
 
@@ -27,7 +28,16 @@ class CohortViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         Cohort.objects.all().select_related("llama").order_by("is_naive", "cohort_num")
     )
     serializer_class = CohortSerializer
-    filterset_fields = ("llama", "cohort_num")
+    filterset_fields = ("cohort_num",)
+
+    def get_queryset(self):  # noqa: D102
+        qs = super().get_queryset()
+        llama_id = self.request.query_params.get("llama")
+        if llama_id is not None:
+            if not Llama.objects.filter(pk=llama_id).exists():
+                raise Http404
+            qs = qs.filter(llama_id=llama_id)
+        return qs
 
     def perform_create(self, serializer):  # noqa: D102
         serializer.save(added_by=self.request.user)

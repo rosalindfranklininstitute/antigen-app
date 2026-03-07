@@ -54,13 +54,14 @@ def get_db_fasta(
             ]
         )
 
-    airr_file = airr_file[
-        (
-            airr_file.cdr3_aa.notna()
-            if query_type.startswith("cdr3")
-            else airr_file.sequence_alignment_aa.notna()
-        )
-    ]
+    if not airr_file.empty:
+        airr_file = airr_file[
+            (
+                airr_file.cdr3_aa.notna()
+                if query_type.startswith("cdr3")
+                else airr_file.sequence_alignment_aa.notna()
+            )
+        ]
     if not airr_file.empty:
         # Get list of ambiguous autonames
         nb_autoname_ambig = tuple(

@@ -334,7 +334,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         """Download sequencing run plate layout as .tsv file."""
         try:
             sr = SequencingRun.objects.get(id=int(pk))
-        except SequencingRunResults.DoesNotExist:
+        except SequencingRun.DoesNotExist:
             raise Http404
 
         wells = {

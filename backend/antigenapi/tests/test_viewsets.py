@@ -424,3 +424,67 @@ def test_wells_to_tsv_renders_none_as_empty_cell():
     row_a = output.split("\n")[1]
     # Row label "A" followed by 12 tab-separated empty cells
     assert row_a == "A" + "\t" * 12
+
+
+# ---------------------------------------------------------------------------
+# Regression tests
+# ---------------------------------------------------------------------------
+
+
+@patch("antigenapi.views.sequencing.SequencingRun.objects")
+def test_download_sequencing_plate_tsv_returns_404_for_missing_run(mock_objects):
+    """Regression: missing sequencing run must raise Http404, not propagate unhandled.
+
+    Previously the except clause caught SequencingRunResults.DoesNotExist instead of
+    SequencingRun.DoesNotExist, so the real exception was never caught and the
+    endpoint returned HTTP 500.
+    """
+    from django.http import Http404
+
+    from antigenapi.models import SequencingRun
+    from antigenapi.views.sequencing import SequencingRunViewSet
+
+    mock_objects.get.side_effect = SequencingRun.DoesNotExist
+
+    viewset = SequencingRunViewSet.__new__(SequencingRunViewSet)
+    with pytest.raises(Http404):
+        viewset.download_sequencing_plate_tsv(MagicMock(), pk="999", submission_idx="0")
+
+
+@patch("antigenapi.views.cohorts.Llama.objects")
+def test_cohort_viewset_get_queryset_raises_404_for_nonexistent_llama(mock_llama):
+    """Regression: ?llama=<missing id> must raise Http404, not return HTTP 400.
+
+    Previously filterset_fields included 'llama', which used ModelChoiceFilter and
+    returned a 400 validation error when the llama PK didn't exist in the database.
+    """
+    from django.http import Http404
+
+    from antigenapi.views.cohorts import CohortViewSet
+
+    mock_llama.filter.return_value.exists.return_value = False
+
+    viewset = CohortViewSet.__new__(CohortViewSet)
+    viewset.queryset = MagicMock()
+    viewset.request = SimpleNamespace(query_params={"llama": "999"})
+
+    with pytest.raises(Http404):
+        viewset.get_queryset()
+
+
+@patch("antigenapi.views.cohorts.Llama.objects")
+def test_cohort_viewset_get_queryset_filters_by_llama_when_it_exists(mock_llama):
+    """When a valid llama id is provided the queryset is filtered accordingly."""
+    from antigenapi.views.cohorts import CohortViewSet
+
+    mock_llama.filter.return_value.exists.return_value = True
+    mock_qs = MagicMock()
+
+    viewset = CohortViewSet.__new__(CohortViewSet)
+    viewset.queryset = mock_qs
+    viewset.request = SimpleNamespace(query_params={"llama": "1"})
+
+    result = viewset.get_queryset()
+
+    mock_qs.filter.assert_called_once_with(llama_id="1")
+    assert result == mock_qs.filter.return_value
