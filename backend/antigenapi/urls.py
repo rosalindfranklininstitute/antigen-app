@@ -1,19 +1,17 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from antigenapi.views.antigens import AntigenViewSet
+from antigenapi.views.cohorts import CohortViewSet
 from antigenapi.views.dashboard import AuditLogLatestEvents, DashboardStats
+from antigenapi.views.elisa import ElisaPlateViewSet
+from antigenapi.views.fasta import GlobalFastaView
+from antigenapi.views.libraries import LibraryViewSet
+from antigenapi.views.llamas import LlamaViewSet
+from antigenapi.views.nanobodies import NanobodyViewSet
+from antigenapi.views.projects import ProjectViewSet
 from antigenapi.views.reports import ProjectReport
-from antigenapi.views_old import (
-    AntigenViewSet,
-    CohortViewSet,
-    ElisaPlateViewSet,
-    GlobalFastaView,
-    LibraryViewSet,
-    LlamaViewSet,
-    NanobodyViewSet,
-    ProjectViewSet,
-    SequencingRunViewSet,
-)
+from antigenapi.views.sequencing import SequencingRunViewSet
 
 router = DefaultRouter()
 router.register("llama", LlamaViewSet)

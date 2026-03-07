@@ -9,7 +9,8 @@ from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
 )
-from antigenapi.views_old import SequencingRunSerializer
+from antigenapi.views.elisa import _wells_to_tsv
+from antigenapi.views.sequencing import SequencingRunSerializer
 
 
 def _fake_viewset(serializer):
@@ -220,7 +221,7 @@ def test_validate_plate_thresholds_rejects_duplicate_elisa_plate():
     assert "1" in str(exc_info.value.detail)
 
 
-@patch("antigenapi.views_old.ElisaPlate.objects")
+@patch("antigenapi.views.sequencing.ElisaPlate.objects")
 def test_validate_plate_thresholds_rejects_nonexistent_plate(mock_objects):
     mock_objects.filter.return_value.values_list.return_value = []  # nothing found
     s = _threshold_serializer()
@@ -231,7 +232,7 @@ def test_validate_plate_thresholds_rejects_nonexistent_plate(mock_objects):
     assert "999" in str(exc_info.value.detail)
 
 
-@patch("antigenapi.views_old.ElisaPlate.objects")
+@patch("antigenapi.views.sequencing.ElisaPlate.objects")
 def test_validate_plate_thresholds_rejects_partial_missing_plates(mock_objects):
     """Only some of the referenced plates are missing."""
     mock_objects.filter.return_value.values_list.return_value = [1]  # plate 2 missing
@@ -246,7 +247,7 @@ def test_validate_plate_thresholds_rejects_partial_missing_plates(mock_objects):
     assert "1" not in str(exc_info.value.detail)
 
 
-@patch("antigenapi.views_old.ElisaPlate.objects")
+@patch("antigenapi.views.sequencing.ElisaPlate.objects")
 def test_validate_plate_thresholds_accepts_valid_unique_plates(mock_objects):
     mock_objects.filter.return_value.values_list.return_value = [1, 2]
     s = _threshold_serializer()
@@ -329,3 +330,161 @@ def test_validate_cross_field_uses_instance_wells_on_patch_thresholds_only():
             {"plate_thresholds": [{"elisa_plate": 2, "optical_density_threshold": 0.5}]}
         )
     assert "1" in str(exc_info.value.detail)
+
+
+# ---------------------------------------------------------------------------
+# validate_wells — field-level validation of the wells JSON array
+# ---------------------------------------------------------------------------
+
+
+def _valid_well(plate=0, location=1, elisa_plate=1, elisa_location=1):
+    return {
+        "elisa_well": {"plate": elisa_plate, "location": elisa_location},
+        "plate": plate,
+        "location": location,
+    }
+
+
+def test_validate_wells_accepts_valid_wells_and_sorts_by_plate_then_location():
+    s = _threshold_serializer()
+    data = [
+        _valid_well(plate=0, location=5),
+        _valid_well(plate=0, location=2),
+    ]
+    result = s.validate_wells(data)
+    assert result[0]["location"] == 2
+    assert result[1]["location"] == 5
+
+
+def test_validate_wells_rejects_well_with_extra_keys():
+    s = _threshold_serializer()
+    well = _valid_well()
+    well["extra"] = "unexpected"
+    with pytest.raises(ValidationError):
+        s.validate_wells([well])
+
+
+def test_validate_wells_rejects_missing_elisa_well_key():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([{"plate": 0, "location": 1, "other": "x"}])
+
+
+def test_validate_wells_rejects_wrong_plate_index():
+    """Well at list index 0 must declare plate=0 (index // 96)."""
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(plate=1)])  # plate should be 0 for idx 0
+
+
+def test_validate_wells_rejects_location_below_one():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(location=0)])
+
+
+def test_validate_wells_rejects_location_above_96():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(location=97)])
+
+
+def test_validate_wells_rejects_non_mapping_elisa_well():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([{"elisa_well": "flat-string", "plate": 0, "location": 1}])
+
+
+def test_validate_wells_rejects_elisa_location_out_of_range():
+    s = _threshold_serializer()
+    with pytest.raises(ValidationError):
+        s.validate_wells([_valid_well(elisa_location=0)])
+
+
+# ---------------------------------------------------------------------------
+# _wells_to_tsv — plate grid formatter
+# ---------------------------------------------------------------------------
+
+
+def test_wells_to_tsv_formats_plate_grid():
+    wells = list(range(96))
+    output = _wells_to_tsv(wells)
+    lines = output.split("\n")
+    # Header: blank cell followed by column numbers 1-12
+    assert lines[0] == "\t" + "\t".join(str(i) for i in range(1, 13))
+    # Row A: label + values 0-11
+    assert lines[1] == "A\t" + "\t".join(str(i) for i in range(12))
+    # Row H: label + values 84-95
+    assert lines[8] == "H\t" + "\t".join(str(i) for i in range(84, 96))
+
+
+def test_wells_to_tsv_renders_none_as_empty_cell():
+    wells = [None] * 96
+    output = _wells_to_tsv(wells)
+    row_a = output.split("\n")[1]
+    # Row label "A" followed by 12 tab-separated empty cells
+    assert row_a == "A" + "\t" * 12
+
+
+# ---------------------------------------------------------------------------
+# Regression tests
+# ---------------------------------------------------------------------------
+
+
+@patch("antigenapi.views.sequencing.SequencingRun.objects")
+def test_download_sequencing_plate_tsv_returns_404_for_missing_run(mock_objects):
+    """Regression: missing sequencing run must raise Http404, not propagate unhandled.
+
+    Previously the except clause caught SequencingRunResults.DoesNotExist instead of
+    SequencingRun.DoesNotExist, so the real exception was never caught and the
+    endpoint returned HTTP 500.
+    """
+    from django.http import Http404
+
+    from antigenapi.models import SequencingRun
+    from antigenapi.views.sequencing import SequencingRunViewSet
+
+    mock_objects.get.side_effect = SequencingRun.DoesNotExist
+
+    viewset = SequencingRunViewSet.__new__(SequencingRunViewSet)
+    with pytest.raises(Http404):
+        viewset.download_sequencing_plate_tsv(MagicMock(), pk="999", submission_idx="0")
+
+
+@patch("antigenapi.views.cohorts.Llama.objects")
+def test_cohort_viewset_get_queryset_raises_404_for_nonexistent_llama(mock_llama):
+    """Regression: ?llama=<missing id> must raise Http404, not return HTTP 400.
+
+    Previously filterset_fields included 'llama', which used ModelChoiceFilter and
+    returned a 400 validation error when the llama PK didn't exist in the database.
+    """
+    from django.http import Http404
+
+    from antigenapi.views.cohorts import CohortViewSet
+
+    mock_llama.filter.return_value.exists.return_value = False
+
+    viewset = CohortViewSet.__new__(CohortViewSet)
+    viewset.queryset = MagicMock()
+    viewset.request = SimpleNamespace(query_params={"llama": "999"})
+
+    with pytest.raises(Http404):
+        viewset.get_queryset()
+
+
+@patch("antigenapi.views.cohorts.Llama.objects")
+def test_cohort_viewset_get_queryset_filters_by_llama_when_it_exists(mock_llama):
+    """When a valid llama id is provided the queryset is filtered accordingly."""
+    from antigenapi.views.cohorts import CohortViewSet
+
+    mock_llama.filter.return_value.exists.return_value = True
+    mock_qs = MagicMock()
+
+    viewset = CohortViewSet.__new__(CohortViewSet)
+    viewset.queryset = mock_qs
+    viewset.request = SimpleNamespace(query_params={"llama": "1"})
+
+    result = viewset.get_queryset()
+
+    mock_qs.filter.assert_called_once_with(llama_id="1")
+    assert result == mock_qs.filter.return_value

@@ -147,6 +147,32 @@ describe("ViewObjectPage", () => {
     });
   });
 
+  it("does not crash when 404 is returned for a schema with elisaPlateList fields", async () => {
+    // Regression: accessing /antigens/12 (non-existent) previously threw
+    // "TypeError: can't access property 'id', rec is undefined" because
+    // displayFieldSingle ran against the initial [] record state after a failed fetch.
+    const onSetError = vi.fn();
+    mockFetch({
+      "/antigen/12/": () =>
+        Promise.resolve({
+          status: 404,
+          ok: false,
+          json: () => Promise.resolve({ detail: "Not found" }),
+        }),
+    });
+
+    renderViewPage(
+      { schema: schemas.antigen, onSetError },
+      { route: "/antigens/12", path: "/antigens/:recordId" },
+    );
+
+    await waitFor(() => {
+      expect(onSetError).toHaveBeenCalledWith("404 object not found");
+    });
+    // Component must remain mounted without throwing TypeError
+    expect(screen.getByText("Antigen Information")).toBeInTheDocument();
+  });
+
   it("calls onSetError when GET returns non-404 HTTP error", async () => {
     const onSetError = vi.fn();
     mockFetch({

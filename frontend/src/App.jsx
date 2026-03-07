@@ -9,6 +9,7 @@ import Tabs from "./crudtemplates/Tabs.jsx";
 import AuditLog from "./crudtemplates/AuditLog.jsx";
 import schemas from "./schema.js";
 import ErrorHandler from "./ErrorHandler.jsx";
+import ClearErrorOnNavigate from "./ClearErrorOnNavigate.jsx";
 import SearchSequencing from "./SearchSequencing.jsx";
 import BlastSequencing from "./BlastSequencing.jsx";
 import React, { Fragment, useState, useEffect } from "react";
@@ -324,6 +325,7 @@ const App = () => {
             <div className="h-96 rounded-lg border-4 border-dashed border-gray-200" />
           </div> */}
           {/* /End replace */}
+          <ClearErrorOnNavigate setError={setError} />
           {error && <ErrorHandler error={error} onSetError={setError} />}
           <Routes>
             <Route
