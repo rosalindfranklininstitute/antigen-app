@@ -96,7 +96,7 @@ const App = () => {
     };
 
     const refreshUserInfo = () => {
-      fetch("/oauth2/userinfo").then((res) => {
+      fetch(config.url.API_URL + "/userinfo").then((res) => {
         if (res.status === 401) {
           // session has expired, reload
           window.location.reload();

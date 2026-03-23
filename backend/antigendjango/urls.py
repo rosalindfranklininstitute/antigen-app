@@ -18,8 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from antigendjango.auth import userinfo
+
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/userinfo", userinfo),
     path("api/", include("antigenapi.urls")),
 ]
 
