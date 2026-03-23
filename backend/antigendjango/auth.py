@@ -1,5 +1,6 @@
 from django.contrib.auth.backends import RemoteUserBackend
 from django.contrib.auth.middleware import RemoteUserMiddleware
+from django.http import JsonResponse
 
 
 class RFIRemoteUserMiddleware(RemoteUserMiddleware):
@@ -23,3 +24,15 @@ class RFIRemoteUserBackend(RemoteUserBackend):
             user.save()
 
         return user
+
+
+def userinfo(request):
+    """Drop-in replacement for oauth2-proxy's /oauth2/userinfo endpoint.
+
+    Allows the frontend to read the logged in username and email.
+    """
+    username = request.headers.get("X-Auth-Request-Preferred-Username")
+    email = request.headers.get("X-Auth-Request-Email")
+    if not username:
+        return JsonResponse({}, status=401)
+    return JsonResponse({"preferredUsername": username, "email": email or ""})
