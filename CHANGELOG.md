@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.6](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.5...v0.3.6) (2026-03-23)
+
+
+### Bug Fixes
+
+* add /oauth2/userinfo endpoint to replace oauth2-proxy equivalent ([#240](https://github.com/rosalindfranklininstitute/antigen-app/issues/240)) ([9a49f8b](https://github.com/rosalindfranklininstitute/antigen-app/commit/9a49f8b878bbbcdd1587fc2301140a572f1b4bed))
+* recognise HTTP 302 as an auth redirect ([#241](https://github.com/rosalindfranklininstitute/antigen-app/issues/241)) ([354e9ac](https://github.com/rosalindfranklininstitute/antigen-app/commit/354e9ac27dbe7ef9a92be3c19a57c32fa8e03618))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump jsdom from 28.1.0 to 29.0.0 in /frontend ([#231](https://github.com/rosalindfranklininstitute/antigen-app/issues/231)) ([bf264a5](https://github.com/rosalindfranklininstitute/antigen-app/commit/bf264a5a03832e44f587923c18a8fae14999fdbf))
+* **deps-dev:** bump ruff from 0.15.4 to 0.15.6 in /backend ([#235](https://github.com/rosalindfranklininstitute/antigen-app/issues/235)) ([c12acc6](https://github.com/rosalindfranklininstitute/antigen-app/commit/c12acc6ec853d8707379792e3b0f0eadaecf2b39))
+* **deps-dev:** bump vite to v8 (+peer deps) ([#239](https://github.com/rosalindfranklininstitute/antigen-app/issues/239)) ([63f4db3](https://github.com/rosalindfranklininstitute/antigen-app/commit/63f4db35e0c05718d4f90c29bbfb4c947843754a))
+* **deps:** bump @sentry/react from 10.42.0 to 10.44.0 in /frontend ([#232](https://github.com/rosalindfranklininstitute/antigen-app/issues/232)) ([5b24615](https://github.com/rosalindfranklininstitute/antigen-app/commit/5b24615a5c5c10d874b0bc4c4f1cac4d50e61931))
+* **deps:** bump boto3 from 1.42.60 to 1.42.70 in /backend ([#236](https://github.com/rosalindfranklininstitute/antigen-app/issues/236)) ([74bfea4](https://github.com/rosalindfranklininstitute/antigen-app/commit/74bfea4406e6f8532d356696b21d9e51f3057ea1))
+* **deps:** bump numpy from 2.4.2 to 2.4.3 in /backend ([#227](https://github.com/rosalindfranklininstitute/antigen-app/issues/227)) ([0835daa](https://github.com/rosalindfranklininstitute/antigen-app/commit/0835daa6040f61383327c669b5bed243808c8148))
+* **deps:** bump sentry-sdk from 2.54.0 to 2.55.0 in /backend ([#237](https://github.com/rosalindfranklininstitute/antigen-app/issues/237)) ([3e467d9](https://github.com/rosalindfranklininstitute/antigen-app/commit/3e467d9ae10dadc68cf1b6c69de942673a7ead2e))
+* **deps:** bump undici from 7.22.0 to 7.24.1 in /frontend ([#230](https://github.com/rosalindfranklininstitute/antigen-app/issues/230)) ([10735f9](https://github.com/rosalindfranklininstitute/antigen-app/commit/10735f91060d311cdf7dac860e080c9b3c3ca964))
+
 ## [0.3.5](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.4...v0.3.5) (2026-03-07)
 
 
