@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.8](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.7...v0.3.8) (2026-03-24)
+
+
+### Bug Fixes
+
+* use redirect:manual to prevent CORS error on session expiry ([#244](https://github.com/rosalindfranklininstitute/antigen-app/issues/244)) ([f3a2fa9](https://github.com/rosalindfranklininstitute/antigen-app/commit/f3a2fa9b784977644c542b310701ca38851fa1ad))
+
 ## [0.3.7](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.6...v0.3.7) (2026-03-24)
 
 
