@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.7](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.6...v0.3.7) (2026-03-24)
+
+
+### Bug Fixes
+
+* reload page on stale session ([#242](https://github.com/rosalindfranklininstitute/antigen-app/issues/242)) ([7af77b2](https://github.com/rosalindfranklininstitute/antigen-app/commit/7af77b297f4fae90b0f884f0950b94eac526cac9))
+
 ## [0.3.6](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.5...v0.3.6) (2026-03-23)
 
 
