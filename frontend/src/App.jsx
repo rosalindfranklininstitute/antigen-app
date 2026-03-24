@@ -97,7 +97,8 @@ const App = () => {
 
     const refreshUserInfo = () => {
       fetch(config.url.API_URL + "/userinfo").then((res) => {
-        if (res.status === 401 || res.status === 302) {
+        const wasRedirected = !res.url.includes("/userinfo");
+        if (wasRedirected || res.status === 401) {
           // session has expired, reload
           window.location.reload();
         } else if (res.status === 200) {
