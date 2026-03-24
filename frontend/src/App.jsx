@@ -96,32 +96,33 @@ const App = () => {
     };
 
     const refreshUserInfo = () => {
-      fetch(config.url.API_URL + "/userinfo").then((res) => {
-        const wasRedirected = !res.url.includes("/userinfo");
-        if (wasRedirected || res.status === 401) {
-          // session has expired, reload
-          window.location.reload();
-        } else if (res.status === 200) {
-          res.json().then((data) => {
-            if (
-              user.username !== "" &&
-              user.username !== data.preferredUsername
-            ) {
-              // User ID has changed, do a reload
-              window.location.reload();
-            }
-            setUser({
-              name: "",
-              email: data.email,
-              username: data.preferredUsername,
+      fetch(config.url.API_URL + "/userinfo", { redirect: "manual" }).then(
+        (res) => {
+          if (res.type === "opaqueredirect" || res.status === 401) {
+            // session has expired — redirect to OIDC login or 401 from backend
+            window.location.reload();
+          } else if (res.status === 200) {
+            res.json().then((data) => {
+              if (
+                user.username !== "" &&
+                user.username !== data.preferredUsername
+              ) {
+                // User ID has changed, do a reload
+                window.location.reload();
+              }
+              setUser({
+                name: "",
+                email: data.email,
+                username: data.preferredUsername,
+              });
+              Sentry.setUser({
+                username: data.preferredUsername,
+                email: data.email,
+              });
             });
-            Sentry.setUser({
-              username: data.preferredUsername,
-              email: data.email,
-            });
-          });
-        }
-      });
+          }
+        },
+      );
     };
 
     getCSRF();

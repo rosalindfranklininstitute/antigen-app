@@ -16,7 +16,7 @@ it("renders without crashing", async () => {
     else if (url.includes("/dashboard/latest")) data = { logs: [] };
     return Promise.resolve({
       status: 200,
-      url: config.url.API_URL + "/userinfo",
+      type: "basic",
       ok: true,
       json: () => Promise.resolve(data),
     });
