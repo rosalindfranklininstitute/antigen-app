@@ -1,0 +1,65 @@
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: "0 9 * * *"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # On each Dependabot PR event: label patch/github-actions updates as candidates.
+  label-candidate:
+    if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a # v2.5.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Label as auto-merge candidate
+        if: >-
+          ${{
+            steps.metadata.outputs.update-type == 'version-update:semver-patch' ||
+            steps.metadata.outputs.package-ecosystem == 'github-actions'
+          }}
+        run: |
+          gh label create "dependabot:auto-merge" --color "0075ca" --description "Dependabot PR eligible for auto-merge after 3 days" --force
+          gh pr edit "$PR_URL" --add-label "dependabot:auto-merge"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+
+  # Daily: enable auto-merge on labelled PRs that have been open for at least 3 days.
+  merge-aged:
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge Dependabot PRs aged 3+ days
+        run: |
+          MIN_AGE_SECONDS=$((3 * 24 * 3600))
+          NOW=$(date +%s)
+
+          gh pr list \
+            --label "dependabot:auto-merge" \
+            --author "dependabot[bot]" \
+            --json number,createdAt,url \
+            --jq '.[] | "\(.number)\t\(.createdAt)\t\(.url)"' \
+          | while IFS=$'\t' read -r number created_at url; do
+              age=$(( NOW - $(date -d "$created_at" +%s) ))
+              if [ "$age" -ge "$MIN_AGE_SECONDS" ]; then
+                echo "Enabling auto-merge on PR #$number (age: $((age / 86400)) days)"
+                gh pr merge --auto --squash "$url"
+              else
+                echo "Skipping PR #$number — only $((age / 86400)) days old"
+              fi
+            done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
