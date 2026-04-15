@@ -41,3 +41,7 @@ updates:
         patterns:
           - "vitest"
           - "@vitest/*"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
