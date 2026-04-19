@@ -127,6 +127,7 @@ def as_fasta_files(seq_data, max_file_size=50):
 
 _VQUEST_URL = "https://www.imgt.org/IMGT_vquest/analysis"
 _VQUEST_BATCH_SIZE = 50  # V-QUEST limit per request
+_VQUEST_TIMEOUT = (10, 120)  # (connect timeout, read timeout) in seconds
 
 
 def run_vquest(fasta_data, species="alpaca", receptor="IG"):
@@ -149,22 +150,34 @@ def run_vquest(fasta_data, species="alpaca", receptor="IG"):
                 "resultType": "excel",
                 "xv_outputtype": 3,
             },
+            timeout=_VQUEST_TIMEOUT,
         )
         response.raise_for_status()
         if "text/html" in response.headers.get("Content-Type", ""):
             tree = etree.fromstring(response.content, etree.HTMLParser())
             errors = tree.xpath("//div[contains(@class,'form_error')]/text()")
             raise ValueError("; ".join(errors) or "V-QUEST returned an HTML error")
-        with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
-            outputs.append({name: zf.read(name) for name in zf.namelist()})
+        try:
+            with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+                outputs.append({name: zf.read(name) for name in zf.namelist()})
+        except zipfile.BadZipFile:
+            raise ValueError("V-QUEST returned an unexpected non-ZIP response")
 
-    result = {
-        "Parameters.txt": outputs[0]["Parameters.txt"].decode(),
-        "vquest_airr.tsv": outputs[0]["vquest_airr.tsv"].decode(),
-    }
+    try:
+        result = {
+            "Parameters.txt": outputs[0]["Parameters.txt"].decode(),
+            "vquest_airr.tsv": outputs[0]["vquest_airr.tsv"].decode(),
+        }
+    except KeyError as e:
+        raise ValueError(f"V-QUEST response zip is missing expected file: {e}")
+
     for batch in outputs[1:]:
         airr_rows = batch["vquest_airr.tsv"].decode().splitlines()
-        result["vquest_airr.tsv"] += "\n".join(airr_rows[1:])  # skip header row
+        data_rows = airr_rows[1:]  # skip header
+        if data_rows:
+            if not result["vquest_airr.tsv"].endswith("\n"):
+                result["vquest_airr.tsv"] += "\n"
+            result["vquest_airr.tsv"] += "\n".join(data_rows)
     if not result["vquest_airr.tsv"].endswith("\n"):
         result["vquest_airr.tsv"] += "\n"
     return result
