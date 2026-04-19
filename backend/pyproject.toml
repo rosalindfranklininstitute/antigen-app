@@ -24,7 +24,7 @@ dependencies = [
     "psycopg2-binary",
     "pandas",
     "sentry-sdk",
-    "vquest",
+    "requests",
     "urllib3>2",
     "lxml[html_clean]",
 ]
@@ -36,6 +36,7 @@ dev = [
     "pytest-cov",
     "pytest-django",
     "pytest-mypy",
+    "types-requests",
 ]
 
 [tool.setuptools.packages.find]
@@ -75,7 +76,10 @@ DJANGO_SETTINGS_MODULE = "antigendjango.settings"
 testpaths = ["antigendjango", "antigenapi"]
 norecursedirs = ["migrations"]
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
-addopts = "--tb=native -vv --mypy --ds=antigendjango.settings --cov=. --cov-report term --cov-report xml:cov.xml"
+addopts = "--tb=native -vv --mypy --ds=antigendjango.settings --cov=. --cov-report term --cov-report xml:cov.xml -m 'not integration'"
+markers = [
+    "integration: marks tests requiring live network access (skip with '-m not integration')",
+]
 
 [tool.mypy]
 ignore_missing_imports = true
