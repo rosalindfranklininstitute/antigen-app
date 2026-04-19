@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.10](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.9...v0.3.10) (2026-04-19)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump ruff from 0.15.9 to 0.15.10 in /backend ([#298](https://github.com/rosalindfranklininstitute/antigen-app/issues/298)) ([7999d4d](https://github.com/rosalindfranklininstitute/antigen-app/commit/7999d4d11213d5d7fec27ccc43707945360cb276))
+* **deps-dev:** bump vite from 8.0.7 to 8.0.8 in /frontend ([#293](https://github.com/rosalindfranklininstitute/antigen-app/issues/293)) ([b14aa24](https://github.com/rosalindfranklininstitute/antigen-app/commit/b14aa24fd575b7fc83e5a567467b8d4d4b807f1a))
+* **deps:** bump @sentry/react from 10.47.0 to 10.48.0 in /frontend ([#289](https://github.com/rosalindfranklininstitute/antigen-app/issues/289)) ([3d1e931](https://github.com/rosalindfranklininstitute/antigen-app/commit/3d1e9312f97f9024b385004df7cc4fae22ffad69))
+* **deps:** bump boto3 from 1.42.85 to 1.42.89 in /backend ([#294](https://github.com/rosalindfranklininstitute/antigen-app/issues/294)) ([0de029c](https://github.com/rosalindfranklininstitute/antigen-app/commit/0de029c9ad82a53d52bc50d5fe2a7b71cdd2c7f0))
+* **deps:** bump docker/build-push-action from 7.0.0 to 7.1.0 ([#295](https://github.com/rosalindfranklininstitute/antigen-app/issues/295)) ([242a983](https://github.com/rosalindfranklininstitute/antigen-app/commit/242a983656cb1546dcbdf387ee2005ecb3e1e27c))
+* **deps:** bump googleapis/release-please-action from 4.4.0 to 4.4.1 ([#297](https://github.com/rosalindfranklininstitute/antigen-app/issues/297)) ([bbae72f](https://github.com/rosalindfranklininstitute/antigen-app/commit/bbae72f370b5577ee1307292fb6fbfdbcd96220b))
+* **deps:** bump react-router from 7.14.0 to 7.14.1 in /frontend ([#291](https://github.com/rosalindfranklininstitute/antigen-app/issues/291)) ([4b41be1](https://github.com/rosalindfranklininstitute/antigen-app/commit/4b41be1cb0fc98811ce6e9a0375bdeb1edf17371))
+* **deps:** bump sentry-sdk from 2.57.0 to 2.58.0 in /backend ([#296](https://github.com/rosalindfranklininstitute/antigen-app/issues/296)) ([176c312](https://github.com/rosalindfranklininstitute/antigen-app/commit/176c312fee2e3b88a089df233947f8c235ebc023))
+* **deps:** bump the react group in /frontend with 2 updates ([#301](https://github.com/rosalindfranklininstitute/antigen-app/issues/301)) ([e2a3f73](https://github.com/rosalindfranklininstitute/antigen-app/commit/e2a3f73b2a5624597d9b902457c389ba679d3aab))
+
 ## [0.3.9](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.8...v0.3.9) (2026-04-11)
 
 
