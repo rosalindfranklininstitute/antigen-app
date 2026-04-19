@@ -36,6 +36,7 @@ dev = [
     "pytest-cov",
     "pytest-django",
     "pytest-mypy",
+    "types-requests",
 ]
 
 [tool.setuptools.packages.find]
