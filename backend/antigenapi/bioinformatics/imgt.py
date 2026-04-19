@@ -1,15 +1,14 @@
 import io
 import itertools
-import logging
 import os
 import re
 import sys
+import time
 import zipfile
 
 import pandas as pd
-import vquest.config
-import vquest.vq
-from vquest import LOGGER as VQUEST_LOGGER
+import requests
+from lxml import etree
 
 START_CODON = "ATG"
 SUFFIXES = (".seq", ".fa", ".fasta")
@@ -126,17 +125,49 @@ def as_fasta_files(seq_data, max_file_size=50):
     return fasta_files
 
 
+_VQUEST_URL = "https://www.imgt.org/IMGT_vquest/analysis"
+_VQUEST_BATCH_SIZE = 50  # V-QUEST limit per request
+
+
 def run_vquest(fasta_data, species="alpaca", receptor="IG"):
-    """Run vquest bioinformatics on a set of fasta files."""
-    conf = vquest.config.DEFAULTS.copy()
-    conf["inputType"] = "inline"
-    conf["species"] = species
-    conf["receptorOrLocusType"] = receptor
-    conf["sequences"] = fasta_data
+    """Submit FASTA sequences to the IMGT/V-QUEST web service and return results."""
+    records = [r for r in re.split(r"\n(?=>)", fasta_data) if r.strip()]
+    if not records:
+        raise ValueError("No sequences supplied")
 
-    VQUEST_LOGGER.setLevel(logging.WARNING)
+    outputs = []
+    for i in range(0, len(records), _VQUEST_BATCH_SIZE):
+        if i > 0:
+            time.sleep(1)  # respect IMGT rate limits between batches
+        response = requests.post(
+            _VQUEST_URL,
+            data={
+                "inputType": "inline",
+                "species": species,
+                "receptorOrLocusType": receptor,
+                "sequences": "\n".join(records[i : i + _VQUEST_BATCH_SIZE]),
+                "resultType": "excel",
+                "xv_outputtype": 3,
+            },
+        )
+        response.raise_for_status()
+        if "text/html" in response.headers.get("Content-Type", ""):
+            tree = etree.fromstring(response.content, etree.HTMLParser())
+            errors = tree.xpath("//div[contains(@class,'form_error')]/text()")
+            raise ValueError("; ".join(errors) or "V-QUEST returned an HTML error")
+        with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
+            outputs.append({name: zf.read(name) for name in zf.namelist()})
 
-    return vquest.vq.vquest(conf)
+    result = {
+        "Parameters.txt": outputs[0]["Parameters.txt"].decode(),
+        "vquest_airr.tsv": outputs[0]["vquest_airr.tsv"].decode(),
+    }
+    for batch in outputs[1:]:
+        airr_rows = batch["vquest_airr.tsv"].decode().splitlines()
+        result["vquest_airr.tsv"] += "\n".join(airr_rows[1:])  # skip header row
+    if not result["vquest_airr.tsv"].endswith("\n"):
+        result["vquest_airr.tsv"] += "\n"
+    return result
 
 
 AIRR_IMPORTANT_COLUMNS = (

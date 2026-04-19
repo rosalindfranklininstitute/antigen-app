@@ -24,7 +24,7 @@ dependencies = [
     "psycopg2-binary",
     "pandas",
     "sentry-sdk",
-    "vquest",
+    "requests",
     "urllib3>2",
     "lxml[html_clean]",
 ]
