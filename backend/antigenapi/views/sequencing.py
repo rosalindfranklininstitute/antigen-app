@@ -482,11 +482,9 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                 }
             )
 
-        # Convert to FASTA in-memory (vquest api handles chunking to
-        # max 50 seqs per file)
+        # Convert to FASTA in-memory; run_vquest batches to 50 sequences per request
         fasta_file = as_fasta_files(seq_data, max_file_size=None)[0]
 
-        # Submit to vquest
         vquest_results = run_vquest(fasta_file)
 
         parameters_file_data = vquest_results["Parameters.txt"]
