@@ -25,7 +25,7 @@ dependencies = [
     "pandas",
     "sentry-sdk",
     "requests",
-    "urllib3>2",
+    "urllib3>=2.7.0",
     "lxml[html_clean]",
 ]
 
