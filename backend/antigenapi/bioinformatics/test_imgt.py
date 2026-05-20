@@ -171,3 +171,25 @@ def test_timeout_passed_to_requests(mock_post):
 
     _, kwargs = mock_post.call_args
     assert "timeout" in kwargs, "timeout must be passed to requests.post"
+
+
+@patch("antigenapi.bioinformatics.imgt.requests.post")
+def test_molecule_type_default_sent(mock_post):
+    """moleculeType=Unknown is included in the POST data by default."""
+    mock_post.return_value = _mock_zip_response(_HEADER + _airr_row(0))
+
+    run_vquest(_fasta(1))
+
+    _, kwargs = mock_post.call_args
+    assert kwargs.get("data", {}).get("moleculeType") == "Unknown"
+
+
+@patch("antigenapi.bioinformatics.imgt.requests.post")
+def test_molecule_type_override(mock_post):
+    """molecule_type kwarg is forwarded to the POST data."""
+    mock_post.return_value = _mock_zip_response(_HEADER + _airr_row(0))
+
+    run_vquest(_fasta(1), molecule_type="cDNA")
+
+    _, kwargs = mock_post.call_args
+    assert kwargs.get("data", {}).get("moleculeType") == "cDNA"

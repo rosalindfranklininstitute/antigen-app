@@ -130,7 +130,7 @@ _VQUEST_BATCH_SIZE = 50  # V-QUEST limit per request
 _VQUEST_TIMEOUT = (10, 120)  # (connect timeout, read timeout) in seconds
 
 
-def run_vquest(fasta_data, species="alpaca", receptor="IG"):
+def run_vquest(fasta_data, species="alpaca", receptor="IG", molecule_type="Unknown"):
     """Submit FASTA sequences to the IMGT/V-QUEST web service and return results."""
     records = [r for r in re.split(r"\n(?=>)", fasta_data) if r.strip()]
     if not records:
@@ -146,6 +146,7 @@ def run_vquest(fasta_data, species="alpaca", receptor="IG"):
                 "inputType": "inline",
                 "species": species,
                 "receptorOrLocusType": receptor,
+                "moleculeType": molecule_type,
                 "sequences": "\n".join(records[i : i + _VQUEST_BATCH_SIZE]),
                 "resultType": "excel",
                 "xv_outputtype": 3,
