@@ -156,8 +156,14 @@ def run_vquest(fasta_data, species="alpaca", receptor="IG", molecule_type="Unkno
         response.raise_for_status()
         if "text/html" in response.headers.get("Content-Type", ""):
             tree = etree.fromstring(response.content, etree.HTMLParser())
-            errors = tree.xpath("//div[contains(@class,'form_error')]/text()")
-            raise ValueError("; ".join(errors) or "V-QUEST returned an HTML error")
+            errors = [
+                e.strip()
+                for e in tree.xpath("//div[contains(@class,'form_error')]/text()")
+                if e.strip()
+            ]
+            raise ValueError(
+                "; ".join(errors) or "IMGT/V-QUEST returned an unexpected HTML response"
+            )
         try:
             with zipfile.ZipFile(io.BytesIO(response.content)) as zf:
                 outputs.append({name: zf.read(name) for name in zf.namelist()})
