@@ -485,7 +485,10 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         # Convert to FASTA in-memory; run_vquest batches to 50 sequences per request
         fasta_file = as_fasta_files(seq_data, max_file_size=None)[0]
 
-        vquest_results = run_vquest(fasta_file)
+        try:
+            vquest_results = run_vquest(fasta_file)
+        except ValueError as e:
+            raise ValidationError({"file": f"IMGT/V-QUEST error: {e}"})
 
         parameters_file_data = vquest_results["Parameters.txt"]
         vquest_airr_data = vquest_results["vquest_airr.tsv"]
