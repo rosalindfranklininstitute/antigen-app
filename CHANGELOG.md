@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.3.12](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.11...v0.3.12) (2026-05-20)
+
+
+### Bug Fixes
+
+* **imgt:** add required moleculeType param to V-QUEST requests ([#340](https://github.com/rosalindfranklininstitute/antigen-app/issues/340)) ([53b5b36](https://github.com/rosalindfranklininstitute/antigen-app/commit/53b5b36cd9041a400bead9be2c1d52997876ba0e))
+
+
+### Miscellaneous
+
+* **deps-dev:** bump the vitest group in /frontend with 2 updates ([#330](https://github.com/rosalindfranklininstitute/antigen-app/issues/330)) ([d1799e7](https://github.com/rosalindfranklininstitute/antigen-app/commit/d1799e712e79f1b4761e1742647da67f6b937fbe))
+* **deps-dev:** bump types-requests in /backend ([#336](https://github.com/rosalindfranklininstitute/antigen-app/issues/336)) ([7e1e96f](https://github.com/rosalindfranklininstitute/antigen-app/commit/7e1e96faeef3f6a0e6bdaf37a0791df553312105))
+* **deps:** bump @sentry/react from 10.51.0 to 10.53.1 in /frontend ([#334](https://github.com/rosalindfranklininstitute/antigen-app/issues/334)) ([ac113c5](https://github.com/rosalindfranklininstitute/antigen-app/commit/ac113c5fb33287b6ecdc17fd137f979bbb74ac50))
+* **deps:** bump @tailwindcss/postcss from 4.2.4 to 4.3.0 in /frontend ([#333](https://github.com/rosalindfranklininstitute/antigen-app/issues/333)) ([b2b66cd](https://github.com/rosalindfranklininstitute/antigen-app/commit/b2b66cd28f982db725a5df848959ce2a44d3ff29))
+* **deps:** bump boto3 from 1.43.4 to 1.43.6 in /backend ([#338](https://github.com/rosalindfranklininstitute/antigen-app/issues/338)) ([4de8737](https://github.com/rosalindfranklininstitute/antigen-app/commit/4de8737f5e152ebdbc5fbcd956464a04e6fa2786))
+* **deps:** bump idna from 3.11 to 3.15 in /backend ([#339](https://github.com/rosalindfranklininstitute/antigen-app/issues/339)) ([aa77004](https://github.com/rosalindfranklininstitute/antigen-app/commit/aa7700415c5ebe2fcde81a731121d3ec87c90fcf))
+* **deps:** bump pandas from 3.0.2 to 3.0.3 in /backend ([#337](https://github.com/rosalindfranklininstitute/antigen-app/issues/337)) ([2513de6](https://github.com/rosalindfranklininstitute/antigen-app/commit/2513de6553fd5f2d8751d8a94cf16be8f3b19d8a))
+* **deps:** bump requests from 2.33.1 to 2.34.2 in /backend ([#335](https://github.com/rosalindfranklininstitute/antigen-app/issues/335)) ([77a91bb](https://github.com/rosalindfranklininstitute/antigen-app/commit/77a91bb6adb5d5e7d7e7e43fca5b61b290405504))
+* **deps:** bump tailwindcss from 4.2.4 to 4.3.0 in /frontend ([#332](https://github.com/rosalindfranklininstitute/antigen-app/issues/332)) ([ac319a0](https://github.com/rosalindfranklininstitute/antigen-app/commit/ac319a0f05042099cdc5a12e6f8bac7206dba7c9))
+* **deps:** bump the react group in /frontend with 2 updates ([#331](https://github.com/rosalindfranklininstitute/antigen-app/issues/331)) ([6d75601](https://github.com/rosalindfranklininstitute/antigen-app/commit/6d756015314bf0da2f44f25bd2e94576d98b32e1))
+
 ## [0.3.11](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.3.10...v0.3.11) (2026-05-11)
 
 
