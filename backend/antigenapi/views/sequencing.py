@@ -263,7 +263,7 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         fn = os.path.join(
             os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
             "files",
-            "sequencing-submission-form-v1.xlsx",
+            "sequencing-submission-form-v2.xlsx",
         )
         oxl = openpyxl.load_workbook(fn)
 
