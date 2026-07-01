@@ -6,7 +6,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.10",
     "@heroicons/react": "^2.2.0",
-    "@sentry/react": "^10.60.0",
+    "@sentry/react": "^10.62.0",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.3.1",
     "react": "^19.2.7",
