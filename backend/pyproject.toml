@@ -8,7 +8,7 @@ description = "A webapp for managing nanobody and antigen datasets"
 version = "0.0.0"
 requires-python = ">=3.12"
 dependencies = [
-    "django~=5.2.15",
+    "django~=5.2.16",
     "djangorestframework",
     "django-auditlog",
     "django-cleanup",
