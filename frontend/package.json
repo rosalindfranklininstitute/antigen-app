@@ -9,8 +9,8 @@
     "@sentry/react": "^10.67.0",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.3.2",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-router": "^8.2.0",
     "tailwindcss": "^4.3.2"
   },
