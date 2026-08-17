@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.4.2...v0.4.3) (2026-08-17)
+
+
+### Miscellaneous
+
+* **deps:** bump sqlparse from 0.5.5 to 0.6.0 in /backend ([#457](https://github.com/rosalindfranklininstitute/antigen-app/issues/457)) ([f4e3b59](https://github.com/rosalindfranklininstitute/antigen-app/commit/f4e3b594a3cb4bb0e70e122ea37ec7dac2749910))
+
 ## [0.4.2](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.4.1...v0.4.2) (2026-08-13)
 
 
