@@ -338,15 +338,15 @@ wheels = [
 
 [[package]]
 name = "django-guardian"
-version = "3.3.3"
+version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f4/27/2924c6ebb788d5b76ca9f28ba4da82a2d828e56bb0f9b973dd523e797da4/django_guardian-3.3.3.tar.gz", hash = "sha256:fa9be851e5e7df4fccd0b0d7a171042cdbfaf0412a9aa54c56361d642eaccff1", size = 111083, upload-time = "2026-07-22T23:35:21.784Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/89/c7/0a2cea15a432bd97fffa50b0a01be6018e30b9cdb9775ce33c41f6994fb5/django_guardian-3.4.0.tar.gz", hash = "sha256:f7bd2d673c018e28970c6f98a5bdeeaaf294b9ca7726586695cff01f15db7ef0", size = 111700, upload-time = "2026-08-28T10:04:07.701Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/40/e4/68a8224d9746f51e39e5f2442c240424c1545f63a60e28dc63735104a2cd/django_guardian-3.3.3-py3-none-any.whl", hash = "sha256:490c04c81564a15470a95cd39a5844c5898adefa4334eed6a70aa7bb41a0b7e3", size = 147566, upload-time = "2026-07-22T23:35:20.158Z" },
+    { url = "https://files.pythonhosted.org/packages/32/6d/518729624af9e29a7ea7f4b429ddca56fd6af3462c835b0e42b494680474/django_guardian-3.4.0-py3-none-any.whl", hash = "sha256:73380fcf6815b1de15dea9cbfc931d20afdae30852228c9be2f286e0e84950c8", size = 148072, upload-time = "2026-08-28T10:04:06.056Z" },
 ]
 
 [[package]]
