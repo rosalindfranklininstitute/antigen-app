@@ -35,6 +35,7 @@ Then start the development environment using `docker compose`:
 **Linux only:** On Linux, set file permissions correctly:
 
     docker compose run --rm -u root api chgrp -R nonroot /usr/src
+    docker compose run --rm -u root api chmod -R g+w /usr/src
 
 On first use, or after a `git pull` (in case database schema has changed), initialise/migrate the database:
 
