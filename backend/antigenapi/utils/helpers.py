@@ -35,6 +35,93 @@ def extract_well(well: str):
     return well_match_grp
 
 
+def compute_plate_disambiguation_suffixes(sequencing_run) -> dict[int, str]:
+    """Compute a sample-name disambiguation suffix for each ELISA plate.
+
+    Sample names are built from an ELISA well's antigen and pan round
+    concentration. This collides if a sequencing run pulls wells from two
+    or more ELISA plates that share the same (antigen, pan_round_concentration)
+    - e.g. when a library has been split across multiple plates. In that
+    case, only the colliding plates get a ".<n>" suffix (1-based, ordered by
+    plate PK) so sample names stay unique; plates with no collision are left
+    unsuffixed.
+
+    Args:
+        sequencing_run (SequencingRun): Sequencing run to compute suffixes for.
+
+    Returns:
+        dict[int, str]: Mapping of ELISA plate PK to disambiguation suffix
+            (empty string if no disambiguation is needed).
+    """
+    referenced_wells = {
+        (w["elisa_well"]["plate"], w["elisa_well"]["location"])
+        for w in sequencing_run.wells
+    }
+    elisa_plate_ids = sorted({plate_id for plate_id, _ in referenced_wells})
+
+    plate_disambig_check: dict[tuple[str, float], set[int]] = {}
+    for ew in ElisaWell.objects.filter(plate__in=elisa_plate_ids).select_related(
+        "antigen", "plate"
+    ):
+        if (ew.plate_id, ew.location) not in referenced_wells:
+            continue
+        plate_disambig_check.setdefault(
+            (ew.antigen.short_name, ew.plate.pan_round_concentration), set()
+        ).add(ew.plate_id)
+
+    colliding_plate_ids = {
+        pid
+        for plate_ids in plate_disambig_check.values()
+        if len(plate_ids) > 1
+        for pid in plate_ids
+    }
+    suffix_by_pid = {
+        pid: f".{idx + 1}"
+        for idx, pid in enumerate(
+            pid for pid in elisa_plate_ids if pid in colliding_plate_ids
+        )
+    }
+    return {pid: suffix_by_pid.get(pid, "") for pid in elisa_plate_ids}
+
+
+def build_nanobody_sample_name(
+    elisa_well: ElisaWell, plate_suffix: str = "", include_library: bool = True
+) -> str:
+    """Build the autoname/sample name for a nanobody derived from an ELISA well.
+
+    Format: <antigen short_name>_<pan round concentration><well>
+    [.<plate disambiguation suffix>][_C<cohort num><sublibrary>]
+
+    Args:
+        elisa_well (ElisaWell): ELISA well the nanobody was picked from. Must
+            have antigen, plate, plate.library and plate.library.cohort
+            already fetched/selected (e.g. via select_related) if
+            include_library is True.
+        plate_suffix (str): Plate disambiguation suffix, e.g. from
+            compute_plate_disambiguation_suffixes. Defaults to "".
+        include_library (bool): Whether to append the library/cohort suffix.
+            Defaults to True.
+
+    Returns:
+        str: Generated sample name.
+    """
+    name = (
+        f"{elisa_well.antigen.short_name}_"
+        f"{elisa_well.plate.pan_round_concentration:g}"
+        f"{PlateLocations.labels[elisa_well.location - 1]}"
+        f"{plate_suffix}"
+    )
+    if include_library:
+        cohort = elisa_well.plate.library.cohort
+        name += (
+            "_C"
+            + ("N" if cohort.is_naive else "")
+            + f"{cohort.cohort_num}"
+            + f"{elisa_well.plate.library.sublibrary or ''}"
+        )
+    return name
+
+
 def read_seqrun_results(pk: int, usecols: Iterable[str]):
     """Read sequencing run results and add nb autonames.
 
@@ -55,10 +142,6 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
     if not results:
         return pd.DataFrame()
 
-    # Nanobody autoname format is:
-    # <short antigen name>_<pan conc><ELISA well_no>
-    # [.<ELISA plate number (index) if >1 plate]_C<cohort><sublibrary>
-
     # Get ELISA wells as dict for lookup
     elisa_wells_to_seq = {
         (w["elisa_well"]["plate"], w["elisa_well"]["location"]): (
@@ -68,38 +151,22 @@ def read_seqrun_results(pk: int, usecols: Iterable[str]):
         for r in results
         for w in r.sequencing_run.wells
     }
-    # Get the ELISA plate IDs seen across this resultset -
-    # put in dict for an ordered set
-    elisa_plate_idxs = dict.fromkeys((w[0] for w in elisa_wells_to_seq.keys()), "")
 
     # For each (short_antigen_name, pan_conc) combination, check on which plate(s)
     # it occurs to determine if we need a suffix to disambiguate
+    plate_disambig_suffixes = compute_plate_disambiguation_suffixes(
+        results[0].sequencing_run
+    )
+
     elisa_well_query = ElisaWell.objects.filter(
-        plate__in=elisa_plate_idxs.keys()
+        plate__in=plate_disambig_suffixes.keys()
     ).select_related("antigen", "plate", "plate__library", "plate__library__cohort")
-
-    plate_disambig_check: dict[tuple[str, float], set[int]] = {}
-    for ew in elisa_well_query:
-        plate_disambig_check.setdefault(
-            (ew.antigen.short_name, ew.plate.pan_round_concentration), set()
-        ).add(ew.plate_id)
-
-    if any(len(plate_ids) > 1 for plate_ids in plate_disambig_check.values()):
-        # Ambiguous plate ID if antigen_short_name and pan_round_concentration
-        # doesn't disambiguate - in that case, we need a suffix.
-        # We include a .(1-based index) suffix to disambiguate.
-        elisa_plate_idxs = {
-            id: f".{idx + 1}" for idx, id in enumerate(elisa_plate_idxs.keys())
-        }
 
     # Retrieve nanobody autonames associated with ELISA plates in this result set
     nanobody_autonames_lookup = {
-        elisa_wells_to_seq[(ew.plate_id, ew.location)]: f"{ew.antigen.short_name}_"
-        f"{ew.plate.pan_round_concentration:g}"
-        f"{PlateLocations.labels[ew.location - 1]}{elisa_plate_idxs[ew.plate_id]}_C"
-        + ("N" if ew.plate.library.cohort.is_naive else "")
-        + f"{ew.plate.library.cohort.cohort_num}"
-        + f"{ew.plate.library.sublibrary or ''}"
+        elisa_wells_to_seq[(ew.plate_id, ew.location)]: build_nanobody_sample_name(
+            ew, plate_disambig_suffixes[ew.plate_id]
+        )
         for ew in elisa_well_query
         if (ew.plate_id, ew.location) in elisa_wells_to_seq.keys()
     }
