@@ -40,7 +40,12 @@ from antigenapi.models import (
     SequencingRun,
     SequencingRunResults,
 )
-from antigenapi.utils.helpers import extract_well, read_seqrun_results
+from antigenapi.utils.helpers import (
+    build_nanobody_sample_name,
+    compute_plate_disambiguation_suffixes,
+    extract_well,
+    read_seqrun_results,
+)
 from antigenapi.views.elisa import _wells_to_tsv
 from antigenapi.views.mixins import AuditLogMixin, DeleteProtectionMixin
 
@@ -286,10 +291,18 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
 
         elisa_wells = {
             (ew.plate_id, ew.location): ew
-            for ew in ElisaWell.objects.filter(plate__pk__in=elisa_plates_to_load)
-            .select_related("plate")
-            .select_related("antigen")
+            for ew in ElisaWell.objects.filter(
+                plate__pk__in=elisa_plates_to_load
+            ).select_related(
+                "antigen", "plate", "plate__library", "plate__library__cohort"
+            )
         }
+
+        # Disambiguate ELISA plates that share an antigen/pan round concentration
+        # (e.g. a library split across multiple plates) so sample names stay
+        # unique. Computed across the whole sequencing run, not just this
+        # submission plate, since colliding plates may span submission plates.
+        plate_disambig_suffixes = compute_plate_disambiguation_suffixes(sr)
 
         # Make modifications
         for row in range(3, 100):  # 96 wells
@@ -300,10 +313,8 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
                 continue
 
             elisa_well = elisa_wells[(well["plate"], well["location"])]
-            ws[f"B{row}"] = (
-                f"{elisa_well.antigen.short_name}_"
-                f"{elisa_well.plate.pan_round_concentration:g}"
-                f"{PlateLocations.labels[elisa_well.location - 1]}"
+            ws[f"B{row}"] = build_nanobody_sample_name(
+                elisa_well, plate_disambig_suffixes[elisa_well.plate_id]
             )
             # Own primer name
             ws[f"D{row}"] = "PHD_SEQ_FWD"
