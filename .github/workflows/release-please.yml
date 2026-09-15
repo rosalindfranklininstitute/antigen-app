@@ -4,12 +4,19 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Existing release tag to (re-)build and push images for
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   release-please:
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -30,19 +37,26 @@ jobs:
 
   push-release-images:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: |
+      always() && (
+        needs.release-please.outputs.release_created == 'true' ||
+        github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
       matrix:
         component: [backend, frontend]
+    env:
+      TAG_NAME: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || needs.release-please.outputs.tag_name }}
+      RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.tag_name || needs.release-please.outputs.version }}
 
     steps:
       - name: Checkout Source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ needs.release-please.outputs.tag_name }}
+          ref: ${{ env.TAG_NAME }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
@@ -61,10 +75,10 @@ jobs:
           images: |
             quay.io/rosalindfranklininstitute/antigen-app-${{ matrix.component }}
           tags: |
-            type=semver,pattern={{version}},prefix=v,value=${{ needs.release-please.outputs.tag_name }}
-            type=semver,pattern={{major}}.{{minor}},prefix=v,value=${{ needs.release-please.outputs.tag_name }},enable=${{ !contains(needs.release-please.outputs.version, '-') }}
-            type=semver,pattern={{major}},prefix=v,value=${{ needs.release-please.outputs.tag_name }},enable=${{ !contains(needs.release-please.outputs.version, '-') }}
-            type=raw,value=latest,enable=${{ !contains(needs.release-please.outputs.version, '-') }}
+            type=semver,pattern={{version}},prefix=v,value=${{ env.TAG_NAME }}
+            type=semver,pattern={{major}}.{{minor}},prefix=v,value=${{ env.TAG_NAME }},enable=${{ !contains(env.RELEASE_VERSION, '-') }}
+            type=semver,pattern={{major}},prefix=v,value=${{ env.TAG_NAME }},enable=${{ !contains(env.RELEASE_VERSION, '-') }}
+            type=raw,value=latest,enable=${{ !contains(env.RELEASE_VERSION, '-') }}
 
       - name: Resolve component build args
         id: build-args
