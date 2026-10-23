@@ -29,7 +29,7 @@ Serves the production build locally for testing.
 ### Build-time variables
 
 `VITE_*` variables are inlined into the JS bundle at build time by Vite. They must be
-set when running `docker build` (or `npm run build`), not at container runtime.
+set when running `podman build` (or `npm run build`), not at container runtime.
 
 | Variable          | Description                               |
 | ----------------- | ----------------------------------------- |
@@ -38,7 +38,7 @@ set when running `docker build` (or `npm run build`), not at container runtime.
 To build a production image with Sentry enabled:
 
 ```sh
-docker build --target prod --build-arg VITE_SENTRY_DSN=https://... -t antigenapp-frontend .
+podman build --target prod --build-arg VITE_SENTRY_DSN=https://... -t antigenapp-frontend .
 ```
 
 ### Runtime variables

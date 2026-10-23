@@ -13,7 +13,7 @@ updates:
       # Stay on Django 5.2 LTS
       - dependency-name: "django"
         update-types: ["version-update:semver-major"]
-  - package-ecosystem: "docker"
+  - package-ecosystem: "podman"
     directory: "/backend"
     schedule:
       interval: "weekly"
@@ -24,7 +24,7 @@ updates:
       - dependency-name: "python"
         update-types:
           ["version-update:semver-major", "version-update:semver-minor"]
-  - package-ecosystem: "docker"
+  - package-ecosystem: "podman"
     directory: "/frontend"
     schedule:
       interval: "weekly"
