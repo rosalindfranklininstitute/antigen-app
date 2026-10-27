@@ -19,6 +19,41 @@ BLAST_NUM_THREADS = 4
 ALIGN_PERC_THRESHOLD = 90
 E_VALUE_THRESHOLD = 0.05
 
+# Autonames used when a sequence couldn't be matched to an ELISA well
+UNMATCHED_AUTONAMES = ("n/a (index not found)", "n/a (well unparseable)")
+
+
+def get_blast_sequence_names(airr_df: pd.DataFrame) -> list[str]:
+    """Get the name used for each sequence in a BLAST FASTA file.
+
+    This is the ELISA-derived nanobody autoname, falling back to the sequence ID
+    if the sequence couldn't be matched to an ELISA well, and with a sequencing
+    run suffix added if the autoname is ambiguous (duplicated).
+
+    Args:
+        airr_df (pd.DataFrame): Sequencing run results, as returned by
+          read_seqrun_results (with at least sequence_id, nanobody_autoname and
+          sequencing_run columns).
+
+    Returns:
+        list[str]: One name for each row of airr_df, in order.
+    """
+    ambiguous_autonames = set(
+        airr_df.loc[airr_df["nanobody_autoname"].duplicated(), "nanobody_autoname"]
+    )
+
+    names = []
+    for autoname, sequence_id, sequencing_run in zip(
+        airr_df["nanobody_autoname"],
+        airr_df["sequence_id"],
+        airr_df["sequencing_run"],
+    ):
+        name = sequence_id if autoname in UNMATCHED_AUTONAMES else autoname
+        if name in ambiguous_autonames:
+            name += f".SR{sequencing_run}"
+        names.append(name)
+    return names
+
 
 def get_db_fasta(
     include_run: Optional[int] = None,
@@ -63,26 +98,13 @@ def get_db_fasta(
             )
         ]
 
-        # Get list of ambiguous autonames
-        nb_autoname_ambig = tuple(
-            airr_file.loc[
-                airr_file["nanobody_autoname"].duplicated(), "nanobody_autoname"
-            ].unique()
-        )
-
         if query_type == "cdr3":
             cdr3s = set(airr_file.cdr3_aa.unique())
             for cdr3 in cdr3s:
                 fasta_data[f"CDR3: {cdr3}"] = cdr3
         else:
-            for _, row in airr_file.iterrows():
-                seq_name = row.nanobody_autoname
-                if seq_name in ("n/a (index not found)", "n/a (well unparseable)"):
-                    # Fallback if ELISA data couldn't be matched
-                    seq_name = row.sequence_id
-                if seq_name in nb_autoname_ambig:
-                    seq_name += f".SR{row.sequencing_run}"
-
+            seq_names = get_blast_sequence_names(airr_file)
+            for (_, row), seq_name in zip(airr_file.iterrows(), seq_names):
                 if query_type == "cdr3_unagg":
                     seq = row.cdr3_aa.replace(".", "")
                     seq_name += "[CDR3]"
