@@ -193,6 +193,82 @@ def test_get_db_fasta_raises_on_conflicting_duplicate_sequence_name(monkeypatch)
         blast.get_db_fasta(include_run=1, query_type="full")
 
 
+def test_get_blast_sequence_names_falls_back_to_sequence_id_when_unmatched():
+    df = pd.DataFrame(
+        {
+            "sequence_id": ["s1_A01", "s2_A02", "s3_A03"],
+            "nanobody_autoname": [
+                "NB1",
+                "n/a (index not found)",
+                "n/a (well unparseable)",
+            ],
+            "sequencing_run": [1, 1, 1],
+        }
+    )
+
+    assert blast.get_blast_sequence_names(df) == ["NB1", "s2_A02", "s3_A03"]
+
+
+def test_get_blast_sequence_names_adds_run_suffix_only_to_ambiguous_names():
+    df = pd.DataFrame(
+        {
+            "sequence_id": ["s1_A01", "s2_A01", "s3_A02"],
+            "nanobody_autoname": ["NB", "NB", "UNIQUE"],
+            "sequencing_run": [1, 2, 1],
+        }
+    )
+
+    assert blast.get_blast_sequence_names(df) == ["NB.SR1", "NB.SR2", "UNIQUE"]
+
+
+def test_get_blast_sequence_names_handles_repeated_index_labels():
+    # Results concatenated across runs repeat their index labels
+    df = pd.concat(
+        [
+            pd.DataFrame(
+                {
+                    "sequence_id": ["a_A01"],
+                    "nanobody_autoname": ["NB"],
+                    "sequencing_run": [1],
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "sequence_id": ["b_A01"],
+                    "nanobody_autoname": ["NB"],
+                    "sequencing_run": [2],
+                }
+            ),
+        ]
+    )
+
+    assert blast.get_blast_sequence_names(df) == ["NB.SR1", "NB.SR2"]
+
+
+def test_get_db_fasta_names_match_get_blast_sequence_names(monkeypatch):
+    df = pd.DataFrame(
+        {
+            "sequence_id": ["s1_REF", "s2_A01", "s3_A01"],
+            "sequence_alignment_aa": ["AA", "MK", "CC"],
+            "cdr3_aa": ["AAA", "MKD", "CCC"],
+            "nanobody_autoname": ["n/a (well unparseable)", "NB", "NB"],
+            "sequencing_run": [1, 1, 2],
+        }
+    )
+    captured = {}
+
+    def _fake_as_fasta_files(seq_data, max_file_size=None):
+        captured["names"] = list(seq_data)
+        return ["unused"]
+
+    monkeypatch.setattr(blast, "read_seqrun_results", lambda *args, **kwargs: df)
+    monkeypatch.setattr(blast, "as_fasta_files", _fake_as_fasta_files)
+
+    blast.get_db_fasta(include_run=1, query_type="full")
+
+    assert captured["names"] == blast.get_blast_sequence_names(df)
+
+
 def test_run_blastp_seq_run_returns_none_for_empty_query(monkeypatch):
     monkeypatch.setattr(blast, "get_sequencing_run_fasta", lambda *args, **kwargs: "")
 

@@ -21,6 +21,7 @@ from rest_framework.serializers import (
 from rest_framework.viewsets import ModelViewSet
 
 from antigenapi.bioinformatics.blast import (
+    get_blast_sequence_names,
     parse_blast_results,
     run_blastp,
     run_blastp_seq_run,
@@ -714,9 +715,14 @@ class SequencingRunViewSet(AuditLogMixin, DeleteProtectionMixin, ModelViewSet):
         if not blast_str:
             return JsonResponse({"hits": []}, status=status.HTTP_404_NOT_FOUND)
 
-        # Read query AIRR files for CDRs
-        airr_df = read_seqrun_results(pk, usecols=("sequence_id", "cdr3_aa"))
-        airr_df = airr_df.set_index("nanobody_autoname")
+        # Read query AIRR files for CDRs, indexed by the names used in the BLAST
+        # query (which differ from the autonames for unmatched/ambiguous sequences)
+        airr_df = read_seqrun_results(
+            pk, usecols=("sequence_id", "sequence_alignment_aa", "cdr3_aa")
+        )
+        airr_df = airr_df[airr_df.sequence_alignment_aa.notna()]
+        airr_df.index = get_blast_sequence_names(airr_df)
+        airr_df = airr_df[~airr_df.index.duplicated()]
 
         return JsonResponse(
             {"hits": parse_blast_results(blast_str, query_type, airr_df)}

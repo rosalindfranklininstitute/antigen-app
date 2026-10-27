@@ -1,6 +1,8 @@
+import json
 from types import SimpleNamespace
 from unittest.mock import MagicMock, call, patch
 
+import pandas as pd
 import pytest
 from rest_framework import status
 from rest_framework.serializers import ValidationError
@@ -9,6 +11,7 @@ from antigenapi.utils.viewsets import (
     create_possibly_multiple,
     perform_create_allow_creator_change_delete,
 )
+from antigenapi.views import sequencing
 from antigenapi.views.elisa import _wells_to_tsv
 from antigenapi.views.sequencing import SequencingRunSerializer
 
@@ -488,3 +491,78 @@ def test_cohort_viewset_get_queryset_filters_by_llama_when_it_exists(mock_llama)
 
     mock_qs.filter.assert_called_once_with(llama_id="1")
     assert result == mock_qs.filter.return_value
+
+
+def _blast_json(query_title):
+    return json.dumps(
+        {
+            "BlastOutput2": [
+                {
+                    "report": {
+                        "results": {
+                            "search": {
+                                "query_title": query_title,
+                                "query_len": 10,
+                                "hits": [
+                                    {
+                                        "description": [{"title": "OTHER"}],
+                                        "hsps": [
+                                            {
+                                                "num": 1,
+                                                "qseq": "AAAAAAAAAA",
+                                                "hseq": "AAAAAAAAAA",
+                                                "midline": "||||||||||",
+                                                "bit_score": 20.0,
+                                                "evalue": 1e-5,
+                                                "align_len": 10,
+                                                "identity": 10,
+                                            }
+                                        ],
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    )
+
+
+@pytest.mark.parametrize(
+    "query_title,autonames",
+    [
+        # Unmatched to an ELISA well: BLAST query is named by sequence ID
+        ("s1_REF", ["n/a (well unparseable)", "NB2"]),
+        # Ambiguous autoname: BLAST query has a sequencing run suffix
+        ("NB1.SR1", ["NB1", "NB1"]),
+    ],
+)
+def test_get_blast_sequencing_run_finds_cdr3_for_non_autoname_queries(
+    monkeypatch, query_title, autonames
+):
+    df = pd.DataFrame(
+        {
+            "sequence_id": ["s1_REF", "s2_A01"],
+            "sequence_alignment_aa": ["AAAAAAAAAA", "MKMKMKMKMK"],
+            "cdr3_aa": ["AKFKL", "MKD"],
+            "nanobody_autoname": autonames,
+            "sequencing_run": [1, 2],
+        }
+    )
+    monkeypatch.setattr(
+        sequencing, "run_blastp_seq_run", lambda *a, **kw: _blast_json(query_title)
+    )
+    monkeypatch.setattr(sequencing, "read_seqrun_results", lambda *a, **kw: df)
+    viewset = SimpleNamespace(
+        request=SimpleNamespace(query_params={"queryType": "full"})
+    )
+
+    response = sequencing.SequencingRunViewSet.get_blast_sequencing_run(
+        viewset, viewset.request, pk=1
+    )
+
+    hits = json.loads(response.content)["hits"]
+    assert [(h["query_title"], h["query_cdr3"]) for h in hits] == [
+        (query_title, "AKFKL")
+    ]
