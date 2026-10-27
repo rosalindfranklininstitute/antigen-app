@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.5](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.4.4...v0.4.5) (2026-10-27)
+
+
+### Bug Fixes
+
+* **blast:** fix 500 for runs with unmatched wells ([#545](https://github.com/rosalindfranklininstitute/antigen-app/issues/545)) ([6e61ea3](https://github.com/rosalindfranklininstitute/antigen-app/commit/6e61ea3a2f96824a31fe2a58f454f2498a28af22))
+
 ## [0.4.4](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.4.3...v0.4.4) (2026-10-25)
 
 
