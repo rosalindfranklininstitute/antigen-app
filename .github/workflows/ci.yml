@@ -107,7 +107,7 @@ jobs:
             -e DJANGO_DEBUG=false -e DJANGO_ALLOWED_HOSTS=localhost \
             -e DJANGO_USE_SQLITE=true -e DJANGO_SECRET_KEY=ci-only \
             "${IMAGE_BASE}:prod-test"
-          curl -sf --retry 15 --retry-delay 2 --retry-connrefused http://localhost:8080/api/ > /dev/null \
+          curl -sf --retry 15 --retry-delay 2 --retry-connrefused --retry-all-errors http://localhost:8080/api/ > /dev/null \
             || { docker logs prod-test; exit 1; }
           test "$(docker exec prod-test id -u)" = 10191
           docker exec prod-test python -c "import urllib.request as u; u.urlopen('http://127.0.0.1:1717')"
@@ -118,7 +118,7 @@ jobs:
           docker run -d --name prod-test --read-only --tmpfs /tmp:size=64m \
             --cap-drop ALL --security-opt no-new-privileges -p 3000:3000 \
             -e ENVIRONMENT=staging "${IMAGE_BASE}:prod-test"
-          curl -sf --retry 15 --retry-delay 2 --retry-connrefused http://localhost:3000/ > page.html \
+          curl -sf --retry 15 --retry-delay 2 --retry-connrefused --retry-all-errors http://localhost:3000/ > page.html \
             || { docker logs prod-test; exit 1; }
           grep -q 'window._environment = "staging"' page.html
           grep -q '<html lang="en" class="preproduction ' page.html
