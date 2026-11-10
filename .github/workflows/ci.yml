@@ -47,6 +47,8 @@ jobs:
             UV_SYNC_FLAGS=
           platforms: linux/amd64
           load: true
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
           tags: ${{ env.IMAGE_BASE }}:dev
 
       - name: Run backend lint
@@ -91,6 +93,8 @@ jobs:
           target: prod
           platforms: linux/amd64
           load: true
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
           tags: ${{ env.IMAGE_BASE }}:prod-test
 
       - name: Smoke test backend prod image (read-only, non-root)
