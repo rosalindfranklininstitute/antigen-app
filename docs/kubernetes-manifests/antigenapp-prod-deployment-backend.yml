@@ -24,7 +24,7 @@ spec:
       volumes:
         - name: tmp
           emptyDir:
-            sizeLimit: 1Gi
+            sizeLimit: 5Gi
       initContainers:
         - name: antigen-migrate
           image: ...
