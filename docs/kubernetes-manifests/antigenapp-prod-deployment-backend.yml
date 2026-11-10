@@ -16,11 +16,25 @@ spec:
       labels:
         k8s-app: antigen-prod-backend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10191
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 5Gi
       initContainers:
         - name: antigen-migrate
           image: ...
           imagePullPolicy: Always
           command: [".venv/bin/python", "manage.py", "migrate"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
           env:
             - name: DJANGO_DEBUG
               value: "false"
@@ -58,6 +72,14 @@ spec:
         - image: ...
           imagePullPolicy: Always
           name: backend
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
           ports:
             - containerPort: 8080
               protocol: TCP
