@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.4.6](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.4.5...v0.4.6) (2026-11-10)
+
+
+### Miscellaneous
+
+* **deps-dev:** bump pytest-mypy from 1.0.1 to 1.1.0 in /backend ([#552](https://github.com/rosalindfranklininstitute/antigen-app/issues/552)) ([2b12361](https://github.com/rosalindfranklininstitute/antigen-app/commit/2b123614d408b6aa1e603b0001558eb7bdda0f76))
+* **deps-dev:** bump ruff from 0.16.8 to 0.17.3 in /backend ([#559](https://github.com/rosalindfranklininstitute/antigen-app/issues/559)) ([c26a5af](https://github.com/rosalindfranklininstitute/antigen-app/commit/c26a5af115f6d98449372627e6fd8ed5c0c2e67a))
+* **deps-dev:** bump vite from 8.3.4 to 8.3.5 in /frontend ([#549](https://github.com/rosalindfranklininstitute/antigen-app/issues/549)) ([9905b2a](https://github.com/rosalindfranklininstitute/antigen-app/commit/9905b2aa72c9ee86f4e62d4240d7a0ab14f27dce))
+* **deps:** bump boto3 from 1.43.114 to 1.43.118 in /backend ([#553](https://github.com/rosalindfranklininstitute/antigen-app/issues/553)) ([18ef178](https://github.com/rosalindfranklininstitute/antigen-app/commit/18ef178aee19a18a92b13efdb19b20eb675d6ba8))
+* **deps:** bump django-guardian from 3.5.1 to 3.5.2 in /backend ([#558](https://github.com/rosalindfranklininstitute/antigen-app/issues/558)) ([da15349](https://github.com/rosalindfranklininstitute/antigen-app/commit/da1534946a91861c41e1a3b1f8be30f716030d75))
+* **deps:** bump docker/login-action from 4.6.0 to 4.7.0 ([#550](https://github.com/rosalindfranklininstitute/antigen-app/issues/550)) ([3db6be6](https://github.com/rosalindfranklininstitute/antigen-app/commit/3db6be6fcaa73523d92ec630295ea032d94e8029))
+* **deps:** bump sentry-sdk from 2.71.0 to 2.73.0 in /backend ([#555](https://github.com/rosalindfranklininstitute/antigen-app/issues/555)) ([43aa095](https://github.com/rosalindfranklininstitute/antigen-app/commit/43aa0951697c687c844a6e90b630a2f8406f1e8e))
+* harden backend and frontend containers ([#560](https://github.com/rosalindfranklininstitute/antigen-app/issues/560)) ([b7acb78](https://github.com/rosalindfranklininstitute/antigen-app/commit/b7acb78915427d1b5c4d9dbc462fb739cd37c3b0))
+
 ## [0.4.5](https://github.com/rosalindfranklininstitute/antigen-app/compare/v0.4.4...v0.4.5) (2026-10-27)
 
 
