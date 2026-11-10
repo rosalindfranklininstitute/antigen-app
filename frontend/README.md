@@ -43,7 +43,7 @@ docker build --target prod --build-arg VITE_SENTRY_DSN=https://... -t antigenapp
 
 ### Runtime variables
 
-These are applied by `nginx-check-env.sh` at container start via `sed` on `index.html`.
+These are applied at container start: `nginx-check-env.sh` writes nginx `sub_filter` rules to `/tmp`, which rewrite `index.html` as it is served. The image runs as a non-root user and works with a read-only root filesystem, provided `/tmp` is writable.
 
 | Variable      | Description                                                                                                                                                      |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
