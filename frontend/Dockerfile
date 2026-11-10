@@ -19,9 +19,8 @@ ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 
 RUN npm run build
 
-FROM nginx:stable-alpine AS prod
+FROM nginxinc/nginx-unprivileged:stable-alpine AS prod
 
 COPY --from=build-stage /antigenapp/build/ /usr/share/nginx/html
-COPY nginx-check-env.sh /docker-entrypoint.d/nginx-check-env.sh
-RUN chmod 777 /docker-entrypoint.d/nginx-check-env.sh
+COPY --chmod=755 nginx-check-env.sh /docker-entrypoint.d/nginx-check-env.sh
 COPY nginx-prod.conf /etc/nginx/conf.d/default.conf
